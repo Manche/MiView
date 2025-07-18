@@ -18,12 +18,12 @@ namespace MiView
     public partial class MainForm : Form
     {
         /// <summary>
-        /// ƒ^ƒCƒ€ƒ‰ƒCƒ“ƒ}ƒl[ƒWƒƒ
+        /// ã‚¿ã‚¤ãƒ ãƒ©ã‚¤ãƒ³ç®¡ç†
         /// </summary>
         private TimeLineCreator _TimeLineManage = new TimeLineCreator();
 
         /// <summary>
-        /// ‚±‚ÌƒtƒH[ƒ€
+        /// ã“ã®ãƒ•ã‚©ãƒ¼ãƒ 
         /// </summary>
         private MainForm MainFormObj;
 
@@ -37,7 +37,7 @@ namespace MiView
 
             this.MainFormObj = this;
 
-            // ¡‚Ì‚Æ‚±‚ë’Ê’m‚ğ•\¦‚µ‚È‚¢‚æ‚¤‚É‚·‚é
+            // ã¨ã‚Šã‚ãˆãšé€šçŸ¥æ¬„ã‚’è¡¨ç¤ºã—ãªã„ã‚ˆã†ã«ã™ã‚‹
             this.pnSub.Visible = false;
             this.pnMain.Location = new Point(this.pnMain.Location.X, this.pnMain.Location.Y + this.pnSub.Size.Height);
             this.tabControl1.Size = new Size(this.tabControl1.Size.Width, this.tabControl1.Size.Height + this.pnSub.Size.Height);
@@ -60,28 +60,28 @@ namespace MiView
             var TLKind = WebSocketTimeLineCommon.ConnectTimeLineKind.None;
             switch (sTLKind)
             {
-                case "ƒz[ƒ€TL":
+                case "ãƒ›ãƒ¼ãƒ TL":
                     TLKind = WebSocketTimeLineCommon.ConnectTimeLineKind.Home;
                     break;
-                case "ƒ\[ƒVƒƒƒ‹TL":
+                case "ã‚½ãƒ¼ã‚·ãƒ£ãƒ«TL":
                     TLKind = WebSocketTimeLineCommon.ConnectTimeLineKind.Social;
                     break;
-                case "ƒ[ƒJƒ‹TL":
+                case "ãƒ­ãƒ¼ã‚«ãƒ«TL":
                     TLKind = WebSocketTimeLineCommon.ConnectTimeLineKind.Local;
                     break;
-                case "ƒOƒ[ƒoƒ‹TL":
+                case "ã‚°ãƒ­ãƒ¼ãƒãƒ«TL":
                     TLKind = WebSocketTimeLineCommon.ConnectTimeLineKind.Global;
                     break;
             }
 
-            // ƒ^ƒu’Ç‰Á
+            // ã‚¿ãƒ–è¿½åŠ 
             _TimeLineManage.CreateTimeLineTab(ref this.MainFormObj, InstanceURL, TabName);
             _TimeLineManage.CreateTimeLine(ref this.MainFormObj, InstanceURL, InstanceURL);
 
             var WSManager = WebSocketTimeLineCommon.CreateInstance(TLKind).OpenTimeLine(InstanceURL, APIKey);
             if (WSManager.GetSocketState() != System.Net.WebSockets.WebSocketState.Open)
             {
-                MessageBox.Show("ƒCƒ“ƒXƒ^ƒ“ƒX‚Ì“Ç‚İ‚İ‚É¸”s‚µ‚Ü‚µ‚½B");
+                MessageBox.Show("ã‚¤ãƒ³ã‚¹ã‚¿ãƒ³ã‚¹ã®èª­ã¿è¾¼ã¿ã«å¤±æ•—ã—ã¾ã—ãŸã€‚");
                 return;
             }
             WSManager.SetDataGridTimeLine(_TimeLineManage.GetTimeLineObjectDirect(ref this.MainFormObj, "Main"));
@@ -123,7 +123,7 @@ namespace MiView
                 this.Invoke(SetTimeLineContents, OriginalHost, Node);
             }
 
-            // •ÏŠ·
+            // å¤‰æ›
             TimeLineContainer TL = ChannelToTimeLineContainer.ConvertTimeLineContainer(OriginalHost, Node);
 
             this.pnMain.SuspendLayout();
@@ -133,7 +133,7 @@ namespace MiView
             this.lblSoftware.Text = string.Empty;
             this.lblUpdatedAt.Text = string.Empty;
 
-            // ƒ†[ƒUID/–¼
+            // ãƒ¦ãƒ¼ã‚¶ID/å
             string txtUserId = TL.USERID;
             string txtUserName = TL.USERNAME;
             string txtUserInstance = JsonConverterCommon.GetStr(ChannelToTimeLineData.Get(Node).Note.User.Host ?? OriginalHost);
@@ -144,12 +144,12 @@ namespace MiView
             string txtCW = JsonConverterCommon.GetStr(ChannelToTimeLineData.Get(Node).Note.CW);
             if (txtCW != string.Empty)
             {
-                this.txtDetail.Text += "yCWz";
+                this.txtDetail.Text += "ã€CWã€‘";
                 this.txtDetail.Text += txtCW + "\r\n";
                 this.txtDetail.Text += "\r\n";
             }
 
-            // –{•¶
+            // æœ¬æ–‡
             string txtDetail = JsonConverterCommon.GetStr(ChannelToTimeLineData.Get(Node).Note.Text);
             if (txtDetail != string.Empty)
             {
@@ -164,7 +164,7 @@ namespace MiView
                 }
                 if (JsonConverterCommon.GetStr(ChannelToTimeLineData.Get(Node).Note.Renote.CW) != string.Empty)
                 {
-                    this.txtDetail.Text += "yCWz";
+                    this.txtDetail.Text += "ã€CWã€‘";
                     this.txtDetail.Text += JsonConverterCommon.GetStr(ChannelToTimeLineData.Get(Node).Note.Renote.CW) + "\r\n";
                     this.txtDetail.Text += "\r\n";
                 }
@@ -181,7 +181,7 @@ namespace MiView
                 }
                 if (JsonConverterCommon.GetStr(ChannelToTimeLineData.Get(Node).Note.Reply.CW) != string.Empty)
                 {
-                    this.txtDetail.Text += "yCWz";
+                    this.txtDetail.Text += "ã€CWã€‘";
                     this.txtDetail.Text += JsonConverterCommon.GetStr(ChannelToTimeLineData.Get(Node).Note.Reply.CW) + "\r\n";
                     this.txtDetail.Text += "\r\n";
                 }

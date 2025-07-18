@@ -68,32 +68,31 @@ namespace MiView.Common.Connection.WebSocket
         }
         = false;
 
-        protected MainForm _MainForm
+        protected object? _MainForm
         {
             get; set;
         }
-        = new MainForm();
 
         /// <summary>
         /// 紐づいているタイムラインオブジェクト
         /// </summary>
-        protected DataGridTimeLine[]? _TimeLineObject
+        protected object[]? _TimeLineObject
         {
             get; set;
         }
-        = new DataGridTimeLine[0];
+        = new object[0];
 
         /// <summary>
         /// Set TimeLineControl
         /// </summary>
         /// <param name="timeLine"></param>
-        public void SetDataGridTimeLine(DataGridTimeLine timeLine)
+        public void SetDataGridTimeLine(object timeLine)
         {
             if (this._TimeLineObject == null)
             {
-                this._TimeLineObject = new DataGridTimeLine[0];
+                this._TimeLineObject = new object[0];
             }
-            this._TimeLineObject = this._TimeLineObject.Concat(new DataGridTimeLine[] { timeLine }).ToArray();
+            this._TimeLineObject = this._TimeLineObject.Concat(new object[] { timeLine }).ToArray();
         }
 
         /// <summary>

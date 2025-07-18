@@ -1,0 +1,232 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="MiView.MainWindow"
+        Title="MiView - MainForm"
+        Width="800"
+        Height="700">
+    
+    <DockPanel>
+        <!-- メニューバー -->
+        <Menu DockPanel.Dock="Top" Background="White" Height="25">
+            <MenuItem Header="ファイル(_F)">
+                <MenuItem Header="終了(_X)" />
+            </MenuItem>
+            <MenuItem Header="表示(_V)" />
+            <MenuItem Header="ヘルプ(_H)" />
+        </Menu>
+        
+        <!-- インスタンス選択とボタン -->
+        <Grid DockPanel.Dock="Top" Height="30" Background="White">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="110"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="320"/>
+            </Grid.ColumnDefinitions>
+            
+            <Button x:Name="cmdAddInstance" 
+                    Grid.Column="0"
+                    Content="インスタンス追加"
+                    Margin="5,3"
+                    Click="cmdAddInstance_Click"/>
+            
+            <ComboBox x:Name="cmbInstanceSelect" 
+                      Grid.Column="2"
+                      Margin="5,3"
+                      PlaceholderText="インスタンスを選択"/>
+        </Grid>
+        
+        <!-- ステータスバー -->
+        <Border DockPanel.Dock="Bottom" Background="#F0F0F0" BorderBrush="Gray" BorderThickness="0,1,0,0">
+            <Grid Height="25">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                
+                <TextBlock x:Name="tsLabelMain" 
+                           Grid.Column="0" 
+                           Text="タブ件数：" 
+                           Margin="5,0" 
+                           VerticalAlignment="Center"
+                           Foreground="Black"/>
+                
+                <TextBlock x:Name="tsLabelNoteCount" 
+                           Grid.Column="1" 
+                           Text="9999/9999" 
+                           Margin="5,0" 
+                           VerticalAlignment="Center"
+                           Foreground="Black"/>
+            </Grid>
+        </Border>
+        
+        
+        <!-- 投稿テキストボックス -->
+        <TextBox DockPanel.Dock="Bottom" 
+                 x:Name="textBox1"
+                 Height="60" 
+                 Margin="2"
+                 AcceptsReturn="True" 
+                 TextWrapping="Wrap"
+                 Background="White"
+                 Foreground="Black"/>
+        
+        <!-- サブタブ（通知・デバッグ） -->
+        <TabControl DockPanel.Dock="Bottom" Height="110" Margin="2" Background="White">
+            <TabItem Header="通知">
+                <ScrollViewer Background="White">
+                    <StackPanel Background="White" Margin="5">
+                        <TextBlock Text="通知はここに表示されます" 
+                                   Foreground="Gray" 
+                                   FontSize="12" 
+                                   HorizontalAlignment="Center" 
+                                   VerticalAlignment="Center"/>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+            <TabItem Header="デバッグ">
+                <ScrollViewer Background="White">
+                    <StackPanel Background="White" Margin="5">
+                        <TextBlock Text="デバッグ情報はここに表示されます" 
+                                   Foreground="Gray" 
+                                   FontSize="12" 
+                                   HorizontalAlignment="Center" 
+                                   VerticalAlignment="Center"/>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+        </TabControl>
+        
+        <!-- 詳細パネル -->
+        <Border DockPanel.Dock="Bottom" 
+                Height="175" 
+                Margin="2" 
+                Background="White"
+                BorderBrush="Gray" 
+                BorderThickness="1">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="110"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                
+                <!-- ユーザー情報 -->
+                <TextBlock x:Name="lblUser" 
+                           Grid.Column="1" 
+                           Grid.Row="0"
+                           FontWeight="Bold" 
+                           FontSize="12"
+                           Foreground="Black" 
+                           Margin="5,8,5,0"/>
+                
+                <TextBlock x:Name="lblUpdatedAt" 
+                           Grid.Column="1" 
+                           Grid.Row="0"
+                           FontSize="10" 
+                           Foreground="Gray" 
+                           Margin="5,8,5,0"
+                           HorizontalAlignment="Right"/>
+                
+                <!-- 詳細テキスト -->
+                <ScrollViewer Grid.Column="1" 
+                              Grid.Row="1" 
+                              Margin="5,8,5,5"
+                              Background="White">
+                    <TextBox x:Name="txtDetail" 
+                             IsReadOnly="True" 
+                             FontSize="10" 
+                             Background="White"
+                             Foreground="Black" 
+                             AcceptsReturn="True" 
+                             TextWrapping="Wrap"
+                             BorderThickness="0"/>
+                </ScrollViewer>
+                
+                <!-- 下部情報 -->
+                <StackPanel Grid.Column="1" 
+                            Grid.Row="2" 
+                            Orientation="Horizontal" 
+                            Margin="5,0,5,5">
+                    <TextBlock x:Name="lblTLFrom" 
+                               FontSize="10" 
+                               Foreground="Black" 
+                               Margin="0,0,20,0"/>
+                    
+                    <TextBlock x:Name="lblSoftware" 
+                               FontSize="10" 
+                               Foreground="Black"
+                               HorizontalAlignment="Right"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+        
+        <!-- メインタブコントロール -->
+        <TabControl x:Name="tbMain" 
+                    Margin="2" 
+                    TabStripPlacement="Bottom"
+                    Background="White">
+            <TabItem Header="統合TL">
+                <Grid Background="White">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+                    
+                    <!-- テーブルヘッダー -->
+                    <Grid Grid.Row="0" Background="#E0E0E0" Height="22">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="60"/>
+                            <ColumnDefinition Width="100"/>
+                            <ColumnDefinition Width="160"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="120"/>
+                        </Grid.ColumnDefinitions>
+                        
+                        <Border Grid.Column="0" BorderBrush="Gray" BorderThickness="0,0,1,0">
+                            <TextBlock Text="type" FontWeight="Bold" FontSize="11" 
+                                       VerticalAlignment="Center" HorizontalAlignment="Left" 
+                                       Margin="3,0" Foreground="Black"/>
+                        </Border>
+                        <Border Grid.Column="1" BorderBrush="Gray" BorderThickness="0,0,1,0">
+                            <TextBlock Text="channel" FontWeight="Bold" FontSize="11" 
+                                       VerticalAlignment="Center" HorizontalAlignment="Left" 
+                                       Margin="3,0" Foreground="Black"/>
+                        </Border>
+                        <Border Grid.Column="2" BorderBrush="Gray" BorderThickness="0,0,1,0">
+                            <TextBlock Text="timestamp" FontWeight="Bold" FontSize="11" 
+                                       VerticalAlignment="Center" HorizontalAlignment="Left" 
+                                       Margin="3,0" Foreground="Black"/>
+                        </Border>
+                        <Border Grid.Column="3" BorderBrush="Gray" BorderThickness="0,0,1,0">
+                            <TextBlock Text="content" FontWeight="Bold" FontSize="11" 
+                                       VerticalAlignment="Center" HorizontalAlignment="Left" 
+                                       Margin="3,0" Foreground="Black"/>
+                        </Border>
+                        <Border Grid.Column="4">
+                            <TextBlock Text="instance" FontWeight="Bold" FontSize="11" 
+                                       VerticalAlignment="Center" HorizontalAlignment="Left" 
+                                       Margin="3,0" Foreground="Black"/>
+                        </Border>
+                    </Grid>
+                    
+                    <!-- テーブルデータ -->
+                    <ScrollViewer Grid.Row="1" x:Name="timelineScrollViewer" Background="White">
+                        <StackPanel x:Name="timelineContainer" Background="White">
+                            <TextBlock Text="タイムラインを読み込み中..." 
+                                       HorizontalAlignment="Center" 
+                                       VerticalAlignment="Center" 
+                                       Foreground="Gray"
+                                       FontSize="12"
+                                       Margin="20"/>
+                        </StackPanel>
+                    </ScrollViewer>
+                </Grid>
+            </TabItem>
+        </TabControl>
+    </DockPanel>
+</Window>

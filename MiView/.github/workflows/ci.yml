@@ -1,0 +1,84 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, develop/*, feature/* ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    name: テスト実行
+    
+    steps:
+    - name: コードチェックアウト
+      uses: actions/checkout@v4
+      
+    - name: .NET 9.0 セットアップ
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '9.0.x'
+        
+    - name: 依存関係復元
+      run: dotnet restore MiView/MiView.sln
+      
+    - name: ビルド
+      run: dotnet build MiView/MiView.sln --no-restore --configuration Release
+      
+    - name: テスト実行
+      run: dotnet test MiView/MiView.sln --no-build --configuration Release --verbosity normal
+      
+    - name: テストカバレッジ生成
+      run: dotnet test MiView/MiView.sln --no-build --configuration Release --collect:"XPlat Code Coverage" --verbosity normal
+      
+    - name: カバレッジレポートアップロード
+      uses: codecov/codecov-action@v4
+      with:
+        files: '**/coverage.cobertura.xml'
+        fail_ci_if_error: false
+
+  build:
+    runs-on: ubuntu-latest
+    name: ビルド確認
+    needs: test
+    
+    steps:
+    - name: コードチェックアウト
+      uses: actions/checkout@v4
+      
+    - name: .NET 9.0 セットアップ
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '9.0.x'
+        
+    - name: 依存関係復元
+      run: dotnet restore MiView/MiView.sln
+      
+    - name: Release ビルド
+      run: dotnet build MiView/MiView.sln --no-restore --configuration Release
+      
+    - name: アーティファクト作成
+      run: dotnet publish MiView/MiView/MiView/MiView.csproj --no-build --configuration Release --output ./publish
+      
+    - name: ビルド成果物アップロード
+      uses: actions/upload-artifact@v4
+      with:
+        name: miview-build
+        path: ./publish/
+
+  lint:
+    runs-on: ubuntu-latest
+    name: コード品質チェック
+    
+    steps:
+    - name: コードチェックアウト
+      uses: actions/checkout@v4
+      
+    - name: .NET 9.0 セットアップ
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '9.0.x'
+        
+    - name: .NET Format チェック
+      run: dotnet format MiView/MiView.sln --verify-no-changes --verbosity diagnostic

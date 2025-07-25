@@ -1,0 +1,136 @@
+<Styles xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Style Selector="Button">
+        <Setter Property="Background" Value="{StaticResource ButtonBackgroundBrush}"/>
+        <Setter Property="Foreground" Value="{StaticResource ButtonForegroundBrush}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource ButtonBorderBrush}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="Padding" Value="8,4"/>
+        <Setter Property="FontSize" Value="12"/>
+        <Setter Property="FontFamily" Value="Segoe UI"/>
+        <Setter Property="Cursor" Value="Hand"/>
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Border Background="{TemplateBinding Background}"
+                        BorderBrush="{TemplateBinding BorderBrush}"
+                        BorderThickness="{TemplateBinding BorderThickness}"
+                        CornerRadius="0">
+                    <ContentPresenter Content="{TemplateBinding Content}"
+                                    ContentTemplate="{TemplateBinding ContentTemplate}"
+                                    HorizontalAlignment="{TemplateBinding HorizontalAlignment}"
+                                    VerticalAlignment="{TemplateBinding VerticalAlignment}"
+                                    Margin="{TemplateBinding Padding}"/>
+                </Border>
+            </ControlTemplate>
+        </Setter>
+        <Style Selector="^:pointerover">
+            <Setter Property="Background" Value="{StaticResource ButtonHoverBackgroundBrush}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource ButtonHoverBorderBrush}"/>
+        </Style>
+        <Style Selector="^:pressed">
+            <Setter Property="Background" Value="{StaticResource ButtonPressedBackgroundBrush}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource ButtonPressedBorderBrush}"/>
+        </Style>
+        <Style Selector="^:disabled">
+            <Setter Property="Background" Value="{StaticResource ButtonDisabledBackgroundBrush}"/>
+            <Setter Property="Foreground" Value="{StaticResource ButtonDisabledForegroundBrush}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource ButtonDisabledBorderBrush}"/>
+        </Style>
+    </Style>
+    <Style Selector="TextBox">
+        <Setter Property="Background" Value="{StaticResource TextBoxBackgroundBrush}"/>
+        <Setter Property="Foreground" Value="{StaticResource TextBoxForegroundBrush}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource TextBoxBorderBrush}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="Padding" Value="4,2"/>
+        <Setter Property="FontSize" Value="12"/>
+        <Setter Property="FontFamily" Value="Segoe UI"/>
+        <Setter Property="SelectionBrush" Value="{StaticResource TextBoxSelectionBrush}"/>
+        <Setter Property="SelectionForegroundBrush" Value="{StaticResource TextBoxSelectionForegroundBrush}"/>
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Border Background="{TemplateBinding Background}"
+                        BorderBrush="{TemplateBinding BorderBrush}"
+                        BorderThickness="{TemplateBinding BorderThickness}"
+                        CornerRadius="0">
+                    <ScrollViewer Name="PART_ContentHost"
+                                 Margin="{TemplateBinding Padding}"
+                                 VerticalAlignment="Center"
+                                 HorizontalScrollBarVisibility="Hidden"
+                                 VerticalScrollBarVisibility="Hidden">
+                        <TextPresenter Name="PART_TextPresenter"
+                                     Text="{TemplateBinding Text}"
+                                     TextWrapping="{TemplateBinding TextWrapping}"
+                                     Background="Transparent"
+                                     CaretBrush="{TemplateBinding CaretBrush}"
+                                     SelectionBrush="{TemplateBinding SelectionBrush}"
+                                     SelectionForegroundBrush="{TemplateBinding SelectionForegroundBrush}"
+                                     PasswordChar="{TemplateBinding PasswordChar}"
+                                     RevealPassword="{TemplateBinding RevealPassword}"/>
+                    </ScrollViewer>
+                </Border>
+            </ControlTemplate>
+        </Setter>
+        <Style Selector="^:focus">
+            <Setter Property="BorderBrush" Value="{StaticResource TextBoxFocusBorderBrush}"/>
+        </Style>
+    </Style>
+    <Style Selector="TextBlock">
+        <Setter Property="Foreground" Value="{StaticResource LabelForegroundBrush}"/>
+        <Setter Property="FontSize" Value="12"/>
+        <Setter Property="FontFamily" Value="Segoe UI"/>
+    </Style>
+    <Style Selector="ComboBox">
+        <Setter Property="Background" Value="{StaticResource ComboBoxBackgroundBrush}"/>
+        <Setter Property="Foreground" Value="{StaticResource ComboBoxForegroundBrush}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource ComboBoxBorderBrush}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="Padding" Value="4,2"/>
+        <Setter Property="FontSize" Value="12"/>
+        <Setter Property="FontFamily" Value="Segoe UI"/>
+    </Style>
+    <Style Selector="ListBox">
+        <Setter Property="Background" Value="{StaticResource ListBoxBackgroundBrush}"/>
+        <Setter Property="Foreground" Value="{StaticResource ListBoxForegroundBrush}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource ListBoxBorderBrush}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="FontSize" Value="12"/>
+        <Setter Property="FontFamily" Value="Segoe UI"/>
+    </Style>
+    <Style Selector="TabControl">
+        <Setter Property="Background" Value="{StaticResource TabControlBackgroundBrush}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource TabControlBorderBrush}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+    </Style>
+    <Style Selector="TabItem">
+        <Setter Property="Background" Value="{StaticResource TabItemBackgroundBrush}"/>
+        <Setter Property="Foreground" Value="{StaticResource TabItemForegroundBrush}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource TabItemBorderBrush}"/>
+        <Setter Property="BorderThickness" Value="1,1,1,0"/>
+        <Setter Property="Padding" Value="8,4"/>
+        <Setter Property="FontSize" Value="12"/>
+        <Setter Property="FontFamily" Value="Segoe UI"/>
+        <Style Selector="^:selected">
+            <Setter Property="Background" Value="{StaticResource TabItemSelectedBackgroundBrush}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource TabItemSelectedBorderBrush}"/>
+        </Style>
+        <Style Selector="^:pointerover">
+            <Setter Property="Background" Value="{StaticResource TabItemHoverBackgroundBrush}"/>
+        </Style>
+    </Style>
+    <Style Selector="Menu">
+        <Setter Property="Background" Value="{StaticResource MenuBackgroundBrush}"/>
+        <Setter Property="Foreground" Value="{StaticResource MenuForegroundBrush}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource MenuBorderBrush}"/>
+        <Setter Property="BorderThickness" Value="0,0,0,1"/>
+    </Style>
+    <Style Selector="MenuItem">
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="Foreground" Value="{StaticResource MenuItemForegroundBrush}"/>
+        <Setter Property="Padding" Value="8,4"/>
+        <Setter Property="FontSize" Value="12"/>
+        <Setter Property="FontFamily" Value="Segoe UI"/>
+        <Style Selector="^:pointerover">
+            <Setter Property="Background" Value="{StaticResource MenuItemHoverBackgroundBrush}"/>
+        </Style>
+    </Style>
+</Styles>

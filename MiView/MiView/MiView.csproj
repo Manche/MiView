@@ -1,55 +1,45 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <OutputType>WinExe</OutputType>
-    <TargetFramework>net8.0-windows</TargetFramework>
-    <Nullable>enable</Nullable>
-    <UseWindowsForms>true</UseWindowsForms>
+    <TargetFrameworks>net9.0</TargetFrameworks>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>MiView</RootNamespace>
     <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <!-- Linux用（開発環境） -->
+    <RuntimeIdentifier>linux-x64</RuntimeIdentifier>
+
+    <!-- Application Info -->
+    <ApplicationDisplayVersion>1.0</ApplicationDisplayVersion>
+    <ApplicationVersion>1</ApplicationVersion>
+    <ApplicationTitle>MiView</ApplicationTitle>
+    <ApplicationId>com.miview.app</ApplicationId>
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="Common\Fonts\Material\MaterialIcons-Regular.ttf" />
+    <PackageReference Include="Avalonia" Version="11.0.7" />
+    <PackageReference Include="Avalonia.Desktop" Version="11.0.7" />
+    <PackageReference Include="Avalonia.Themes.Fluent" Version="11.0.7" />
+    <PackageReference Include="Avalonia.Fonts.Inter" Version="11.0.7" />
   </ItemGroup>
 
   <ItemGroup>
-    <EmbeddedResource Include="Common\Fonts\Material\MaterialIcons-Regular.ttf">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </EmbeddedResource>
+    <!-- 除外設定を削除 -->
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Update="Properties\Resources.Designer.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>Resources.resx</DependentUpon>
-    </Compile>
-    <Compile Update="Properties\Settings.Designer.cs">
-      <DesignTimeSharedInput>True</DesignTimeSharedInput>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>Settings.settings</DependentUpon>
-    </Compile>
+    <Page Include="ScreenForms/PlainForm/MenuBarControl.axaml" />
+    <Page Include="ScreenForms/PlainForm/InstanceSelectorControl.axaml" />
+    <Page Include="ScreenForms/PlainForm/StatusBarControl.axaml" />
+    <Page Include="ScreenForms/PlainForm/DetailPanelControl.axaml" />
+    <Page Include="ScreenForms/PlainForm/TimelineControl.axaml" />
   </ItemGroup>
 
   <ItemGroup>
-    <EmbeddedResource Update="Properties\Resources.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
-    </EmbeddedResource>
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Update="Properties\Settings.settings">
-      <Generator>SettingsSingleFileGenerator</Generator>
-      <LastGenOutput>Settings.Designer.cs</LastGenOutput>
-    </None>
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Common\Connection\REST\Misskey\v2025\API\" />
-    <Folder Include="Common\Notification\Toast\" />
-    <Folder Include="ScreenForms\Controls\" />
+    <AvaloniaResource Include="Common\Fonts\Material\MaterialIcons-Regular.ttf" />
+    <AvaloniaResource Include="Resources/Styles/Colors.xaml" />
+    <AvaloniaResource Include="Resources/Styles/Styles.xaml" />
   </ItemGroup>
 
 </Project>

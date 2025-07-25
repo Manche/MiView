@@ -1,0 +1,16 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="MiView.ScreenForms.PlainForm.StatusBarControl">
+    <Border Background="#F0F0F0" BorderBrush="#8C8C8C" BorderThickness="0,1,0,0">
+        <Grid Height="25">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <TextBlock x:Name="tsLabelMain" Grid.Column="0" Text="" Margin="5,0" VerticalAlignment="Center" Foreground="#000000" Background="Transparent" />
+            <TextBlock x:Name="tsLabelMemoryInfo" Grid.Column="1" Text="キャッシュ: 0件" Margin="10,0,5,0" VerticalAlignment="Center" Foreground="#666666" Background="Transparent" FontSize="11" />
+            <TextBlock x:Name="tsLabelMemoryUsage" Grid.Column="2" Text="メモリ: 0MB" Margin="5,0" VerticalAlignment="Center" Foreground="#666666" Background="Transparent" FontSize="11" />
+        </Grid>
+    </Border>
+</UserControl> 

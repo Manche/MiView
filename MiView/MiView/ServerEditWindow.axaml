@@ -1,0 +1,50 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="MiView.ServerEditWindow"
+        Title="サーバー編集"
+        Width="400"
+        Height="250"
+        WindowStartupLocation="CenterOwner"
+        Background="#F0F0F0">
+    <Window.Styles>
+        <Style Selector="TextBox">
+            <Setter Property="SelectionBrush" Value="#86b300" />
+            <Setter Property="SelectionForegroundBrush" Value="White" />
+        </Style>
+    </Window.Styles>
+    
+    <Grid Margin="20" Background="Transparent">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        
+        <!-- インスタンス名 -->
+        <TextBlock Grid.Row="0" Text="インスタンス名:" Margin="0,0,0,5" Foreground="#000000" Background="Transparent"/>
+        <TextBox Grid.Row="1" x:Name="instanceNameTextBox" Margin="0,0,0,15" 
+                 Background="#FFFFFF" Foreground="#000000" BorderBrush="#8C8C8C" BorderThickness="1"/>
+        
+        <!-- APIキー -->
+        <TextBlock Grid.Row="2" Text="APIキー:" Margin="0,0,0,5" Foreground="#000000" Background="Transparent"/>
+        <TextBox Grid.Row="3" x:Name="apiKeyTextBox" Margin="0,0,0,15"
+                 Background="#FFFFFF" Foreground="#000000" BorderBrush="#8C8C8C" BorderThickness="1"/>
+        
+        <!-- 説明 -->
+        <TextBlock Grid.Row="4" Text="※ APIキーは任意です。公開投稿の閲覧のみの場合は空でも構いません。" 
+                   FontSize="10" Foreground="#666666" TextWrapping="Wrap" Margin="0,0,0,15"/>
+        
+        <!-- ボタン -->
+        <StackPanel Grid.Row="5" Orientation="Horizontal" HorizontalAlignment="Right">
+            <Button Content="OK" Margin="0,0,10,0" Padding="20,5"
+                    Background="#FFFFFF" Foreground="#000000" BorderBrush="#8C8C8C" BorderThickness="1"
+                    Click="OkButton_Click"/>
+            <Button Content="キャンセル" Padding="20,5"
+                    Background="#FFFFFF" Foreground="#000000" BorderBrush="#8C8C8C" BorderThickness="1"
+                    Click="CancelButton_Click"/>
+        </StackPanel>
+    </Grid>
+</Window>

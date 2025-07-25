@@ -1,0 +1,18 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="MiView.ScreenForms.PlainForm.MenuBarControl">
+    <UserControl.Styles>
+        <Style Selector="MenuItem:pointerover">
+            <Setter Property="Background" Value="{StaticResource MenuItemHoverBackgroundBrush}" />
+        </Style>
+    </UserControl.Styles>
+    <Menu x:Name="MainMenu" Background="{StaticResource MenuBackgroundBrush}" BorderBrush="{StaticResource MenuBorderBrush}" BorderThickness="0,0,0,1" Height="25">
+        <MenuItem Header="ファイル(_F)" Background="{StaticResource MenuBackgroundBrush}" Foreground="{StaticResource MenuForegroundBrush}">
+            <MenuItem Header="終了(_X)" Background="{StaticResource MenuBackgroundBrush}" Foreground="{StaticResource MenuForegroundBrush}" Click="OnExitClick" />
+        </MenuItem>
+        <MenuItem Header="サーバー(_S)" Background="{StaticResource MenuBackgroundBrush}" Foreground="{StaticResource MenuForegroundBrush}">
+            <MenuItem Header="サーバー管理(_M)" Background="{StaticResource MenuBackgroundBrush}" Foreground="{StaticResource MenuForegroundBrush}" Click="OnServerManagementClick" />
+            <MenuItem Header="サーバー追加(_A)" Background="{StaticResource MenuBackgroundBrush}" Foreground="{StaticResource MenuForegroundBrush}" Click="OnServerAddClick" />
+        </MenuItem>
+    </Menu>
+</UserControl> 

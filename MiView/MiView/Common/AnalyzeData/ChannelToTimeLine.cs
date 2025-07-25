@@ -56,15 +56,7 @@ namespace MiView.Common.AnalyzeData
                                    JsonConverterCommon.GetStr(ChannelToTimeLineData.Get(Input).Note.User.Name) +
                                    JsonConverterCommon.GetStr(ChannelToTimeLineData.Get(Input).Note.CreatedAt);
             Container.PROTECTED = StringToProtectedStatus(Protected);
-            try
-            {
-                Container.ISLOCAL = bool.Parse(JsonConverterCommon.GetStr(ChannelToTimeLineData.Get(Input).Note.LocalOnly));
-            }
-            catch (Exception)
-            {
-                // 取ってこれない時がある
-                Container.ISLOCAL = false;
-            }
+            Container.ISLOCAL = bool.TryParse(JsonConverterCommon.GetStr(ChannelToTimeLineData.Get(Input).Note.LocalOnly), out bool isLocal) && isLocal;
             Container.RENOTED = JsonConverterCommon.GetStr(ChannelToTimeLineData.Get(Input).Note.RenoteId) != string.Empty;
             Container.REPLAYED = JsonConverterCommon.GetStr(ChannelToTimeLineData.Get(Input).Note.ReplyId) != string.Empty;
             // Container.CW = JsonConverterCommon.GetStr(ChannelToTimeLineData.Note(Input).CW) != string.Empty;
@@ -82,6 +74,7 @@ namespace MiView.Common.AnalyzeData
                                  JsonConverterCommon.GetStr(ChannelToTimeLineData.Get(Input).Note.User.Instance.SoftwareName) +
                                  JsonConverterCommon.GetStr(ChannelToTimeLineData.Get(Input).Note.User.Instance.SoftwareVersion);
             Container.TLFROM = OriginalHost;
+            Container.SOURCE = OriginalHost; // SOURCEフィールドにサーバー名を設定
             Container.ORIGINAL = Input;
             Container.ORIGINAL_HOST = OriginalHost;
 
@@ -109,12 +102,22 @@ namespace MiView.Common.AnalyzeData
             string ReNoteSourceUser = JsonConverterCommon.GetStr(ChannelToTimeLineData.Get(Input).Note.Renote.User.UserName);
             string ReNoteSourceUserName = JsonConverterCommon.GetStr(ChannelToTimeLineData.Get(Input).Note.Renote.User.Name);
 
+            // CWプレフィックスを追加
+            string cwPrefix = !string.IsNullOrEmpty(CW) ? "CW: " : "";
+            string reNoteCwPrefix = !string.IsNullOrEmpty(ReNoteCW) ? "CW: " : "";
+
             // Renoteのみ
             if (Container.RENOTED && NoteText == string.Empty)
             {
                 if (Container.CW)
                 {
-                    Container.DETAIL = _RenoteSign + ReNoteSourceUser + "/" + ReNoteSourceUserName + " " + CW;
+                    // CWの後に本文も表示
+                    string detail = _RenoteSign + ReNoteSourceUser + "/" + ReNoteSourceUserName + " " + cwPrefix + CW;
+                    if (!string.IsNullOrEmpty(ReNoteText))
+                    {
+                        detail += "\n" + ReNoteText;
+                    }
+                    Container.DETAIL = detail;
                 }
                 else
                 {
@@ -127,7 +130,26 @@ namespace MiView.Common.AnalyzeData
             {
                 if (Container.CW)
                 {
-                    Container.DETAIL = CW + _RenoteSign + ReNoteSourceUser + "/" + ReNoteSourceUserName + " " + ReNoteCW;
+                    // CWの後に本文も表示
+                    string detail = cwPrefix + CW;
+                    if (!string.IsNullOrEmpty(NoteText))
+                    {
+                        detail += "\n" + NoteText;
+                    }
+                    detail += _RenoteSign + ReNoteSourceUser + "/" + ReNoteSourceUserName + " ";
+                    if (!string.IsNullOrEmpty(ReNoteCW))
+                    {
+                        detail += reNoteCwPrefix + ReNoteCW;
+                        if (!string.IsNullOrEmpty(ReNoteText))
+                        {
+                            detail += "\n" + ReNoteText;
+                        }
+                    }
+                    else
+                    {
+                        detail += ReNoteText;
+                    }
+                    Container.DETAIL = detail;
                 }
                 else
                 {
@@ -138,7 +160,13 @@ namespace MiView.Common.AnalyzeData
 
             if (Container.CW)
             {
-                Container.DETAIL = CW;
+                // CWの後に本文も表示
+                string detail = cwPrefix + CW;
+                if (!string.IsNullOrEmpty(NoteText))
+                {
+                    detail += "\n" + NoteText;
+                }
+                Container.DETAIL = detail;
             }
             else
             {

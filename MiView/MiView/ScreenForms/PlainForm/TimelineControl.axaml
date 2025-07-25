@@ -1,0 +1,71 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="MiView.ScreenForms.PlainForm.TimelineControl">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        <Border Grid.Row="0" Background="{StaticResource ListBoxBackgroundBrush}" BorderBrush="{StaticResource ListBoxBorderBrush}" BorderThickness="1,1,1,0">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+                <Grid Grid.Row="0" Background="{StaticResource TabControlBackgroundBrush}" Height="20">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="20"/>
+                        <ColumnDefinition Width="20"/>
+                        <ColumnDefinition Width="80"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="150"/>
+                        <ColumnDefinition Width="120"/>
+                    </Grid.ColumnDefinitions>
+                    <Border Grid.Column="0" BorderBrush="{StaticResource TabControlBorderBrush}" BorderThickness="0,0,1,0" Background="{StaticResource TabControlBackgroundBrush}" />
+                    <Border Grid.Column="1" BorderBrush="{StaticResource TabControlBorderBrush}" BorderThickness="0,0,1,0" Background="{StaticResource TabControlBackgroundBrush}" />
+                    <Border Grid.Column="2" BorderBrush="{StaticResource TabControlBorderBrush}" BorderThickness="0,0,1,0" Background="{StaticResource TabControlBackgroundBrush}" />
+                    <Border Grid.Column="3" BorderBrush="{StaticResource TabControlBorderBrush}" BorderThickness="0,0,1,0" Background="{StaticResource TabControlBackgroundBrush}" />
+                    <Border Grid.Column="4" BorderBrush="{StaticResource TabControlBorderBrush}" BorderThickness="0,0,1,0" Background="{StaticResource TabControlBackgroundBrush}" />
+                    <Border Grid.Column="5" Background="{StaticResource TabControlBackgroundBrush}" />
+                </Grid>
+                <ScrollViewer Grid.Row="1" x:Name="timelineScrollViewer" Background="#FFFFFF" Padding="0"
+                              ScrollChanged="OnTimelineScrollChanged">
+                    <StackPanel x:Name="timelineContainer" Background="#FFFFFF">
+                        <TextBlock Text="タイムラインを読み込み中..." HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="#8C8C8C" FontSize="12" Margin="20" Background="#FFFFFF" />
+                    </StackPanel>
+                </ScrollViewer>
+            </Grid>
+        </Border>
+        <Border x:Name="tabBorder" Grid.Row="1" Background="#F0F0F0" BorderBrush="#8C8C8C" BorderThickness="1,1,1,1">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                
+                <!-- タブスクロールエリア -->
+                <ScrollViewer Grid.Column="0" x:Name="tabScrollViewer" 
+                              HorizontalScrollBarVisibility="Auto" 
+                              VerticalScrollBarVisibility="Hidden"
+                              Background="#F0F0F0">
+                    <StackPanel x:Name="tabContainer" Orientation="Horizontal" Height="22" Background="#F0F0F0">
+                        <Border x:Name="tabMain" Background="#FFFFFF" BorderBrush="#8C8C8C" BorderThickness="1,0,1,1" Padding="8,2">
+                            <TextBlock Text="統合TL" FontSize="11" Foreground="#000000" VerticalAlignment="Center" Background="#FFFFFF" />
+                        </Border>
+                        <Border Background="#F0F0F0" Width="2" />
+                    </StackPanel>
+                </ScrollViewer>
+                
+                <!-- スクロールボタン -->
+                <StackPanel Grid.Column="1" Orientation="Horizontal" Background="#F0F0F0">
+                    <Button x:Name="scrollLeftButton" Content="◀" Width="20" Height="22" 
+                            Background="#F0F0F0" BorderBrush="#8C8C8C" BorderThickness="0,0,1,0"
+                            FontSize="10" Padding="0" Click="ScrollLeft_Click"/>
+                    <Button x:Name="scrollRightButton" Content="▶" Width="20" Height="22" 
+                            Background="#F0F0F0" BorderBrush="#8C8C8C" BorderThickness="0,0,0,0"
+                            FontSize="10" Padding="0" Click="ScrollRight_Click"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+    </Grid>
+</UserControl> 

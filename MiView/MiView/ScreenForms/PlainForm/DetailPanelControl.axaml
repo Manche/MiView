@@ -1,0 +1,35 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="MiView.ScreenForms.PlainForm.DetailPanelControl">
+    <UserControl.Styles>
+        <Style Selector="TextBox:focused">
+            <Setter Property="BorderBrush" Value="#3399FF" />
+        </Style>
+        <Style Selector="TextBox">
+            <Setter Property="SelectionBrush" Value="#86b300" />
+            <Setter Property="SelectionForegroundBrush" Value="White" />
+        </Style>
+    </UserControl.Styles>
+    <Border Height="175" Margin="2" Background="#FFFFFF" BorderBrush="#8C8C8C" BorderThickness="1">
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="110"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+            <TextBlock x:Name="lblUser" Grid.Column="1" Grid.Row="0" FontWeight="Bold" FontSize="12" Foreground="#000000" Margin="5,8,5,0" Background="#FFFFFF" />
+            <TextBlock x:Name="lblUpdatedAt" Grid.Column="1" Grid.Row="0" FontSize="10" Foreground="#8C8C8C" Margin="5,8,5,0" HorizontalAlignment="Right" Background="#FFFFFF" />
+            <ScrollViewer Grid.Column="1" Grid.Row="1" Margin="5,8,5,5" Background="#FFFFFF">
+                <TextBox x:Name="txtDetail" IsReadOnly="True" FontSize="10" Background="#FFFFFF" Foreground="#000000" AcceptsReturn="True" TextWrapping="Wrap" BorderThickness="0" />
+            </ScrollViewer>
+            <StackPanel Grid.Column="1" Grid.Row="2" Orientation="Horizontal" Margin="5,0,5,5" Background="#FFFFFF">
+                <TextBlock x:Name="lblTLFrom" FontSize="10" Foreground="#000000" Margin="0,0,20,0" Background="#FFFFFF" />
+                <TextBlock x:Name="lblSoftware" FontSize="10" Foreground="#000000" HorizontalAlignment="Right" Background="#FFFFFF" />
+            </StackPanel>
+        </Grid>
+    </Border>
+</UserControl> 

@@ -1,0 +1,39 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:pf="clr-namespace:MiView.ScreenForms.PlainForm"
+        x:Class="MiView.MainWindow"
+        Title="MiView - MainForm"
+        Width="800"
+        Height="700"
+        Background="{StaticResource TabControlBackgroundBrush}"
+        WindowStartupLocation="CenterScreen">
+    <Window.Styles>
+        <Style Selector="TextBox">
+            <Setter Property="SelectionBrush" Value="{StaticResource TextBoxSelectionBrush}" />
+            <Setter Property="SelectionForegroundBrush" Value="{StaticResource TextBoxSelectionForegroundBrush}" />
+        </Style>
+    </Window.Styles>
+    <DockPanel Background="Transparent">
+        <!-- メニューバー -->
+        <pf:MenuBarControl x:Name="menuBarControl" DockPanel.Dock="Top" />
+        <!-- インスタンス選択とボタン -->
+        <pf:InstanceSelectorControl x:Name="instanceSelectorControl" DockPanel.Dock="Top" />
+        <!-- ステータスバー -->
+        <pf:StatusBarControl x:Name="statusBarControl" DockPanel.Dock="Bottom" />
+        <!-- 投稿テキストボックス -->
+        <TextBox DockPanel.Dock="Bottom"
+                 x:Name="textBox1"
+                 Height="60"
+                 Margin="2"
+                 AcceptsReturn="True"
+                 TextWrapping="Wrap"
+                 Background="{StaticResource TextBoxBackgroundBrush}"
+                 Foreground="{StaticResource TextBoxForegroundBrush}"
+                 BorderBrush="{StaticResource TextBoxBorderBrush}"
+                 BorderThickness="1"/>
+        <!-- 詳細パネル -->
+        <pf:DetailPanelControl x:Name="detailPanelControl" DockPanel.Dock="Bottom" />
+        <!-- メインタブコントロール（タイムライン＋タブ） -->
+        <pf:TimelineControl x:Name="timelineControl" />
+    </DockPanel>
+</Window>

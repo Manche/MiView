@@ -1,0 +1,78 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="MiView.ScreenForms.PlainForm.InstanceSelectorControl">
+    <UserControl.Styles>
+        <Style Selector="Button:pointerover">
+            <Setter Property="Background" Value="{StaticResource ButtonHoverBackgroundBrush}" />
+        </Style>
+        <Style Selector="Button:focused">
+            <Setter Property="BorderBrush" Value="{StaticResource TextBoxFocusBorderBrush}" />
+        </Style>
+        <Style Selector="ComboBox:pointerover">
+            <Setter Property="Background" Value="{StaticResource ButtonHoverBackgroundBrush}" />
+        </Style>
+        <Style Selector="ComboBox:focused">
+            <Setter Property="BorderBrush" Value="{StaticResource TextBoxFocusBorderBrush}" />
+        </Style>
+        <Style Selector="TextBox">
+            <Setter Property="SelectionBrush" Value="{StaticResource TextBoxSelectionBrush}" />
+            <Setter Property="SelectionForegroundBrush" Value="{StaticResource TextBoxSelectionForegroundBrush}" />
+        </Style>
+        <Style Selector="Button#cmdConnect">
+            <!-- TextTrimmingとTextWrappingはButtonには適用できないため削除 -->
+        </Style>
+        <Style Selector="Button.server-tab">
+            <Setter Property="Background" Value="{StaticResource TabItemBackgroundBrush}" />
+            <Setter Property="BorderBrush" Value="{StaticResource TabItemBorderBrush}" />
+            <Setter Property="BorderThickness" Value="1,1,1,0" />
+            <Setter Property="Margin" Value="2,0" />
+            <Setter Property="Padding" Value="10,5" />
+            <Setter Property="MinWidth" Value="80" />
+        </Style>
+        <Style Selector="Button.server-tab:pointerover">
+            <Setter Property="Background" Value="{StaticResource TabItemHoverBackgroundBrush}" />
+        </Style>
+        <Style Selector="Button.server-tab.selected">
+            <Setter Property="Background" Value="{StaticResource TabItemSelectedBackgroundBrush}" />
+            <Setter Property="Foreground" Value="{StaticResource TabItemForegroundBrush}" />
+        </Style>
+        <Style Selector="Button.scroll-button">
+            <Setter Property="Background" Value="{StaticResource ButtonBackgroundBrush}" />
+            <Setter Property="BorderBrush" Value="{StaticResource ButtonBorderBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="Width" Value="20" />
+            <Setter Property="Height" Value="20" />
+            <Setter Property="FontSize" Value="12" />
+        </Style>
+        <Style Selector="Button.scroll-button:pointerover">
+            <Setter Property="Background" Value="{StaticResource ButtonHoverBackgroundBrush}" />
+        </Style>
+    </UserControl.Styles>
+    <Border Height="30" Background="{StaticResource TabControlBackgroundBrush}" BorderBrush="{StaticResource TabControlBorderBrush}" BorderThickness="0,0,0,1">
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            
+            <!-- 左スクロールボタン -->
+            <Button x:Name="btnScrollLeft" Grid.Column="0" Content="‹" 
+                    Classes="scroll-button" Margin="2,3,0,3" Click="OnScrollLeftClick" />
+            
+            <!-- サーバータブ -->
+            <ScrollViewer x:Name="scrollViewer" Grid.Column="1" HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Hidden">
+                <StackPanel x:Name="serverTabsPanel" Orientation="Horizontal" />
+            </ScrollViewer>
+            
+            <!-- 右スクロールボタン -->
+            <Button x:Name="btnScrollRight" Grid.Column="2" Content="›" 
+                    Classes="scroll-button" Margin="0,3,2,3" Click="OnScrollRightClick" />
+            
+            <!-- 接続ボタン -->
+            <Button x:Name="cmdConnect" Grid.Column="3" Content="接続" Margin="5,3,5,3" MinWidth="80" MaxWidth="150" 
+                    Background="{StaticResource ButtonBackgroundBrush}" BorderBrush="{StaticResource ButtonBorderBrush}" BorderThickness="1" Foreground="{StaticResource ButtonForegroundBrush}" Click="OnConnectButtonClick" />
+        </Grid>
+    </Border>
+</UserControl> 

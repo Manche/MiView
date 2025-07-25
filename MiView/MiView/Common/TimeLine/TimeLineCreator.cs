@@ -1,10 +1,10 @@
-﻿using MiView.Common.AnalyzeData;
-using MiView.Common.Fonts;
-using MiView.Common.Fonts.Material;
+using MiView.Common.AnalyzeData;
+// using MiView.Common.Fonts;
+// using MiView.Common.Fonts.Material;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.DirectoryServices.ActiveDirectory;
+// using System.DirectoryServices.ActiveDirectory;
 using System.Linq;
 using System.Text;
 using System.Text.Json.Nodes;
@@ -144,18 +144,25 @@ namespace MiView.Common.TimeLine
         };
 
         public List<TimeLineContainer> TimeLineData = new List<TimeLineContainer>();
+        
+        // **MEMORY LEAK FIX: Add size limits for timeline data**
+        private const int MAX_TIMELINE_DATA_ITEMS = 1000; // 最大1000件に制限
+        private const int CLEANUP_BATCH_SIZE = 100; // 制限超過時に削除する件数
 
-        private MainForm? _MainForm { get; set; }
-
+        // Windows Forms依存のコードをコメントアウト
+        // private MainForm? _MainForm { get; set; }
+        
         /// <summary>
         /// タイムライン管理オブジェクト
         /// </summary>
-        private Dictionary<string, DataGridTimeLine> Grids = new Dictionary<string, DataGridTimeLine>();
+        // private Dictionary<string, DataGridTimeLine> Grids = new Dictionary<string, DataGridTimeLine>();
 
         public TimeLineCreator()
         {
         }
 
+        // Windows Forms依存のメソッドをコメントアウト
+        /*
         /// <summary>
         /// フォームオブジェクトの取得
         /// </summary>
@@ -178,351 +185,44 @@ namespace MiView.Common.TimeLine
         /// <param name="MainForm"></param>
         public void CreateTimeLine(ref MainForm MainForm, string Definition, string? ChildDefinition = null)
         {
-            // コントロールがあるか検索
-            var tpObj = GetControlFromMainForm(ref MainForm, ChildDefinition);
-            if (tpObj != null)
-            {
-                this._MainForm = MainForm;
-
-                System.Diagnostics.Debug.WriteLine("hoge");
-                DataGridTimeLine Grid = new DataGridTimeLine();
-                ((System.ComponentModel.ISupportInitialize)Grid).BeginInit();
-
-                // 
-                // Grid
-                // 
-                Grid.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
-                Grid.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-                Grid.Location = new Point(3, 3);
-                Grid.Name = "dataGridTimeLine1";
-                Grid.Size = new Size(770, 299);
-                Grid.TabIndex = 0;
-                Grid.RowHeadersVisible = false;
-#if !DEBUG
-                            Grid.ColumnHeadersVisible = false;
-#endif
-                Grid.CellBorderStyle = DataGridViewCellBorderStyle.None;
-                Grid.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
-                Grid.AllowUserToAddRows = false;
-                Grid.AllowUserToDeleteRows = false;
-                Grid.AllowUserToResizeColumns = false;
-                Grid.AllowUserToResizeRows = false;
-                Grid.ReadOnly = true;
-
-                ((System.ComponentModel.ISupportInitialize)Grid).EndInit();
-
-                this.AddDbg(Grid);
-
-                Grid.CurrentCellChanged += CurrentGridCellChanged;
-
-                if (tpObj.InvokeRequired)
-                {
-                    tpObj.Invoke(() => {
-                        tpObj.Controls.Add(Grid);
-                    });
-                }
-                else
-                {
-                    tpObj.Controls.Add(Grid);
-                }
-                Grids.Add(Definition, Grid);
-
-                //tpObj.Select();
-                if (tpObj.GetType() == typeof(TabPage))
-                {
-                    this._MainForm.SelectTabPage(tpObj.Name);
-                }
-            }
-            else
-            {
-                throw new KeyNotFoundException();
-            }
+            // Windows Forms依存のコードをコメントアウト
         }
+        */
 
-        private void CurrentGridCellChanged(object? sender, EventArgs e)
+        // Avalonia用の代用メソッド
+        /// <summary>
+        /// タイムラインデータの追加
+        /// </summary>
+        /// <param name="container"></param>
+        public void AddTimeLineData(TimeLineContainer container)
         {
-            // Object未セット
-            if (this._MainForm == null || sender == null)
+            TimeLineData.Add(container);
+            
+            // **MEMORY LEAK FIX: Enforce size limits for timeline data**
+            if (TimeLineData.Count > MAX_TIMELINE_DATA_ITEMS)
             {
-                return;
+                // 古いデータから削除（FIFO）
+                var itemsToRemove = TimeLineData.Count - MAX_TIMELINE_DATA_ITEMS + CLEANUP_BATCH_SIZE;
+                TimeLineData.RemoveRange(0, itemsToRemove);
+                Console.WriteLine($"TimeLineCreator: Cleaned up {itemsToRemove} old timeline items. Current count: {TimeLineData.Count}");
             }
-            var Grid = (DataGridTimeLine)sender;
-
-            if (Grid.Visible == false)
-            {
-                return;
-            }
-
-            var CurrentCell = Grid.CurrentCell;
-            var CurrentRow = Grid.CurrentRow;
-
-            // 初期読み込み時
-            if (CurrentCell == null || CurrentRow == null)
-            {
-                return;
-            }
-
-            var CurrentRowData = Grid.Rows[CurrentRow.Index];
-            string OriginalHost = CurrentRowData.Cells[(int)TIMELINE_ELEMENT.ORIGINAL_HOST].Value.ToString() ?? string.Empty;
-            var Node = CurrentRowData.Cells[(int)TIMELINE_ELEMENT.ORIGINAL].Value;
-
-            if (Node == null || Node.ToString() == string.Empty)
-            {
-                return;
-            }
-
-            // TL情報をセット
-            this._MainForm.SetTimeLineContents(OriginalHost, (JsonNode)Node);
-        }
-
-        public void CreateTimeLineTab(ref MainForm MainForm, string Name, string Text)
-        {
-            var tpObj = GetControlFromMainForm(ref MainForm, null);
-            if (tpObj != null)
-            {
-                TabPage tp = new TabPage();
-                // 
-                // tpMain
-                // 
-                tp.Location = new Point(4, 4);
-                tp.Name = Name;
-                tp.Padding = new Padding(3);
-                tp.Size = new Size(776, 305);
-                tp.TabIndex = 0;
-                tp.Text = Text;
-                tp.UseVisualStyleBackColor = true;
-
-                if (tpObj.InvokeRequired)
-                {
-                    tpObj.Invoke(() => { tpObj.Controls.Add(tp); });
-                }
-                else
-                {
-                    tpObj.Controls.Add(tp);
-                }
-                if (MainForm.InvokeRequired)
-                {
-                    MainForm.Invoke(() => { tp.Focus(); });
-                }
-                else
-                {
-                    tp.Focus();
-                }
-            }
-        }
-
-        private Control? GetControlFromMainForm(ref MainForm MainForm, string? ChildDefinition)
-        {
-            var tpObj = MainForm.Controls.Cast<Control>().ToList().Find(r => { return r.Name == "tbMain"; });
-            if (ChildDefinition != null)
-            {
-                var tpObjb = tpObj.Controls.Find(ChildDefinition, false);
-                if (tpObjb.Length > 0)
-                {
-                    tpObj = tpObj.Controls.Find(ChildDefinition, false)[0];
-                }
-            }
-            return tpObj;
         }
 
         /// <summary>
-        /// デバッグ情報付記
+        /// タイムラインデータの取得
         /// </summary>
-        /// <param name="DgTimeLine"></param>
-        private void AddDbg(DataGridTimeLine DgTimeLine)
+        /// <returns></returns>
+        public List<TimeLineContainer> GetTimeLineData()
         {
-#if DEBUG
-            DgTimeLine.InsertTimeLineData(new TimeLineContainer()
-            {
-                PROTECTED = TimeLineContainer.PROTECTED_STATUS.Direct,
-                ISLOCAL = true,
-                DETAIL = "これはデバッグ実行時に表示されます。",
-                USERID = "MiVIEW-SYSTEM",
-                USERNAME = "アプリ",
-                SOFTWARE = "MiView 0.0.1",
-                SOURCE = "localhost",
-                UPDATEDAT = "1960/01/01 00:00:00:000"
-            });
-            DgTimeLine.InsertTimeLineData(new TimeLineContainer()
-            {
-                PROTECTED = TimeLineContainer.PROTECTED_STATUS.Direct,
-                ISLOCAL = true,
-                RENOTED = true,
-                DETAIL = "リノート表示。",
-                USERID = "MiVIEW-SYSTEM",
-                USERNAME = "アプリ",
-                SOFTWARE = "MiView 0.0.1",
-                SOURCE = "localhost",
-                UPDATEDAT = "1960/01/01 00:00:00:000"
-            });
-            DgTimeLine.InsertTimeLineData(new TimeLineContainer()
-            {
-                PROTECTED = TimeLineContainer.PROTECTED_STATUS.Public,
-                ISLOCAL = true,
-                RENOTED = false,
-                REPLAYED = true,
-                DETAIL = "リプライ表示。",
-                USERID = "MiVIEW-SYSTEM",
-                USERNAME = "アプリ",
-                SOFTWARE = "MiView 0.0.1",
-                SOURCE = "localhost",
-                UPDATEDAT = "1960/01/01 00:00:00:000"
-            });
-            DgTimeLine.InsertTimeLineData(new TimeLineContainer()
-            {
-                PROTECTED = TimeLineContainer.PROTECTED_STATUS.Public,
-                ISLOCAL = true,
-                RENOTED = false,
-                REPLAYED = false,
-                ISCHANNEL = true,
-                CHANNEL_NAME = "test",
-                DETAIL = "チャンネル表示。",
-                USERID = "MiVIEW-SYSTEM",
-                USERNAME = "アプリ",
-                SOFTWARE = "MiView 0.0.1",
-                SOURCE = "localhost",
-                UPDATEDAT = "1960/01/01 00:00:00:000"
-            });
-            DgTimeLine.InsertTimeLineData(new TimeLineContainer()
-            {
-                PROTECTED = TimeLineContainer.PROTECTED_STATUS.Public,
-                ISLOCAL = true,
-                RENOTED = false,
-                REPLAYED = true,
-                CW = true,
-                DETAIL = "CW",
-                USERID = "MiVIEW-SYSTEM",
-                USERNAME = "アプリ",
-                SOFTWARE = "MiView 0.0.1",
-                SOURCE = "localhost",
-                UPDATEDAT = "1960/01/01 00:00:00:000"
-            });
-            DgTimeLine.InsertTimeLineData(new TimeLineContainer()
-            {
-                PROTECTED = TimeLineContainer.PROTECTED_STATUS.Public,
-                ISLOCAL = true,
-                RENOTED = true,
-                REPLAYED = true,
-                CW = true,
-                DETAIL = "ごった煮",
-                USERID = "MiVIEW-SYSTEM",
-                USERNAME = "アプリ",
-                SOFTWARE = "MiView 0.0.1",
-                SOURCE = "localhost",
-                UPDATEDAT = "1960/01/01 00:00:00:000"
-            });
-            DgTimeLine.InsertTimeLineData(new TimeLineContainer()
-            {
-                PROTECTED = TimeLineContainer.PROTECTED_STATUS.Public,
-                ISLOCAL = true,
-                RENOTED = false,
-                DETAIL = "パブリック",
-                USERID = "MiVIEW-SYSTEM",
-                USERNAME = "アプリ",
-                SOFTWARE = "MiView 0.0.1",
-                SOURCE = "localhost",
-                UPDATEDAT = "1960/01/01 00:00:00:000"
-            });
-            DgTimeLine.InsertTimeLineData(new TimeLineContainer()
-            {
-                PROTECTED = TimeLineContainer.PROTECTED_STATUS.SemiPublic,
-                ISLOCAL = true,
-                RENOTED = false,
-                DETAIL = "セミパブリック",
-                USERID = "MiVIEW-SYSTEM",
-                USERNAME = "アプリ",
-                SOFTWARE = "MiView 0.0.1",
-                SOURCE = "localhost",
-                UPDATEDAT = "1960/01/01 00:00:00:000"
-            });
-            DgTimeLine.InsertTimeLineData(new TimeLineContainer()
-            {
-                PROTECTED = TimeLineContainer.PROTECTED_STATUS.Home,
-                ISLOCAL = true,
-                RENOTED = false,
-                DETAIL = "ホーム",
-                USERID = "MiVIEW-SYSTEM",
-                USERNAME = "アプリ",
-                SOFTWARE = "MiView 0.0.1",
-                SOURCE = "localhost",
-                UPDATEDAT = "1960/01/01 00:00:00:000"
-            });
-            DgTimeLine.InsertTimeLineData(new TimeLineContainer()
-            {
-                PROTECTED = TimeLineContainer.PROTECTED_STATUS.Follower,
-                ISLOCAL = true,
-                RENOTED = false,
-                DETAIL = "フォロワー",
-                USERID = "MiVIEW-SYSTEM",
-                USERNAME = "アプリ",
-                SOFTWARE = "MiView 0.0.1",
-                SOURCE = "localhost",
-                UPDATEDAT = "1960/01/01 00:00:00:000"
-            });
-            DgTimeLine.InsertTimeLineData(new TimeLineContainer()
-            {
-                PROTECTED = TimeLineContainer.PROTECTED_STATUS.Direct,
-                ISLOCAL = true,
-                RENOTED = false,
-                DETAIL = "ダイレクトメッセージ",
-                USERID = "MiVIEW-SYSTEM",
-                USERNAME = "アプリ",
-                SOFTWARE = "MiView 0.0.1",
-                SOURCE = "localhost",
-                UPDATEDAT = "1960/01/01 00:00:00:000"
-            });
-            DgTimeLine.InsertTimeLineData(new TimeLineContainer()
-            {
-                PROTECTED = TimeLineContainer.PROTECTED_STATUS.Direct,
-                ISLOCAL = false,
-                RENOTED = false,
-                DETAIL = "abcdefghijklmnopqrstuvwxyz",
-                USERID = "MiVIEW-SYSTEM",
-                USERNAME = "アプリ",
-                SOFTWARE = "MiView 0.0.1",
-                SOURCE = "localhost",
-                UPDATEDAT = "1960/01/01 00:00:00:000"
-            });
-            DgTimeLine.InsertTimeLineData(new TimeLineContainer()
-            {
-                PROTECTED = TimeLineContainer.PROTECTED_STATUS.Direct,
-                ISLOCAL = false,
-                RENOTED = false,
-                DETAIL = "abcdefghijklmnopqrstuvwxyz".ToUpper(),
-                USERID = "MiVIEW-SYSTEM",
-                USERNAME = "アプリ",
-                SOFTWARE = "MiView 0.0.1",
-                SOURCE = "localhost",
-                UPDATEDAT = "1960/01/01 00:00:00:000"
-            });
-#endif
+            return TimeLineData;
         }
 
         /// <summary>
-        /// メインフォームからタイムラインを除去
+        /// タイムラインデータのクリア
         /// </summary>
-        /// <param name="MainForm"></param>
-        /// <param name="Definition"></param>
-        /// <param name="ChildDefinition"></param>
-        /// <exception cref="TimeLineNotFoundException"></exception>
-        /// <exception cref="KeyNotFoundException"></exception>
-        public void DeleteTimeLine(ref MainForm MainForm, string Definition, string? ChildDefinition = null)
+        public void ClearTimeLineData()
         {
-            if (!this.Grids.ContainsKey(Definition))
-            {
-                throw new TimeLineNotFoundException(null, Definition);
-            }
-            // コントロールがあるか検索
-            var tpObj = GetControlFromMainForm(ref MainForm, ChildDefinition);
-            if (tpObj != null)
-            {
-                tpObj.Controls.Remove(this.Grids[Definition]);
-                this.Grids.Remove(Definition);
-            }
-            else
-            {
-                throw new KeyNotFoundException();
-            }
+            TimeLineData.Clear();
         }
     }
 
@@ -531,7 +231,7 @@ namespace MiView.Common.TimeLine
         /// <summary>
         /// 定義名
         /// </summary>
-        private string Definition {  get; set; } = string.Empty;
+        private string Definition { get; set; } = string.Empty;
 
         /// <summary>
         /// コンストラクタ
@@ -555,11 +255,12 @@ namespace MiView.Common.TimeLine
         /// <param name="Definition"></param>
         public TimeLineNotFoundException(string? message, string Definition)
         {
+            this.Definition = Definition;
         }
 
         public override string ToString()
         {
-            return this.Definition != string.Empty ? this.Definition: base.ToString();
+            return this.Definition != string.Empty ? this.Definition : base.ToString();
         }
 
         public string CallDefinition()
@@ -571,7 +272,7 @@ namespace MiView.Common.TimeLine
     /// <summary>
     /// タイムラインオブジェクト
     /// </summary>
-    internal class TimeLineContainer
+    public class TimeLineContainer
     {
         public TimeLineContainer() { }
 
@@ -589,34 +290,39 @@ namespace MiView.Common.TimeLine
         public string USERNAME { get; set; } = string.Empty;
         public string USERID { get; set; } = string.Empty;
         public bool REPLAYED { get; set; } = false;
-        public string? REPLAYED_DISP {  get; set; }
+        public string? REPLAYED_DISP { get; set; }
         public PROTECTED_STATUS PROTECTED { get; set; } = PROTECTED_STATUS.Public;
         public string? PROTECTED_DISP { get; set; }
         public bool RENOTED { get; set; } = false;
         public string? RENOTED_DISP { get; set; }
         public bool ISLOCAL { get; set; } = false;
-        public string? ISLOCAL_DISP {  get; set; }
+        public string? ISLOCAL_DISP { get; set; }
         public bool ISCHANNEL { get; set; } = false;
         public string? CHANNEL_NAME { get; set; }
         public string? ISCHANNEL_DISP { get; set; }
-        public bool CW {  get; set; } = false;
+        public bool CW { get; set; } = false;
         public string? CW_DISP { get; set; }
         public string DETAIL { get; set; } = string.Empty;
-        public string CONTENT {  get; set; } = string.Empty;
+        public string CONTENT { get; set; } = string.Empty;
         public string UPDATEDAT { get; set; } = string.Empty;
         public string SOURCE { get; set; } = string.Empty;
         public string SOFTWARE { get; set; } = string.Empty;
         public bool SOFTWARE_INVALIDATED { get; set; } = false;
-        public JsonNode ORIGINAL { get; set; } = string.Empty;
-        public string ORIGINAL_HOST {  get; set; } = string.Empty;
+        public JsonNode ORIGINAL { get; set; } = JsonNode.Parse("{}")!;
+        public string ORIGINAL_HOST { get; set; } = string.Empty;
         public string TLFROM { get; set; } = string.Empty;
     }
 
+    // Windows Forms依存のDataGridTimeLineクラスをコメントアウト
+    /*
     /// <summary>
     /// タイムラインコントロール
     /// </summary>
     partial class DataGridTimeLine : System.Windows.Forms.DataGridView
     {
+<<<<<<< HEAD
+        // Windows Forms依存のコードをコメントアウト
+=======
         /// <summary>
         /// 空文字
         /// </summary>
@@ -986,17 +692,5 @@ namespace MiView.Common.TimeLine
             Row.DefaultCellStyle.BackColor = DesignColor;
         }
     }
-
-    /// <summary>
-    /// メインフォームと連携するためのイベントArgs
-    /// </summary>
-    internal class CurrentGridCellEventArgs : EventArgs
-    {
-        private MainForm _CurrentForm;
-
-        public CurrentGridCellEventArgs(MainForm CurrentForm)
-        {
-            _CurrentForm = CurrentForm;
-        }
-    }
+    */
 }

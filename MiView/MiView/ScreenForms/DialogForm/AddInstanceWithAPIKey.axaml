@@ -1,0 +1,27 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="MiView.ScreenForms.DialogForm.AddInstanceWithAPIKey"
+        Title="インスタンス追加"
+        Width="400"
+        Height="300"
+        WindowStartupLocation="CenterOwner">
+    <StackPanel Margin="20" Spacing="10">
+        <TextBlock Text="インスタンスURL" />
+        <TextBox x:Name="txtInstanceURL" />
+        <TextBlock Text="APIキー" />
+        <TextBox x:Name="txtAPIKey" />
+        <TextBlock Text="タブ名" />
+        <TextBox x:Name="txtTabName" />
+        <TextBlock Text="TL種別" />
+        <ComboBox x:Name="cmbTLKind">
+            <ComboBoxItem Content="ホームTL" />
+            <ComboBoxItem Content="ソーシャルTL" />
+            <ComboBoxItem Content="ローカルTL" />
+            <ComboBoxItem Content="グローバルTL" />
+        </ComboBox>
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="10">
+            <Button Content="追加" x:Name="cmdApply" Click="cmdApply_Click" />
+            <Button Content="キャンセル" IsCancel="True" />
+        </StackPanel>
+    </StackPanel>
+</Window> 

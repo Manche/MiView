@@ -1,0 +1,97 @@
+<Application xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="MiView.AvaloniaApp">
+    <Application.Resources>
+        <ResourceDictionary>
+            <!-- Windows Forms風のカラーパレット -->
+            <Color x:Key="SystemButtonFace">#F0F0F0</Color>
+            <Color x:Key="SystemButtonText">#000000</Color>
+            <Color x:Key="SystemButtonBorder">#7A7A7A</Color>
+            <Color x:Key="SystemButtonHover">#E1E1E1</Color>
+            <Color x:Key="SystemButtonPressed">#C1C1C1</Color>
+            <Color x:Key="SystemButtonDisabled">#F0F0F0</Color>
+            <Color x:Key="SystemButtonDisabledText">#A0A0A0</Color>
+            
+            <Color x:Key="SystemTextBoxBackground">#FFFFFF</Color>
+            <Color x:Key="SystemTextBoxText">#000000</Color>
+            <Color x:Key="SystemTextBoxBorder">#7A7A7A</Color>
+            <Color x:Key="SystemTextBoxFocus">#0078D4</Color>
+            <Color x:Key="SystemTextBoxSelection">#0078D4</Color>
+            <Color x:Key="SystemTextBoxSelectionText">#FFFFFF</Color>
+            
+            <Color x:Key="SystemLabelText">#000000</Color>
+            
+            <Color x:Key="SystemComboBoxBackground">#FFFFFF</Color>
+            <Color x:Key="SystemComboBoxText">#000000</Color>
+            <Color x:Key="SystemComboBoxBorder">#7A7A7A</Color>
+            
+            <Color x:Key="SystemListBoxBackground">#FFFFFF</Color>
+            <Color x:Key="SystemListBoxText">#000000</Color>
+            <Color x:Key="SystemListBoxBorder">#7A7A7A</Color>
+            
+            <Color x:Key="SystemTabControlBackground">#F0F0F0</Color>
+            <Color x:Key="SystemTabControlBorder">#7A7A7A</Color>
+            <Color x:Key="SystemTabItemBackground">#E1E1E1</Color>
+            <Color x:Key="SystemTabItemText">#000000</Color>
+            <Color x:Key="SystemTabItemBorder">#7A7A7A</Color>
+            <Color x:Key="SystemTabItemSelected">#FFFFFF</Color>
+            <Color x:Key="SystemTabItemSelectedBorder">#7A7A7A</Color>
+            <Color x:Key="SystemTabItemHover">#F5F5F5</Color>
+            
+            <Color x:Key="SystemMenuBackground">#F0F0F0</Color>
+            <Color x:Key="SystemMenuText">#000000</Color>
+            <Color x:Key="SystemMenuBorder">#7A7A7A</Color>
+            <Color x:Key="SystemMenuItemHover">#0078D4</Color>
+            
+            <!-- Windows Forms風のブラシ定義 -->
+            <SolidColorBrush x:Key="ButtonBackgroundBrush" Color="{StaticResource SystemButtonFace}"/>
+            <SolidColorBrush x:Key="ButtonForegroundBrush" Color="{StaticResource SystemButtonText}"/>
+            <SolidColorBrush x:Key="ButtonBorderBrush" Color="{StaticResource SystemButtonBorder}"/>
+            <SolidColorBrush x:Key="ButtonHoverBackgroundBrush" Color="{StaticResource SystemButtonHover}"/>
+            <SolidColorBrush x:Key="ButtonHoverBorderBrush" Color="{StaticResource SystemButtonBorder}"/>
+            <SolidColorBrush x:Key="ButtonPressedBackgroundBrush" Color="{StaticResource SystemButtonPressed}"/>
+            <SolidColorBrush x:Key="ButtonPressedBorderBrush" Color="{StaticResource SystemButtonBorder}"/>
+            <SolidColorBrush x:Key="ButtonDisabledBackgroundBrush" Color="{StaticResource SystemButtonDisabled}"/>
+            <SolidColorBrush x:Key="ButtonDisabledForegroundBrush" Color="{StaticResource SystemButtonDisabledText}"/>
+            <SolidColorBrush x:Key="ButtonDisabledBorderBrush" Color="{StaticResource SystemButtonBorder}"/>
+            
+            <SolidColorBrush x:Key="TextBoxBackgroundBrush" Color="{StaticResource SystemTextBoxBackground}"/>
+            <SolidColorBrush x:Key="TextBoxForegroundBrush" Color="{StaticResource SystemTextBoxText}"/>
+            <SolidColorBrush x:Key="TextBoxBorderBrush" Color="{StaticResource SystemTextBoxBorder}"/>
+            <SolidColorBrush x:Key="TextBoxFocusBorderBrush" Color="{StaticResource SystemTextBoxFocus}"/>
+            <SolidColorBrush x:Key="TextBoxSelectionBrush" Color="{StaticResource SystemTextBoxSelection}"/>
+            <SolidColorBrush x:Key="TextBoxSelectionForegroundBrush" Color="{StaticResource SystemTextBoxSelectionText}"/>
+            
+            <SolidColorBrush x:Key="LabelForegroundBrush" Color="{StaticResource SystemLabelText}"/>
+            
+            <SolidColorBrush x:Key="ComboBoxBackgroundBrush" Color="{StaticResource SystemComboBoxBackground}"/>
+            <SolidColorBrush x:Key="ComboBoxForegroundBrush" Color="{StaticResource SystemComboBoxText}"/>
+            <SolidColorBrush x:Key="ComboBoxBorderBrush" Color="{StaticResource SystemComboBoxBorder}"/>
+            
+            <SolidColorBrush x:Key="ListBoxBackgroundBrush" Color="{StaticResource SystemListBoxBackground}"/>
+            <SolidColorBrush x:Key="ListBoxForegroundBrush" Color="{StaticResource SystemListBoxText}"/>
+            <SolidColorBrush x:Key="ListBoxBorderBrush" Color="{StaticResource SystemListBoxBorder}"/>
+            
+            <SolidColorBrush x:Key="TabControlBackgroundBrush" Color="{StaticResource SystemTabControlBackground}"/>
+            <SolidColorBrush x:Key="TabControlBorderBrush" Color="{StaticResource SystemTabControlBorder}"/>
+            
+            <SolidColorBrush x:Key="TabItemBackgroundBrush" Color="{StaticResource SystemTabItemBackground}"/>
+            <SolidColorBrush x:Key="TabItemForegroundBrush" Color="{StaticResource SystemTabItemText}"/>
+            <SolidColorBrush x:Key="TabItemBorderBrush" Color="{StaticResource SystemTabItemBorder}"/>
+            <SolidColorBrush x:Key="TabItemSelectedBackgroundBrush" Color="{StaticResource SystemTabItemSelected}"/>
+            <SolidColorBrush x:Key="TabItemSelectedBorderBrush" Color="{StaticResource SystemTabItemSelectedBorder}"/>
+            <SolidColorBrush x:Key="TabItemHoverBackgroundBrush" Color="{StaticResource SystemTabItemHover}"/>
+            
+            <SolidColorBrush x:Key="MenuBackgroundBrush" Color="{StaticResource SystemMenuBackground}"/>
+            <SolidColorBrush x:Key="MenuForegroundBrush" Color="{StaticResource SystemMenuText}"/>
+            <SolidColorBrush x:Key="MenuBorderBrush" Color="{StaticResource SystemMenuBorder}"/>
+            
+            <SolidColorBrush x:Key="MenuItemForegroundBrush" Color="{StaticResource SystemMenuText}"/>
+            <SolidColorBrush x:Key="MenuItemHoverBackgroundBrush" Color="{StaticResource SystemMenuItemHover}"/>
+        </ResourceDictionary>
+    </Application.Resources>
+    <Application.Styles>
+        <FluentTheme />
+        <StyleInclude Source="avares://MiView/Resources/Styles/Styles.xaml"/>
+    </Application.Styles>
+</Application> 

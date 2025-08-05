@@ -31,12 +31,31 @@ namespace MiView
         private Dictionary<string, List<string>> _serverTabs = new();
         private Dictionary<string, string> _instanceTokens = new();
         // 定数
-        private const string SETTINGS_FILE = "settings.json";
         private const int MAX_CACHED_ITEMS = 500; // 内部キャッシュ
         private const string DEFAULT_INSTANCE = "misskey.io";
         private const string DEFAULT_SOFTWARE = "Misskey";
 
         private const int MAX_UI_ITEMS = 500;      // UI表示
+        // 設定ファイル
+        private static readonly string SETTINGS_DIR = GetSettingsDirectory();
+        private static readonly string SETTINGS_FILE = Path.Combine(SETTINGS_DIR, "settings.json");
+
+        private static string GetSettingsDirectory()
+        {
+            string? appData = null;
+            try
+            {
+                appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+            }
+            catch { }
+            if (!string.IsNullOrEmpty(appData) && Directory.Exists(appData))
+            {
+                return Path.Combine(appData, "MiView");
+            }
+            // アプリデータディレクトリが取得できなかった場合（主にLinux）: ホームディレクトリ/.config/MiView
+            string? home = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+            return Path.Combine(home, ".config", "MiView");
+        }
         // 状態管理
         private int _selectedTabIndex = 0;
         
@@ -2056,6 +2075,10 @@ namespace MiView
         {
             try
             {
+                if (!Directory.Exists(SETTINGS_DIR))
+                {
+                    Directory.CreateDirectory(SETTINGS_DIR);
+                }
                 if (File.Exists(SETTINGS_FILE))
                 {
                     var json = File.ReadAllText(SETTINGS_FILE);
@@ -2117,6 +2140,10 @@ namespace MiView
         {
             try
             {
+                if (!Directory.Exists(SETTINGS_DIR))
+                {
+                    Directory.CreateDirectory(SETTINGS_DIR);
+                }
                 var settings = new AppSettings
                 {
                     Instances = _instances.ToList(),

@@ -6,7 +6,6 @@
         <Setter Property="BorderThickness" Value="1"/>
         <Setter Property="Padding" Value="8,4"/>
         <Setter Property="FontSize" Value="12"/>
-        <Setter Property="FontFamily" Value="Segoe UI"/>
         <Setter Property="Cursor" Value="Hand"/>
         <Setter Property="Template">
             <ControlTemplate>
@@ -43,7 +42,6 @@
         <Setter Property="BorderThickness" Value="1"/>
         <Setter Property="Padding" Value="4,2"/>
         <Setter Property="FontSize" Value="12"/>
-        <Setter Property="FontFamily" Value="Segoe UI"/>
         <Setter Property="SelectionBrush" Value="{StaticResource TextBoxSelectionBrush}"/>
         <Setter Property="SelectionForegroundBrush" Value="{StaticResource TextBoxSelectionForegroundBrush}"/>
         <Setter Property="Template">
@@ -77,7 +75,6 @@
     <Style Selector="TextBlock">
         <Setter Property="Foreground" Value="{StaticResource LabelForegroundBrush}"/>
         <Setter Property="FontSize" Value="12"/>
-        <Setter Property="FontFamily" Value="Segoe UI"/>
     </Style>
     <Style Selector="ComboBox">
         <Setter Property="Background" Value="{StaticResource ComboBoxBackgroundBrush}"/>
@@ -86,7 +83,6 @@
         <Setter Property="BorderThickness" Value="1"/>
         <Setter Property="Padding" Value="4,2"/>
         <Setter Property="FontSize" Value="12"/>
-        <Setter Property="FontFamily" Value="Segoe UI"/>
     </Style>
     <Style Selector="ListBox">
         <Setter Property="Background" Value="{StaticResource ListBoxBackgroundBrush}"/>
@@ -94,7 +90,6 @@
         <Setter Property="BorderBrush" Value="{StaticResource ListBoxBorderBrush}"/>
         <Setter Property="BorderThickness" Value="1"/>
         <Setter Property="FontSize" Value="12"/>
-        <Setter Property="FontFamily" Value="Segoe UI"/>
     </Style>
     <Style Selector="TabControl">
         <Setter Property="Background" Value="{StaticResource TabControlBackgroundBrush}"/>
@@ -108,7 +103,6 @@
         <Setter Property="BorderThickness" Value="1,1,1,0"/>
         <Setter Property="Padding" Value="8,4"/>
         <Setter Property="FontSize" Value="12"/>
-        <Setter Property="FontFamily" Value="Segoe UI"/>
         <Style Selector="^:selected">
             <Setter Property="Background" Value="{StaticResource TabItemSelectedBackgroundBrush}"/>
             <Setter Property="BorderBrush" Value="{StaticResource TabItemSelectedBorderBrush}"/>
@@ -128,7 +122,6 @@
         <Setter Property="Foreground" Value="{StaticResource MenuItemForegroundBrush}"/>
         <Setter Property="Padding" Value="8,4"/>
         <Setter Property="FontSize" Value="12"/>
-        <Setter Property="FontFamily" Value="Segoe UI"/>
         <Style Selector="^:pointerover">
             <Setter Property="Background" Value="{StaticResource MenuItemHoverBackgroundBrush}"/>
         </Style>

@@ -40,43 +40,30 @@ MiView/
 
 ## ビルド方法
 
-### Linux（開発環境）
+### Linux（開発環境），macOS
 
-```bash
+```sh
 # 依存関係の復元
 dotnet restore
 
 # ビルド
-dotnet build
+dotnet build -f net9.0
 
 # 実行
-dotnet run
+dotnet run -f net9.0 --project ./MiView/MiView.csproj
 ```
 
 ### Windows
 
-```bash
-# プロジェクトファイルのRuntimeIdentifierを変更
-# <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+```pwsh
+# 依存関係の復元
+dotnet restore
 
 # ビルド
-dotnet build
+dotnet build -f net9.0
 
 # 実行
-dotnet run
-```
-
-### macOS
-
-```bash
-# プロジェクトファイルのRuntimeIdentifierを変更
-# <RuntimeIdentifier>osx-x64</RuntimeIdentifier>
-
-# ビルド
-dotnet build
-
-# 実行
-dotnet run
+dotnet run -f net9.0 --project .\MiView\MiView.csproj
 ```
 
 ## デバッグ機能

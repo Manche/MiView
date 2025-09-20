@@ -22,7 +22,7 @@
 ## 動作要件
 
 - Windows 11もしくは10以降
-- .NetFramework 8が動作すること
+- .Net Framework 8が動作すること
 
 ## ダウンロード
 
@@ -42,7 +42,7 @@
 - misskey.niri.la (2025.4.1-kinel.2)
 - buicha.social (2025.4.1-buiso.2)
 - misskey.shinanoji.xyz (2025.6.0)
-- mi.ruruke.moe (2025.7.0-beta.1-tempura-1.9.2-dev+ruru-6fa9d22552)
+~~- mi.ruruke.moe (2025.7.0-beta.1-tempura-1.9.2-dev+ruru-6fa9d22552)~~ (2025/09/20 対応から外しました)
 - misskey.flowers (2025.6.4-hanami.27877+5a90a40ca0)
 
 ## 元ネタとの違い
@@ -76,7 +76,7 @@
   - blueskyなど他SNSやfork個別への対応は今のところ追加で別途実装いただく形になります(本ソフトウェアへの取り込みは一応可とします)
     - 場合により、対応や取り込みを見送ることもありますが、お気軽にissueから相談ください
     - ※こちらで実装するのはあくまで本家と動作基準Misskeyサーバへの対応に限ります
-- Windows以外への対応
+- Windows以外への**native**対応
   - Linux・Mac系OSに関しては環境があまり揃っていないため、開発できるかちょっと微妙なところです
   - 可能であればContributor・CodeManagerとして参加をお願いいただくことになります
 - 内部webhook・アプリ連携的なもの

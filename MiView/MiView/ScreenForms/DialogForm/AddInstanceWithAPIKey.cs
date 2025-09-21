@@ -76,7 +76,7 @@ namespace MiView.ScreenForms.DialogForm
                 {
                 }
 
-                this._MainForm.AddTimeLine(txtInstanceURL.Text, txtTabName.Text, txtAPIKey.Text, ((CmbInstance)cmbTLKind.SelectedItem)._TLKind);
+                this._MainForm.BeginInvoke(new Action(() => _MainForm.AddTimeLine(txtInstanceURL.Text, txtTabName.Text, txtAPIKey.Text, ((CmbInstance)cmbTLKind.SelectedItem)._TLKind)));
             });
         }
 

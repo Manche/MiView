@@ -95,15 +95,28 @@ namespace MiView
             _TLCreator.CreateTimeLineTab(ref this.MainFormObj, TabDef, TabName);
             _TLCreator.CreateTimeLine(ref this.MainFormObj, TabDef, TabDef);
 
-            var WSManager = WebSocketTimeLineCommon.CreateInstance(TLKind).OpenTimeLine(TabDef, APIKey);
-            WSManager.SetDataGridTimeLine(_TLCreator.GetTimeLineObjectDirect(ref this.MainFormObj, "Main"));
-            WSManager.SetDataGridTimeLine(_TLCreator.GetTimeLineObjectDirect(ref this.MainFormObj, TabDef));
-            WebSocketTimeLineCommon.ReadTimeLineContinuous(WSManager);
-
-            if (APIKey != string.Empty)
+            var WSManager = WebSocketTimeLineCommon.CreateInstance(TLKind);
+            try
             {
-                var WTManager = WebSocketMain.CreateInstance().OpenMain(TabDef, APIKey);
-                WebSocketMain.ReadMainContinuous(WTManager);
+                WSManager.OpenTimeLine(InstanceURL, APIKey);
+                WSManager.SetDataGridTimeLine(_TLCreator.GetTimeLineObjectDirect(ref this.MainFormObj, "Main"));
+                WSManager.SetDataGridTimeLine(_TLCreator.GetTimeLineObjectDirect(ref this.MainFormObj, TabDef));
+                try
+                {
+                    WebSocketTimeLineCommon.ReadTimeLineContinuous(WSManager);
+
+                    if (APIKey != string.Empty)
+                    {
+                        var WTManager = WebSocketMain.CreateInstance().OpenMain(InstanceURL, APIKey);
+                        WebSocketMain.ReadMainContinuous(WTManager);
+                    }
+                }
+                catch (Exception ex)
+                {
+                }
+            }
+            catch
+            {
             }
             if (WSManager.GetSocketState() != System.Net.WebSockets.WebSocketState.Open)
             {

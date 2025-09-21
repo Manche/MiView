@@ -19,40 +19,28 @@ namespace MiView.Common.Connection.WebSocket.Misskey.v2025
         /// <summary>
         /// 接続先タイムライン
         /// </summary>
-        protected ConnectTimeLineKind _TLKind
+        protected TimeLineBasic.ConnectTimeLineKind _TLKind
         {
             set; get;
-        } = ConnectTimeLineKind.None;
-
-        /// <summary>
-        /// 接続先タイムライン指定
-        /// </summary>
-        public enum ConnectTimeLineKind
-        {
-            None,
-            Home,
-            Local,
-            Social,
-            Global,
-        }
+        } = TimeLineBasic.ConnectTimeLineKind.None;
 
         /// <summary>
         /// インスタンス作成
         /// </summary>
         /// <returns></returns>
-        public static WebSocketTimeLineCommon CreateInstance(ConnectTimeLineKind TLKind)
+        public static WebSocketTimeLineCommon CreateInstance(TimeLineBasic.ConnectTimeLineKind TLKind)
         {
             switch(TLKind)
             {
-                case ConnectTimeLineKind.None:
+                case TimeLineBasic.ConnectTimeLineKind.None:
                     break;
-                case ConnectTimeLineKind.Home:
+                case TimeLineBasic.ConnectTimeLineKind.Home:
                     return new WebSocketTimeLineHome();
-                case ConnectTimeLineKind.Local:
+                case TimeLineBasic.ConnectTimeLineKind.Local:
                     return new WebSocketTimeLineLocal();
-                case ConnectTimeLineKind.Social:
+                case TimeLineBasic.ConnectTimeLineKind.Social:
                     return new WebSocketTimeLineSocial();
-                case ConnectTimeLineKind.Global:
+                case TimeLineBasic.ConnectTimeLineKind.Global:
                     return new WebSocketTimeLineGlobal();
             }
             return null;

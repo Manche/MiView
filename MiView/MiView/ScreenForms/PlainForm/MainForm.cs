@@ -5,6 +5,7 @@ using MiView.Common.Connection.WebSocket.Misskey.v2025;
 using MiView.Common.Fonts;
 using MiView.Common.Fonts.Material;
 using MiView.Common.TimeLine;
+using MiView.ScreenForms.Controls.Combo;
 using MiView.ScreenForms.DialogForm;
 using System.ComponentModel;
 using System.Reflection;
@@ -77,7 +78,7 @@ namespace MiView
             }
         }
 
-        public void AddTimeLine(string InstanceURL, string TabName, string APIKey, string sTLKind)
+        public void AddTimeLine(string InstanceURL, string TabName, string APIKey, TimeLineBasic.ConnectTimeLineKind sTLKind)
         {
             if (this.InvokeRequired)
             {
@@ -85,22 +86,7 @@ namespace MiView
                 return;
             }
 
-            var TLKind = WebSocketTimeLineCommon.ConnectTimeLineKind.None;
-            switch (sTLKind)
-            {
-                case "ホームTL":
-                    TLKind = WebSocketTimeLineCommon.ConnectTimeLineKind.Home;
-                    break;
-                case "ソーシャルTL":
-                    TLKind = WebSocketTimeLineCommon.ConnectTimeLineKind.Social;
-                    break;
-                case "ローカルTL":
-                    TLKind = WebSocketTimeLineCommon.ConnectTimeLineKind.Local;
-                    break;
-                case "グローバルTL":
-                    TLKind = WebSocketTimeLineCommon.ConnectTimeLineKind.Global;
-                    break;
-            }
+            var TLKind = sTLKind;
 
             // タブ識別
             var TabDef = System.Guid.NewGuid().ToString();

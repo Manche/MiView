@@ -132,6 +132,7 @@
             Controls.Add(label1);
             Name = "AddInstanceWithAPIKey";
             Text = "インスタンス追加";
+            Load += AddInstanceWithAPIKey_Load;
             ResumeLayout(false);
             PerformLayout();
         }

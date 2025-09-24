@@ -213,7 +213,7 @@ namespace MiView.Common.Connection.WebSocket.Misskey.v2025
                         System.Diagnostics.Debug.WriteLine(WSTimeLine._HostUrl);
                         System.Diagnostics.Debug.WriteLine(ce);
 
-                        if (WSTimeLine.GetSocketClient().State != WebSocketState.Open)
+                        if (WSTimeLine.GetSocketClient() != null && WSTimeLine.GetSocketClient().State != WebSocketState.Open)
                         {
                             Thread.Sleep(1000);
 

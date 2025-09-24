@@ -195,11 +195,17 @@ namespace MiView.Common.Connection.WebSocket.Misskey.v2025
                         System.Diagnostics.Debug.WriteLine(WSTimeLine._HostUrl);
                         System.Diagnostics.Debug.WriteLine(ce);
 
-                        if (WSTimeLine.GetSocketClient().State != WebSocketState.Open)
+                        try
                         {
-                            Thread.Sleep(1000);
+                            if (WSTimeLine.GetSocketClient() != null && WSTimeLine.GetSocketClient().State != WebSocketState.Open)
+                            {
+                                Thread.Sleep(1000);
 
-                            WebSocketMain.ReadMainContinuous(WSTimeLine);
+                                WebSocketMain.ReadMainContinuous(WSTimeLine);
+                            }
+                        }
+                        catch
+                        {
                         }
 
                         WSTimeLine.CallConnectionLost();
@@ -242,7 +248,13 @@ namespace MiView.Common.Connection.WebSocket.Misskey.v2025
                 catch (Exception)
                 {
                 }
-                System.Diagnostics.Debug.WriteLine("現在の状態：" + ((WebSocketMain)sender).GetSocketClient().State);
+                if (((WebSocketMain)sender).GetSocketClient() == null)
+                {
+                }
+                else
+                {
+                    System.Diagnostics.Debug.WriteLine("現在の状態：" + ((WebSocketMain)sender).GetSocketClient().State);
+                }
             }
             if (WS == null)
             {

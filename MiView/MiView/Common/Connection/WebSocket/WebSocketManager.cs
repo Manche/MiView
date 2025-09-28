@@ -146,30 +146,41 @@ namespace MiView.Common.Connection.WebSocket
         private async Task ReceiveLoop(CancellationToken token)
         {
             var buffer = new byte[8192];
+            var ms = new MemoryStream();
 
-            while (!token.IsCancellationRequested && _WebSocket?.State == WebSocketState.Open)
+            try
             {
-                try
+                while (!token.IsCancellationRequested && _WebSocket.State == WebSocketState.Open)
                 {
-                    var result = await _WebSocket.ReceiveAsync(new ArraySegment<byte>(buffer), token);
-                    if (result.MessageType == WebSocketMessageType.Close)
+                    WebSocketReceiveResult result;
+                    do
                     {
-                        CallConnectionLost();
-                        return;
-                    }
+                        result = await _WebSocket.ReceiveAsync(new ArraySegment<byte>(buffer), token);
+                        if (result.MessageType == WebSocketMessageType.Close)
+                        {
+                            await _WebSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, string.Empty, token);
+                            return;
+                        }
 
-                    string message = Encoding.UTF8.GetString(buffer, 0, result.Count);
-                    CallDataReceived(message);
+                        // フラグメントを蓄積
+                        ms.Write(buffer, 0, result.Count);
+
+                    } while (!result.EndOfMessage);
+
+                    // 1メッセージ分完成
+                    var totalBytes = (int)ms.Length;
+                    var message = Encoding.UTF8.GetString(ms.ToArray());
+
+                    // メモリをクリアして次に備える
+                    ms.SetLength(0);
                 }
-                catch
-                {
-                    CallConnectionLost();
-                    return;
-                }
+            }
+            catch (Exception ex)
+            {
             }
         }
 
-        // ==== KeepAlive ====
+
         private async Task KeepAliveLoop(CancellationToken token)
         {
             while (!token.IsCancellationRequested)
@@ -178,7 +189,10 @@ namespace MiView.Common.Connection.WebSocket
                 {
                     try
                     {
-                        string message = _IsMisskey ? "{ \"type\": \"ping\" }" : "ping";
+                        string message = _IsMisskey
+                            ? "{ \"type\": \"ping\" }"
+                            : "ping";
+
                         var buffer = Encoding.UTF8.GetBytes(message);
 
                         await _WebSocket.SendAsync(
@@ -195,7 +209,7 @@ namespace MiView.Common.Connection.WebSocket
                     }
                 }
 
-                await Task.Delay(TimeSpan.FromSeconds(30), token);
+                await Task.Delay(TimeSpan.FromSeconds(15), token);
             }
         }
 

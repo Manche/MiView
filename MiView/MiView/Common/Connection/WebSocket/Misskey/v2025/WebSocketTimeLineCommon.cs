@@ -283,25 +283,31 @@ namespace MiView.Common.Connection.WebSocket.Misskey.v2025
                 // データ受信不可能の場合
                 return;
             }
-
-            dynamic Res = System.Text.Json.JsonDocument.Parse(e.MessageRaw);
-            var t = JsonNode.Parse(e.MessageRaw);
-
-            // ChannelToTimeLineData.Type(t);
-
-            foreach (DataGridTimeLine DGrid in this._TimeLineObject)
+            try
             {
-                if (DGrid.InvokeRequired)
+                dynamic Res = System.Text.Json.JsonDocument.Parse(e.MessageRaw);
+                var t = JsonNode.Parse(e.MessageRaw);
+
+                // ChannelToTimeLineData.Type(t);
+
+                foreach (DataGridTimeLine DGrid in this._TimeLineObject)
                 {
-                    try
+                    if (DGrid.InvokeRequired)
                     {
-                        DGrid.Invoke(() => { DGrid.InsertTimeLineData(ChannelToTimeLineContainer.ConvertTimeLineContainer(this._HostDefinition, t)); });
-                    }
-                    catch (Exception ce)
-                    {
-                        System.Diagnostics.Debug.WriteLine(ce.ToString());
+                        try
+                        {
+                            DGrid.Invoke(() => { DGrid.InsertTimeLineData(ChannelToTimeLineContainer.ConvertTimeLineContainer(this._HostDefinition, t)); });
+                        }
+                        catch (Exception ce)
+                        {
+                            System.Diagnostics.Debug.WriteLine(ce.ToString());
+                        }
                     }
                 }
+            }
+            catch (Exception)
+            {
+                System.Diagnostics.Debug.WriteLine(e.MessageRaw);
             }
         }
     }

@@ -273,9 +273,16 @@ namespace MiView.Common.Connection.WebSocket.Misskey.v2025
                 return;
             }
 
-            dynamic Res = System.Text.Json.JsonDocument.Parse(e.MessageRaw);
-            var t = JsonNode.Parse(e.MessageRaw);
-            System.Diagnostics.Debug.WriteLine(t);
+            try
+            {
+                dynamic Res = System.Text.Json.JsonDocument.Parse(e.MessageRaw);
+                var t = JsonNode.Parse(e.MessageRaw);
+                System.Diagnostics.Debug.WriteLine(t);
+            }
+            catch (Exception)
+            {
+                System.Diagnostics.Debug.WriteLine(e.MessageRaw);
+            }
         }
     }
 }

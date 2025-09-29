@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.DirectoryServices.ActiveDirectory;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.Json.Nodes;
 using System.Threading.Tasks;
@@ -1135,6 +1136,14 @@ namespace MiView.Common.TimeLine
         /// ソフトウェア名
         /// </summary>
         public List<string> _Software = new List<string>();
+        /// <summary>
+        /// チャンネル指定
+        /// </summary>
+        public bool _Match_Channel = false;
+        /// <summary>
+        /// チャンネル名
+        /// </summary>
+        public List<string> _ChannelNames = new List<string>();
 
         /// <summary>
         /// 一致した件数_開始
@@ -1146,28 +1155,35 @@ namespace MiView.Common.TimeLine
         public int _Matched_Count_Max = 0;
 
         /// <summary>
+        /// CW指定
+        /// </summary>
+        public bool _Match_CW = false;
+        /// <summary>
         /// CWを含める
         /// </summary>
         public bool _Contain_CW = false;
+        /// <summary>
+        /// Reply指定
+        /// </summary>
+        public bool _Match_Reply = false;
         /// <summary>
         /// Replyを含める
         /// </summary>
         public bool _Contain_Reply = false;
         /// <summary>
+        /// RN指定
+        /// </summary>
+        public bool _Match_RN = false;
+        /// <summary>
         /// ReNoteを含める
         /// </summary>
         public bool _Contain_RN = false;
 
+        private TimeLineContainer? _containerBacking;
         public TimeLineContainer? _Container
         {
-            set
-            {
-                _Container = value;
-            }
-            get
-            {
-                return _Container;
-            }
+            get => _containerBacking;
+            set => _containerBacking = value;
         }
 
         public TimeLineFilterlingOption()
@@ -1176,28 +1192,38 @@ namespace MiView.Common.TimeLine
 
         public bool FilterResult()
         {
+            bool Result = false;
             switch (_MODE)
             {
                 case MATCH_MODE.ALL:
-                    return MatchUserId() &&
+                    Result = MatchUserId() &&
                            MatchUserName() &&
                            MatchDetail() &&
                            MatchSoftware() &&
+                           MatchChannel() &&
                            ContainCW() &&
                            ContainReply() &&
                            ContainRN();
+                    break;
                 case MATCH_MODE.PARTIAL:
-                    return MatchUserId() ||
+                    Result = MatchUserId() ||
                            MatchUserName() ||
                            MatchDetail() ||
                            MatchSoftware() ||
+                           MatchChannel() ||
                            ContainCW() ||
                            ContainReply() ||
                            ContainRN();
+                    break;
 
                 default:
-                    return false;
+                    Result = false;
+                    break;
             }
+
+            System.Diagnostics.Debug.WriteLine("チェック結果：" + Result); 
+
+            return Result;
         }
 
         public bool MatchUserId()
@@ -1235,10 +1261,34 @@ namespace MiView.Common.TimeLine
             }
             return ListMatch(_Match_Software, _Software, _Container.SOFTWARE);
         }
+        
+        public bool MatchChannel()
+        {
+            if (_Container == null)
+            {
+                return true;
+            }
+            if (_Match_Channel)
+            {
+                if (_Container.CHANNEL_NAME == null)
+                {
+                    return false;
+                }
+            }
+            else
+            {
+                return true;
+            }
+            return ListMatch(_Match_Channel, _ChannelNames, _Container.CHANNEL_NAME);
+        }
 
         public bool ContainCW()
         {
             if (_Container == null)
+            {
+                return true;
+            }
+            if (!_Match_CW)
             {
                 return true;
             }
@@ -1255,6 +1305,10 @@ namespace MiView.Common.TimeLine
             {
                 return true;
             }
+            if (!_Match_Reply)
+            {
+                return true;
+            }
             if (!_Contain_Reply)
             {
                 return true;
@@ -1265,6 +1319,10 @@ namespace MiView.Common.TimeLine
         public bool ContainRN()
         {
             if (_Container == null)
+            {
+                return true;
+            }
+            if (!_Match_RN)
             {
                 return true;
             }

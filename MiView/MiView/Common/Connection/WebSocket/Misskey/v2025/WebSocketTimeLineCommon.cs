@@ -292,6 +292,7 @@ namespace MiView.Common.Connection.WebSocket.Misskey.v2025
 
                 foreach (DataGridTimeLine DGrid in this._TimeLineObject)
                 {
+                    TimeLineContainer TLCon = ChannelToTimeLineContainer.ConvertTimeLineContainer(this._HostDefinition, t);
                     if (DGrid.InvokeRequired)
                     {
                         if (!DGrid._IsFiltered)
@@ -299,7 +300,7 @@ namespace MiView.Common.Connection.WebSocket.Misskey.v2025
                             // 通常TL
                             try
                             {
-                                DGrid.Invoke(() => { DGrid.InsertTimeLineData(ChannelToTimeLineContainer.ConvertTimeLineContainer(this._HostDefinition, t)); });
+                                DGrid.Invoke(() => { DGrid.InsertTimeLineData(TLCon); });
                             }
                             catch (Exception ce)
                             {
@@ -309,19 +310,25 @@ namespace MiView.Common.Connection.WebSocket.Misskey.v2025
                         else
                         {
                             // フィルタTL
-                            DGrid.SetTimeLineFilter(ChannelToTimeLineContainer.ConvertTimeLineContainer(this._HostDefinition, t));
-                            if (DGrid._FilteringOptions.FindAll(r => { return r.FilterResult(); }).Count() > 0)
-                            {
-                                // 通常TL
-                                try
+                            DGrid.Invoke(() => {
+
+                                DGrid.SetTimeLineFilter(TLCon);
+
+                                if (DGrid._FilteringOptions.FindAll(r => { return r.FilterResult(); }).Count() == DGrid._FilteringOptions.Count())
                                 {
-                                    DGrid.Invoke(() => { DGrid.InsertTimeLineData(ChannelToTimeLineContainer.ConvertTimeLineContainer(this._HostDefinition, t)); });
+                                    // 通常TL
+                                    try
+                                    {
+                                        DGrid.InsertTimeLineData(TLCon);
+                                    }
+                                    catch (Exception ce)
+                                    {
+                                        System.Diagnostics.Debug.WriteLine(ce.ToString());
+                                    }
                                 }
-                                catch (Exception ce)
-                                {
-                                    System.Diagnostics.Debug.WriteLine(ce.ToString());
-                                }
-                            }
+                                System.Diagnostics.Debug.WriteLine(DGrid.Name);
+                                System.Diagnostics.Debug.WriteLine("サーチ数：" + DGrid._FilteringOptions.FindAll(r => { return r.FilterResult(); }).Count() + "/結果：" + DGrid._FilteringOptions.Count());
+                            });
                         }
                     }
                 }

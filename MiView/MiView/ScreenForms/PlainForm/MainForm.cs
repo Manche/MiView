@@ -64,6 +64,24 @@ namespace MiView
         private void MainForm_Load(object sender, EventArgs e)
         {
             _TLCreator.CreateTimeLine(ref this.MainFormObj, "Main", "tpMain");
+
+        }
+        // 呼び出し元で TabDef が _TmpTLManager に登録されるまで待つ
+        private void WaitForTimeLineObject(string TabName, int timeoutMs = 5000)
+        {
+            int waited = 0;
+            const int interval = 10; // 10ms ごとにチェック
+
+            while (!_TmpTLManager.ContainsKey(TabName) && waited < timeoutMs)
+            {
+                Thread.Sleep(interval);
+                waited += interval;
+            }
+
+            if (!_TmpTLManager.ContainsKey(TabName))
+            {
+                throw new TimeoutException($"TimeLine {TabName} が生成されませんでした");
+            }
         }
 
         public void SelectTabPage(string TabName)
@@ -84,11 +102,11 @@ namespace MiView
             }
         }
 
-        public void AddTimeLine(string InstanceURL, string TabName, string APIKey, TimeLineBasic.ConnectTimeLineKind sTLKind, bool IsFiltered = false)
+        public void AddTimeLine(string InstanceURL, string TabName, string APIKey, TimeLineBasic.ConnectTimeLineKind sTLKind, bool IsFiltered = false, bool AvoidIntg = false, bool IsVisible = true)
         {
             if (this.InvokeRequired)
             {
-                this.Invoke(AddTimeLine, InstanceURL, TabName, APIKey, sTLKind);
+                this.Invoke(AddTimeLine, InstanceURL, TabName, APIKey, sTLKind, IsFiltered, AvoidIntg, IsVisible);
                 return;
             }
 
@@ -105,8 +123,12 @@ namespace MiView
             try
             {
                 WSManager.OpenTimeLine(InstanceURL, APIKey);
-                WSManager.SetDataGridTimeLine(_TLCreator.GetTimeLineObjectDirect(ref this.MainFormObj, "Main"));
+                if (AvoidIntg == false)
+                {
+                    WSManager.SetDataGridTimeLine(_TLCreator.GetTimeLineObjectDirect(ref this.MainFormObj, "Main"));
+                }
                 WSManager.SetDataGridTimeLine(_TLCreator.GetTimeLineObjectDirect(ref this.MainFormObj, TabDef));
+                _TLCreator.GetTimeLineObjectDirect(ref this.MainFormObj, TabDef).Visible = IsVisible;
                 try
                 {
                     WebSocketTimeLineCommon.ReadTimeLineContinuous(WSManager);
@@ -134,7 +156,7 @@ namespace MiView
             }
         }
 
-        public void AddStaticTimeLine(string TabName, string AttachDef, string? AttachName = null, bool IsFiltered = true)
+        public void AddStaticTimeLine(string TabName, string? AttachDef = null, string? AttachName = null, bool IsFiltered = true)
         {
             if (this.InvokeRequired)
             {
@@ -148,10 +170,13 @@ namespace MiView
             // タブ追加
             _TLCreator.CreateTimeLineTab(ref this.MainFormObj, TabDef, TabName);
             _TLCreator.CreateTimeLine(ref this.MainFormObj, TabDef, TabDef, IsFiltered: IsFiltered);
-
-            _TLManager[_TmpTLManager[AttachDef]].SetDataGridTimeLine(_TLCreator.GetTimeLineObjectDirect(ref this.MainFormObj, TabDef));
-            _TLManager.Add(TabDef, _TLManager[_TmpTLManager[AttachDef]]);
             _TmpTLManager.Add(TabName, TabDef);
+
+            if (AttachName == null)
+            {
+                return;
+            }
+            _TLManager[_TmpTLManager[AttachDef]].SetDataGridTimeLine(_TLCreator.GetTimeLineObjectDirect(ref this.MainFormObj, TabDef));
         }
 
         public void AppendStaticTimeLine(string TabName, string AttachDef, string? AttachName = null, bool IsFiltered = true)
@@ -169,7 +194,7 @@ namespace MiView
         {
             if (this.InvokeRequired)
             {
-                this.Invoke(AppendTimelineFilter, TabName, AttachDef, FilterOption);
+                this.Invoke(new Action(() => AppendTimelineFilter(TabName, AttachDef, FilterOption)));
                 return;
             }
 

@@ -294,13 +294,34 @@ namespace MiView.Common.Connection.WebSocket.Misskey.v2025
                 {
                     if (DGrid.InvokeRequired)
                     {
-                        try
+                        if (!DGrid._IsFiltered)
                         {
-                            DGrid.Invoke(() => { DGrid.InsertTimeLineData(ChannelToTimeLineContainer.ConvertTimeLineContainer(this._HostDefinition, t)); });
+                            // 通常TL
+                            try
+                            {
+                                DGrid.Invoke(() => { DGrid.InsertTimeLineData(ChannelToTimeLineContainer.ConvertTimeLineContainer(this._HostDefinition, t)); });
+                            }
+                            catch (Exception ce)
+                            {
+                                System.Diagnostics.Debug.WriteLine(ce.ToString());
+                            }
                         }
-                        catch (Exception ce)
+                        else
                         {
-                            System.Diagnostics.Debug.WriteLine(ce.ToString());
+                            // フィルタTL
+                            System.Diagnostics.Debug.WriteLine("フィルタ");
+                            if (DGrid.FilterTimeLineData(ChannelToTimeLineContainer.ConvertTimeLineContainer(this._HostDefinition, t)))
+                            {
+                                // 通常TL
+                                try
+                                {
+                                    DGrid.Invoke(() => { DGrid.InsertTimeLineData(ChannelToTimeLineContainer.ConvertTimeLineContainer(this._HostDefinition, t)); });
+                                }
+                                catch (Exception ce)
+                                {
+                                    System.Diagnostics.Debug.WriteLine(ce.ToString());
+                                }
+                            }
                         }
                     }
                 }

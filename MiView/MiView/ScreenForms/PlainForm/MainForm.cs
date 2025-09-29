@@ -7,6 +7,7 @@ using MiView.Common.Fonts.Material;
 using MiView.Common.TimeLine;
 using MiView.ScreenForms.Controls.Combo;
 using MiView.ScreenForms.DialogForm;
+using System;
 using System.ComponentModel;
 using System.Reflection;
 using System.Security.Policy;
@@ -27,6 +28,11 @@ namespace MiView
         /// タイムラインマネージャ
         /// </summary>
         private Dictionary<string, WebSocketTimeLineCommon> _TLManager = new Dictionary<string, WebSocketTimeLineCommon>();
+
+        /// <summary>
+        /// 一時タイムラインマネージャ
+        /// </summary>
+        private Dictionary<string, string> _TmpTLManager = new Dictionary<string, string>();
 
         /// <summary>
         /// このフォーム
@@ -78,7 +84,7 @@ namespace MiView
             }
         }
 
-        public void AddTimeLine(string InstanceURL, string TabName, string APIKey, TimeLineBasic.ConnectTimeLineKind sTLKind)
+        public void AddTimeLine(string InstanceURL, string TabName, string APIKey, TimeLineBasic.ConnectTimeLineKind sTLKind, bool IsFiltered = false)
         {
             if (this.InvokeRequired)
             {
@@ -93,7 +99,7 @@ namespace MiView
 
             // タブ追加
             _TLCreator.CreateTimeLineTab(ref this.MainFormObj, TabDef, TabName);
-            _TLCreator.CreateTimeLine(ref this.MainFormObj, TabDef, TabDef);
+            _TLCreator.CreateTimeLine(ref this.MainFormObj, TabDef, TabDef, IsFiltered: IsFiltered);
 
             var WSManager = WebSocketTimeLineCommon.CreateInstance(TLKind);
             try
@@ -114,6 +120,9 @@ namespace MiView
                 catch (Exception ex)
                 {
                 }
+
+                _TLManager.Add(TabDef, WSManager);
+                _TmpTLManager.Add(TabName, TabDef);
             }
             catch
             {
@@ -123,6 +132,37 @@ namespace MiView
                 MessageBox.Show("インスタンスの読み込みに失敗しました。");
                 return;
             }
+        }
+
+        public void AddStaticTimeLine(string TabName, string AttachDef, string? AttachName = null, bool IsFiltered = true)
+        {
+            if (this.InvokeRequired)
+            {
+                this.Invoke(AddStaticTimeLine, TabName, AttachDef, IsFiltered);
+                return;
+            }
+
+            // タブ識別
+            var TabDef = System.Guid.NewGuid().ToString();
+
+            // タブ追加
+            _TLCreator.CreateTimeLineTab(ref this.MainFormObj, TabDef, TabName);
+            _TLCreator.CreateTimeLine(ref this.MainFormObj, TabDef, TabDef, IsFiltered: IsFiltered);
+
+            _TLManager[_TmpTLManager[AttachDef]].SetDataGridTimeLine(_TLCreator.GetTimeLineObjectDirect(ref this.MainFormObj, TabDef));
+            _TLManager.Add(TabDef, _TLManager[_TmpTLManager[AttachDef]]);
+            _TmpTLManager.Add(TabName, TabDef);
+        }
+
+        public void AppendStaticTimeLine(string TabName, string AttachDef, string? AttachName = null, bool IsFiltered = true)
+        {
+            if (this.InvokeRequired)
+            {
+                this.Invoke(AddStaticTimeLine, TabName, AttachDef, IsFiltered);
+                return;
+            }
+
+            _TLManager[_TmpTLManager[AttachDef]].SetDataGridTimeLine(_TLCreator.GetTimeLineObjectDirect(ref this.MainFormObj, _TmpTLManager[TabName]));
         }
 
         private void cmdAddInstance_Click(object sender, EventArgs e)

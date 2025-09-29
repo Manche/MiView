@@ -176,7 +176,7 @@ namespace MiView.Common.TimeLine
         /// メインフォームへタイムラインを追加
         /// </summary>
         /// <param name="MainForm"></param>
-        public void CreateTimeLine(ref MainForm MainForm, string Definition, string? ChildDefinition = null)
+        public void CreateTimeLine(ref MainForm MainForm, string Definition, string? ChildDefinition = null, bool IsFiltered = false)
         {
             // コントロールがあるか検索
             var tpObj = GetControlFromMainForm(ref MainForm, ChildDefinition);
@@ -187,6 +187,11 @@ namespace MiView.Common.TimeLine
                 System.Diagnostics.Debug.WriteLine("hoge");
                 DataGridTimeLine Grid = new DataGridTimeLine();
                 ((System.ComponentModel.ISupportInitialize)Grid).BeginInit();
+
+                //
+                // Property
+                //
+                Grid._IsFiltered = IsFiltered;
 
                 // 
                 // Grid
@@ -675,6 +680,11 @@ namespace MiView.Common.TimeLine
         private static string _Common_Channel = MaterialIcons.Tv;
 
         /// <summary>
+        /// フィルタTLかどうか
+        /// </summary>
+        public bool _IsFiltered = false;
+
+        /// <summary>
         /// 列幅
         /// </summary>
         private static Dictionary<TimeLineCreator.TIMELINE_ELEMENT, int> _ColumWidths = new Dictionary<TIMELINE_ELEMENT, int>()
@@ -817,6 +827,19 @@ namespace MiView.Common.TimeLine
                 this.ResumeLayout(false);
             }
             //this.Refresh();
+        }
+
+        /// <summary>
+        /// 行挿入
+        /// </summary>
+        /// <param name="Container"></param>
+        public bool FilterTimeLineData(TimeLineContainer Container)
+        {
+            if (Container.USERID == "Manche")
+            {
+                return true;
+            }
+            return false;
         }
 
         /// <summary>

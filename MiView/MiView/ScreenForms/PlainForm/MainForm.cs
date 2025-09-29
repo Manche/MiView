@@ -138,7 +138,7 @@ namespace MiView
         {
             if (this.InvokeRequired)
             {
-                this.Invoke(AddStaticTimeLine, TabName, AttachDef, IsFiltered);
+                this.Invoke(AddStaticTimeLine, TabName, AttachDef, AttachName, IsFiltered);
                 return;
             }
 
@@ -158,7 +158,7 @@ namespace MiView
         {
             if (this.InvokeRequired)
             {
-                this.Invoke(AddStaticTimeLine, TabName, AttachDef, AttachName, IsFiltered);
+                this.Invoke(AddStaticTimeLine, TabName, AttachDef, IsFiltered);
                 return;
             }
 

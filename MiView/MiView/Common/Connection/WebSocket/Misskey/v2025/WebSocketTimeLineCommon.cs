@@ -298,36 +298,79 @@ namespace MiView.Common.Connection.WebSocket.Misskey.v2025
                         if (!DGrid._IsFiltered)
                         {
                             // 通常TL
-                            try
-                            {
-                                DGrid.Invoke(() => { DGrid.InsertTimeLineData(TLCon); });
-                            }
-                            catch (Exception ce)
-                            {
-                                System.Diagnostics.Debug.WriteLine(ce.ToString());
-                            }
+                            DGrid.Invoke(() => {
+
+                                lock (DGrid)
+                                {
+                                    DGrid.SetTimeLineFilter(TLCon);
+
+                                    int Found = DGrid._FilteringOptions.FindAll(r => { return r.FilterResult(); }).Count();
+                                    int Filted = DGrid._FilteringOptions.Count();
+
+                                    bool CountRet = false;
+                                    if (DGrid._FilterMode)
+                                    {
+                                        CountRet = Found == Filted;
+                                    }
+                                    else
+                                    {
+                                        CountRet = Found > 0;
+                                    }
+
+                                    if (CountRet)
+                                    {
+                                        // 通常TL
+                                        try
+                                        {
+                                            DGrid.InsertTimeLineData(TLCon);
+                                        }
+                                        catch (Exception ce)
+                                        {
+                                            System.Diagnostics.Debug.WriteLine(ce.ToString());
+                                        }
+                                    }
+                                    System.Diagnostics.Debug.WriteLine(DGrid.Name);
+                                    System.Diagnostics.Debug.WriteLine("サーチ数：" + DGrid._FilteringOptions.FindAll(r => { return r.FilterResult(); }).Count() + "/結果：" + DGrid._FilteringOptions.Count());
+                                }
+                            });
                         }
                         else
                         {
                             // フィルタTL
                             DGrid.Invoke(() => {
 
-                                DGrid.SetTimeLineFilter(TLCon);
-
-                                if (DGrid._FilteringOptions.FindAll(r => { return r.FilterResult(); }).Count() == DGrid._FilteringOptions.Count())
+                                lock (DGrid)
                                 {
-                                    // 通常TL
-                                    try
+                                    DGrid.SetTimeLineFilter(TLCon);
+
+                                    int Found = DGrid._FilteringOptions.FindAll(r => { return r.FilterResult(); }).Count();
+                                    int Filted = DGrid._FilteringOptions.Count();
+
+                                    bool CountRet = false;
+                                    if (DGrid._FilterMode)
                                     {
-                                        DGrid.InsertTimeLineData(TLCon);
+                                        CountRet = Found == Filted;
                                     }
-                                    catch (Exception ce)
+                                    else
                                     {
-                                        System.Diagnostics.Debug.WriteLine(ce.ToString());
+                                        CountRet = Found > 0;
                                     }
+
+                                    if (CountRet)
+                                    {
+                                        // 通常TL
+                                        try
+                                        {
+                                            DGrid.InsertTimeLineData(TLCon);
+                                        }
+                                        catch (Exception ce)
+                                        {
+                                            System.Diagnostics.Debug.WriteLine(ce.ToString());
+                                        }
+                                    }
+                                    System.Diagnostics.Debug.WriteLine(DGrid.Name);
+                                    System.Diagnostics.Debug.WriteLine("サーチ数：" + DGrid._FilteringOptions.FindAll(r => { return r.FilterResult(); }).Count() + "/結果：" + DGrid._FilteringOptions.Count());
                                 }
-                                System.Diagnostics.Debug.WriteLine(DGrid.Name);
-                                System.Diagnostics.Debug.WriteLine("サーチ数：" + DGrid._FilteringOptions.FindAll(r => { return r.FilterResult(); }).Count() + "/結果：" + DGrid._FilteringOptions.Count());
                             });
                         }
                     }

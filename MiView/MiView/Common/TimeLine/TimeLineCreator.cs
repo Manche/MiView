@@ -688,6 +688,12 @@ namespace MiView.Common.TimeLine
         /// フィルタリングオプション
         /// </summary>
         public List<TimeLineFilterlingOption> _FilteringOptions = new List<TimeLineFilterlingOption>();
+        /// <summary>
+        /// Grid別条件一致モード
+        /// 
+        /// true=全部一致 false=いずれか一致
+        /// </summary>
+        public bool _FilterMode = true;
 
         /// <summary>
         /// フィルタに投稿を設定
@@ -1348,7 +1354,7 @@ namespace MiView.Common.TimeLine
                     MatchedCount = Patterns.FindAll(r => { return Value == r; }).Count;
                     break;
                 case MATCHER_PATTERN.PATTERN: // 含む
-                    MatchedCount = Patterns.FindAll(r => { return r.Contains(Value); }).Count;
+                    MatchedCount = Patterns.FindAll(r => { return Value.Contains(r); }).Count;
                     break;
                 case MATCHER_PATTERN.START:
                     MatchedCount = Patterns.FindAll(r => { return r.StartsWith(Value); }).Count;

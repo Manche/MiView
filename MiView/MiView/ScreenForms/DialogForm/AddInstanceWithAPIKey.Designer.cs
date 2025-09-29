@@ -131,6 +131,7 @@
             Controls.Add(label2);
             Controls.Add(label1);
             Name = "AddInstanceWithAPIKey";
+            StartPosition = FormStartPosition.CenterParent;
             Text = "インスタンス追加";
             Load += AddInstanceWithAPIKey_Load;
             ResumeLayout(false);

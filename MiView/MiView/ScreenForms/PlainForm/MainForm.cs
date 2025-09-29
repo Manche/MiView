@@ -201,6 +201,17 @@ namespace MiView
             _TLCreator.GetTimeLineObjectDirect(ref this.MainFormObj, _TmpTLManager[TabName])._FilteringOptions.Add(FilterOption);
         }
 
+        private void AppendTimelineMatchMode(string TabName, string AttachDef, bool FilterMode)
+        {
+            if (this.InvokeRequired)
+            {
+                this.Invoke(new Action(() => AppendTimelineMatchMode(TabName, AttachDef, FilterMode)));
+                return;
+            }
+
+            _TLCreator.GetTimeLineObjectDirect(ref this.MainFormObj, _TmpTLManager[TabName])._FilterMode = FilterMode;
+        }
+
         private void cmdAddInstance_Click(object sender, EventArgs e)
         {
             AddInstanceWithAPIKey AddFrm = new AddInstanceWithAPIKey(this);

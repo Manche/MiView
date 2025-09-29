@@ -683,6 +683,26 @@ namespace MiView.Common.TimeLine
         /// フィルタTLかどうか
         /// </summary>
         public bool _IsFiltered = false;
+        /// <summary>
+        /// フィルタリングオプション
+        /// </summary>
+        public List<TimeLineFilterlingOption> _FilteringOptions = new List<TimeLineFilterlingOption>();
+
+        /// <summary>
+        /// フィルタに投稿を設定
+        /// </summary>
+        /// <param name="Container"></param>
+        public void SetTimeLineFilter(TimeLineContainer Container)
+        {
+            if (this._FilteringOptions == null)
+            {
+                return;
+            }
+            foreach (TimeLineFilterlingOption Opt in this._FilteringOptions)
+            {
+                Opt._Container = Container;
+            }
+        }
 
         /// <summary>
         /// 列幅
@@ -830,15 +850,11 @@ namespace MiView.Common.TimeLine
         }
 
         /// <summary>
-        /// 行挿入
+        /// 
         /// </summary>
         /// <param name="Container"></param>
         public bool FilterTimeLineData(TimeLineContainer Container)
         {
-            if (Container.USERID == "Manche")
-            {
-                return true;
-            }
             return false;
         }
 
@@ -1020,6 +1036,290 @@ namespace MiView.Common.TimeLine
         public CurrentGridCellEventArgs(MainForm CurrentForm)
         {
             _CurrentForm = CurrentForm;
+        }
+    }
+
+    /// <summary>
+    /// タイムラインフィルタリング設定
+    /// </summary>
+    internal class TimeLineFilterlingOption
+    {
+        /// <summary>
+        /// 一致条件
+        /// </summary>
+        public enum MATCH_MODE
+        {
+            /// <summary>
+            /// 未指定
+            /// </summary>
+            NONE = -1,
+            /// <summary>
+            /// 全てが真
+            /// </summary>
+            ALL = 0,
+            /// <summary>
+            /// いずれかが真
+            /// </summary>
+            PARTIAL = 1,
+            /// <summary>
+            /// 一部重視
+            /// </summary>
+            IMPORTANCE = 2,
+        }
+        public MATCH_MODE _MODE = MATCH_MODE.NONE;
+
+        /// <summary>
+        /// 一致方法指定
+        /// </summary>
+        public enum MATCHER_PATTERN
+        {
+            /// <summary>
+            /// なし
+            /// </summary>
+            NONE = 0,
+            /// <summary>
+            /// 一致
+            /// </summary>
+            MATCH = 1,
+            /// <summary>
+            /// 含む
+            /// </summary>
+            PATTERN = 2,
+            /// <summary>
+            /// ～で始まる
+            /// </summary>
+            START = 3,
+            /// <summary>
+            /// ～で終わる
+            /// </summary>
+            END = 4,
+            /// <summary>
+            /// 正規表現
+            /// </summary>
+            REGEXP = 5,
+        }
+        /// <summary>
+        /// 一致方法
+        /// </summary>
+        public MATCHER_PATTERN _PATTERN = MATCHER_PATTERN.NONE;
+
+        /// <summary>
+        /// ユーザID指定
+        /// </summary>
+        public bool _Match_UserId = false;
+        /// <summary>
+        /// ユーザID
+        /// </summary>
+        public List<string> _UserIds = new List<string>();
+        /// <summary>
+        /// ユーザ名指定
+        /// </summary>
+        public bool _Match_UserName = false;
+        /// <summary>
+        /// ユーザ名
+        /// </summary>
+        public List<string> _UserNames = new List<string>();
+        /// <summary>
+        /// 詳細指定
+        /// </summary>
+        public bool _Match_Detail = false;
+        /// <summary>
+        /// 詳細
+        /// </summary>
+        public List<string> _Details = new List<string>();
+        /// <summary>
+        /// ソフトウェア指定
+        /// </summary>
+        public bool _Match_Software = false;
+        /// <summary>
+        /// ソフトウェア名
+        /// </summary>
+        public List<string> _Software = new List<string>();
+
+        /// <summary>
+        /// 一致した件数_開始
+        /// </summary>
+        public int _Matched_Count_Min = 0;
+        /// <summary>
+        /// 一致した件数_終了
+        /// </summary>
+        public int _Matched_Count_Max = 0;
+
+        /// <summary>
+        /// CWを含める
+        /// </summary>
+        public bool _Contain_CW = false;
+        /// <summary>
+        /// Replyを含める
+        /// </summary>
+        public bool _Contain_Reply = false;
+        /// <summary>
+        /// ReNoteを含める
+        /// </summary>
+        public bool _Contain_RN = false;
+
+        public TimeLineContainer? _Container
+        {
+            set
+            {
+                _Container = value;
+            }
+            get
+            {
+                return _Container;
+            }
+        }
+
+        public TimeLineFilterlingOption()
+        {
+        }
+
+        public bool FilterResult()
+        {
+            switch (_MODE)
+            {
+                case MATCH_MODE.ALL:
+                    return MatchUserId() &&
+                           MatchUserName() &&
+                           MatchDetail() &&
+                           MatchSoftware() &&
+                           ContainCW() &&
+                           ContainReply() &&
+                           ContainRN();
+                case MATCH_MODE.PARTIAL:
+                    return MatchUserId() ||
+                           MatchUserName() ||
+                           MatchDetail() ||
+                           MatchSoftware() ||
+                           ContainCW() ||
+                           ContainReply() ||
+                           ContainRN();
+
+                default:
+                    return false;
+            }
+        }
+
+        public bool MatchUserId()
+        {
+            if (_Container == null)
+            {
+                return true;
+            }
+            return ListMatch(_Match_UserId, _UserIds, _Container.USERID);
+        }
+
+        public bool MatchUserName()
+        {
+            if (_Container == null)
+            {
+                return true;
+            }
+            return ListMatch(_Match_UserName, _UserNames, _Container.USERNAME);
+        }
+
+        public bool MatchDetail()
+        {
+            if (_Container == null)
+            {
+                return true;
+            }
+            return ListMatch(_Match_Detail, _Details, _Container.DETAIL);
+        }
+
+        public bool MatchSoftware()
+        {
+            if (_Container == null)
+            {
+                return true;
+            }
+            return ListMatch(_Match_Software, _Software, _Container.SOFTWARE);
+        }
+
+        public bool ContainCW()
+        {
+            if (_Container == null)
+            {
+                return true;
+            }
+            if (!_Contain_CW)
+            {
+                return true;
+            }
+            return _Container.CW;
+        }
+
+        public bool ContainReply()
+        {
+            if (_Container == null)
+            {
+                return true;
+            }
+            if (!_Contain_Reply)
+            {
+                return true;
+            }
+            return _Container.REPLAYED;
+        }
+
+        public bool ContainRN()
+        {
+            if (_Container == null)
+            {
+                return true;
+            }
+            if (!_Contain_RN)
+            {
+                return true;
+            }
+            return _Container.RENOTED;
+        }
+
+        public bool ListMatch(bool AppliedMatch, List<string> Patterns, string Value)
+        {
+            if (AppliedMatch == false)
+            {
+                return true;
+            }
+            int MatchedCount = 0;
+            switch(_PATTERN)
+            {
+                case MATCHER_PATTERN.NONE: // 未指定
+                    return false;
+                case MATCHER_PATTERN.MATCH: // 一致
+                    MatchedCount = Patterns.FindAll(r => { return Value == r; }).Count;
+                    break;
+                case MATCHER_PATTERN.PATTERN: // 含む
+                    MatchedCount = Patterns.FindAll(r => { return r.Contains(Value); }).Count;
+                    break;
+                case MATCHER_PATTERN.START:
+                    MatchedCount = Patterns.FindAll(r => { return r.StartsWith(Value); }).Count;
+                    break;
+                case MATCHER_PATTERN.END:
+                    MatchedCount = Patterns.FindAll(r => { return r.EndsWith(Value); }).Count;
+                    break;
+
+                default:
+                    return false;
+            }
+            if (_Matched_Count_Max != 0 && _Matched_Count_Min != 0)
+            {
+                // 範囲
+                return _Matched_Count_Min < MatchedCount && MatchedCount < _Matched_Count_Max;
+            }
+            else
+            {
+                if (_Matched_Count_Max != 0)
+                {
+                    // 最大が決まっている
+                    return MatchedCount < _Matched_Count_Max;
+                }
+                else
+                {
+                    // 最小だけ
+                    return MatchedCount > _Matched_Count_Min;
+                }
+            }
         }
     }
 }

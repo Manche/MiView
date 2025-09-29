@@ -165,6 +165,17 @@ namespace MiView
             _TLManager[_TmpTLManager[AttachDef]].SetDataGridTimeLine(_TLCreator.GetTimeLineObjectDirect(ref this.MainFormObj, _TmpTLManager[TabName]));
         }
 
+        private void AppendTimelineFilter(string TabName, string AttachDef, TimeLineFilterlingOption FilterOption)
+        {
+            if (this.InvokeRequired)
+            {
+                this.Invoke(AppendTimelineFilter, TabName, AttachDef);
+                return;
+            }
+
+            _TLCreator.GetTimeLineObjectDirect(ref this.MainFormObj, _TmpTLManager[TabName])._FilteringOptions.Add(FilterOption);
+        }
+
         private void cmdAddInstance_Click(object sender, EventArgs e)
         {
             AddInstanceWithAPIKey AddFrm = new AddInstanceWithAPIKey(this);

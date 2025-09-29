@@ -309,8 +309,8 @@ namespace MiView.Common.Connection.WebSocket.Misskey.v2025
                         else
                         {
                             // フィルタTL
-                            System.Diagnostics.Debug.WriteLine("フィルタ");
-                            if (DGrid.FilterTimeLineData(ChannelToTimeLineContainer.ConvertTimeLineContainer(this._HostDefinition, t)))
+                            DGrid.SetTimeLineFilter(ChannelToTimeLineContainer.ConvertTimeLineContainer(this._HostDefinition, t));
+                            if (DGrid._FilteringOptions.FindAll(r => { return r.FilterResult(); }).Count() > 0)
                             {
                                 // 通常TL
                                 try

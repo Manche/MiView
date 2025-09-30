@@ -281,7 +281,7 @@ namespace MiView.Common.TimeLine
             this._MainForm.SetTimeLineContents(OriginalHost, (JsonNode)Node);
         }
 
-        public void CreateTimeLineTab(ref MainForm MainForm, string Name, string Text)
+        public void CreateTimeLineTab(ref MainForm MainForm, string Name, string Text, bool Visible = true)
         {
             var tpObj = GetControlFromMainForm(ref MainForm, null);
             if (tpObj != null)
@@ -1111,6 +1111,11 @@ namespace MiView.Common.TimeLine
         public MATCHER_PATTERN _PATTERN = MATCHER_PATTERN.NONE;
 
         /// <summary>
+        /// 反転(not)条件
+        /// </summary>
+        public bool CONSTRAINT_INVERT = false;
+
+        /// <summary>
         /// ユーザID指定
         /// </summary>
         public bool _Match_UserId = false;
@@ -1227,9 +1232,9 @@ namespace MiView.Common.TimeLine
                     break;
             }
 
-            System.Diagnostics.Debug.WriteLine("チェック結果：" + Result); 
+            System.Diagnostics.Debug.WriteLine("チェック結果：" + Result);
 
-            return Result;
+            return !CONSTRAINT_INVERT ? Result : !Result;
         }
 
         public bool MatchUserId()

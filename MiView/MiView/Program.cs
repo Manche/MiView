@@ -1,3 +1,5 @@
+using MiView.ScreenForms.Controls.Notify;
+
 namespace MiView
 {
     internal static class Program
@@ -13,7 +15,8 @@ namespace MiView
             ApplicationConfiguration.Initialize();
             try
             {
-                Application.Run(new MainForm());
+                NotifyView NView = new NotifyView();
+                Application.Run(new MainForm() { NotifyView = NView });
             }
             catch (Exception ex)
             {

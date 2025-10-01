@@ -30,6 +30,7 @@ namespace MiView
         /// </summary>
         private void InitializeComponent()
         {
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainForm));
             menuStrip1 = new MenuStrip();
             tbMain = new TabControl();
             tpMain = new TabPage();
@@ -257,6 +258,7 @@ namespace MiView
             Controls.Add(statusStrip1);
             Controls.Add(tbMain);
             Controls.Add(menuStrip1);
+            Icon = (Icon)resources.GetObject("$this.Icon");
             MainMenuStrip = menuStrip1;
             Name = "MainForm";
             Text = "MiView - MainForm";

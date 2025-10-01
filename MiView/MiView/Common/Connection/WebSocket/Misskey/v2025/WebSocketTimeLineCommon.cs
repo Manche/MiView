@@ -6,6 +6,7 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using MiView.Common.AnalyzeData;
+using System.Reflection.Metadata.Ecma335;
 
 namespace MiView.Common.Connection.WebSocket.Misskey.v2025
 {
@@ -323,14 +324,58 @@ namespace MiView.Common.Connection.WebSocket.Misskey.v2025
                                         try
                                         {
                                             DGrid.InsertTimeLineData(TLCon);
+
+                                            foreach (TimeLineAlertOption Opt in DGrid._AlertAccept) 
+                                            {
+                                                Found = Opt.FilterOptions.FindAll(r => { return r.FilterResult(); }).Count();
+                                                Filted = Opt.FilterOptions.Count();
+
+                                                CountRet = false;
+                                                if (Opt._FilterMode)
+                                                {
+                                                    CountRet = Found == Filted;
+                                                }
+                                                else
+                                                {
+                                                    CountRet = Found > 0;
+                                                }
+                                                if (CountRet)
+                                                {
+                                                    Opt.ExecuteAlert();
+                                                }
+                                            }
+                                            CallDataAccepted(TLCon);
                                         }
                                         catch (Exception ce)
                                         {
                                             System.Diagnostics.Debug.WriteLine(ce.ToString());
                                         }
                                     }
-                                    System.Diagnostics.Debug.WriteLine(DGrid.Name);
-                                    System.Diagnostics.Debug.WriteLine("サーチ数：" + DGrid._FilteringOptions.FindAll(r => { return r.FilterResult(); }).Count() + "/結果：" + DGrid._FilteringOptions.Count());
+                                    else
+                                    {
+                                        foreach (TimeLineAlertOption Opt in DGrid._AlertReject)
+                                        {
+                                            Found = Opt.FilterOptions.FindAll(r => { return r.FilterResult(); }).Count();
+                                            Filted = Opt.FilterOptions.Count();
+
+                                            CountRet = false;
+                                            if (Opt._FilterMode)
+                                            {
+                                                CountRet = Found == Filted;
+                                            }
+                                            else
+                                            {
+                                                CountRet = Found > 0;
+                                            }
+                                            if (CountRet)
+                                            {
+                                                Opt.ExecuteAlert();
+                                            }
+                                        }
+                                        CallDataRejected(TLCon);
+                                    }
+                                    //System.Diagnostics.Debug.WriteLine(DGrid.Name);
+                                    //System.Diagnostics.Debug.WriteLine("サーチ数：" + DGrid._FilteringOptions.FindAll(r => { return r.FilterResult(); }).Count() + "/結果：" + DGrid._FilteringOptions.Count());
                                 }
                             });
                         }
@@ -362,14 +407,57 @@ namespace MiView.Common.Connection.WebSocket.Misskey.v2025
                                         try
                                         {
                                             DGrid.InsertTimeLineData(TLCon);
+                                            foreach (TimeLineAlertOption Opt in DGrid._AlertAccept)
+                                            {
+                                                Found = Opt.FilterOptions.FindAll(r => { return r.FilterResult(); }).Count();
+                                                Filted = Opt.FilterOptions.Count();
+
+                                                CountRet = false;
+                                                if (Opt._FilterMode)
+                                                {
+                                                    CountRet = Found == Filted;
+                                                }
+                                                else
+                                                {
+                                                    CountRet = Found > 0;
+                                                }
+                                                if (CountRet)
+                                                {
+                                                    Opt.ExecuteAlert();
+                                                }
+                                            }
+                                            CallDataAccepted(TLCon);
                                         }
                                         catch (Exception ce)
                                         {
                                             System.Diagnostics.Debug.WriteLine(ce.ToString());
                                         }
                                     }
-                                    System.Diagnostics.Debug.WriteLine(DGrid.Name);
-                                    System.Diagnostics.Debug.WriteLine("サーチ数：" + DGrid._FilteringOptions.FindAll(r => { return r.FilterResult(); }).Count() + "/結果：" + DGrid._FilteringOptions.Count());
+                                    else
+                                    {
+                                        foreach (TimeLineAlertOption Opt in DGrid._AlertReject)
+                                        {
+                                            Found = Opt.FilterOptions.FindAll(r => { return r.FilterResult(); }).Count();
+                                            Filted = Opt.FilterOptions.Count();
+
+                                            CountRet = false;
+                                            if (Opt._FilterMode)
+                                            {
+                                                CountRet = Found == Filted;
+                                            }
+                                            else
+                                            {
+                                                CountRet = Found > 0;
+                                            }
+                                            if (CountRet)
+                                            {
+                                                Opt.ExecuteAlert();
+                                            }
+                                        }
+                                        CallDataRejected(TLCon);
+                                    }
+                                    //System.Diagnostics.Debug.WriteLine(DGrid.Name);
+                                    //System.Diagnostics.Debug.WriteLine("サーチ数：" + DGrid._FilteringOptions.FindAll(r => { return r.FilterResult(); }).Count() + "/結果：" + DGrid._FilteringOptions.Count());
                                 }
                             });
                         }

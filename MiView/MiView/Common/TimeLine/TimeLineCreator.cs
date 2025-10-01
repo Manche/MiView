@@ -577,7 +577,7 @@ namespace MiView.Common.TimeLine
     /// <summary>
     /// タイムラインオブジェクト
     /// </summary>
-    internal class TimeLineContainer
+    public class TimeLineContainer
     {
         public TimeLineContainer() { }
 
@@ -694,6 +694,24 @@ namespace MiView.Common.TimeLine
         /// true=全部一致 false=いずれか一致
         /// </summary>
         public bool _FilterMode = true;
+        /// <summary>
+        /// アラートオプション
+        /// </summary>
+        public List<TimeLineAlertOption> _AlertOptions = new List<TimeLineAlertOption>();
+        public List<TimeLineAlertOption> _AlertAccept
+        {
+            get
+            {
+                return _AlertOptions.FindAll(r => { return r._Alert_Timing == TimeLineAlertOption.ALERT_TIMING.ACCEPT; });
+            }
+        }
+        public List<TimeLineAlertOption> _AlertReject
+        {
+            get
+            {
+                return _AlertOptions.FindAll(r => { return r._Alert_Timing == TimeLineAlertOption.ALERT_TIMING.REJECT; });
+            }
+        }
 
         /// <summary>
         /// フィルタに投稿を設定
@@ -1232,7 +1250,7 @@ namespace MiView.Common.TimeLine
                     break;
             }
 
-            System.Diagnostics.Debug.WriteLine("チェック結果：" + Result);
+            //System.Diagnostics.Debug.WriteLine("チェック結果：" + Result);
 
             return !CONSTRAINT_INVERT ? Result : !Result;
         }
@@ -1388,6 +1406,72 @@ namespace MiView.Common.TimeLine
                     // 最小だけ
                     return MatchedCount > _Matched_Count_Min;
                 }
+            }
+        }
+    }
+
+    /// <summary>
+    /// タイムラインアラート設定
+    /// </summary>
+    internal class TimeLineAlertOption
+    {
+        public enum ALERT_TIMING
+        {
+            NONE = 0,
+            ACCEPT,
+            REJECT
+        }
+
+        public ALERT_TIMING _Alert_Timing = ALERT_TIMING.NONE;
+
+        /// <summary>
+        /// タイムラインフィルタリング設定
+        /// </summary>
+        public List<TimeLineFilterlingOption> FilterOptions = new List<TimeLineFilterlingOption>();
+
+        /// <summary>
+        /// フィルタ一致モード
+        /// 
+        /// true=全部一致 false=いずれか一致
+        /// </summary>
+        public bool _FilterMode = true;
+
+        /// <summary>
+        /// アラート方法
+        /// </summary>
+        public enum ALERT_METHOD
+        {
+            NONE = 0,
+            /// <summary>
+            /// シェル実行
+            /// </summary>
+            SHELL,
+            /// <summary>
+            /// メール
+            /// </summary>
+            EMAIL,
+            /// <summary>
+            /// トースト
+            /// </summary>
+            TOAST,
+        }
+
+        /// <summary>
+        /// アラート方法設定
+        /// </summary>
+        public List<ALERT_METHOD> _AlertMethods = new List<ALERT_METHOD>();
+
+        /// <summary>
+        /// アラート実行
+        /// </summary>
+        /// <returns></returns>
+        public void ExecuteAlert()
+        {
+            try
+            {
+            }
+            catch
+            {
             }
         }
     }

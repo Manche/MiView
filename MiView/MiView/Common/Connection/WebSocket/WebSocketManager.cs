@@ -33,11 +33,15 @@ namespace MiView.Common.Connection.WebSocket
         public event EventHandler<EventArgs>? ConnectionClosed;
         public event EventHandler<EventArgs> ConnectionLost;
         public event EventHandler<ConnectDataReceivedEventArgs> DataReceived;
+        public event EventHandler<DataContainerEventArgs>? DataAccepted;
+        public event EventHandler<DataContainerEventArgs>? DataRejected;
 
         public WebSocketManager()
         {
             this.ConnectionLost += OnConnectionLost;
             this.DataReceived += OnDataReceived;
+            this.DataAccepted += OnDataAccepted;
+            this.DataRejected += OnDataRejected;
         }
 
         public WebSocketManager(string HostUrl) : this()
@@ -77,8 +81,20 @@ namespace MiView.Common.Connection.WebSocket
         protected virtual void OnConnectionLost(object? sender, EventArgs e) { }
         protected void CallConnectionLost() => ConnectionLost?.Invoke(this, new EventArgs());
 
-        protected virtual void OnDataReceived(object? sender, ConnectDataReceivedEventArgs e) { }
+        protected virtual void OnDataReceived(object? sender, ConnectDataReceivedEventArgs e)
+        {
+        }
         protected void CallDataReceived(string ResponseMessage) => DataReceived?.Invoke(this, new ConnectDataReceivedEventArgs() { MessageRaw = ResponseMessage });
+        protected virtual void OnDataAccepted(object? sender, DataContainerEventArgs Container)
+        {
+            this._MainForm.CallDataAccepted(Container.Container);
+        }
+        protected void CallDataAccepted(TimeLineContainer Container) => DataAccepted?.Invoke(this, new DataContainerEventArgs());
+        protected virtual void OnDataRejected(object? sender, DataContainerEventArgs Container)
+        {
+            this._MainForm.CallDataRejected(Container.Container);
+        }
+        protected void CallDataRejected(TimeLineContainer Container) => DataRejected?.Invoke(this, new DataContainerEventArgs());
 
         private async Task Watcher()
         {

@@ -6,6 +6,7 @@ using MiView.Common.Fonts;
 using MiView.Common.Fonts.Material;
 using MiView.Common.TimeLine;
 using MiView.ScreenForms.Controls.Combo;
+using MiView.ScreenForms.Controls.Notify;
 using MiView.ScreenForms.DialogForm;
 using System;
 using System.ComponentModel;
@@ -34,6 +35,8 @@ namespace MiView
         /// </summary>
         private Dictionary<string, string> _TmpTLManager = new Dictionary<string, string>();
 
+        public NotifyView NotifyView { get; set; }
+
         /// <summary>
         /// このフォーム
         /// </summary>
@@ -54,6 +57,10 @@ namespace MiView
             this.pnMain.Location = new Point(this.pnMain.Location.X, this.pnMain.Location.Y + this.pnSub.Size.Height);
             this.tabControl1.Size = new Size(this.tabControl1.Size.Width, this.tabControl1.Size.Height + this.pnSub.Size.Height);
             this.tbMain.Size = new Size(this.tbMain.Size.Width, this.tbMain.Size.Height + this.pnSub.Size.Height);
+
+            // イベント設定
+            DataAccepted += OnDataAccepted;
+            DataRejected += OnDataRejected;
         }
 
         private List<DataGridTimeLine> DGrids = new List<DataGridTimeLine>();
@@ -116,7 +123,7 @@ namespace MiView
             var TabDef = System.Guid.NewGuid().ToString();
 
             // タブ追加
-            _TLCreator.CreateTimeLineTab(ref this.MainFormObj, TabDef, TabName);
+            _TLCreator.CreateTimeLineTab(ref this.MainFormObj, TabDef, TabName, IsVisible);
             _TLCreator.CreateTimeLine(ref this.MainFormObj, TabDef, TabDef, IsFiltered: IsFiltered);
 
             var WSManager = WebSocketTimeLineCommon.CreateInstance(TLKind);
@@ -321,5 +328,35 @@ namespace MiView
 
             this.pnMain.ResumeLayout(false);
         }
+
+        #region 外部から呼び出し
+        public event EventHandler<DataContainerEventArgs>? DataAccepted;
+        public void CallDataAccepted(TimeLineContainer? Container) => DataAccepted?.Invoke(this, new DataContainerEventArgs() { Container = Container });
+        private void OnDataAccepted(object? sender, DataContainerEventArgs? Container)
+        {
+            if (this.InvokeRequired)
+            {
+                this.Invoke(OnDataAccepted, sender, Container);
+            }
+            if (Container == null)
+            {
+                return;
+            }
+        }
+
+        public event EventHandler<DataContainerEventArgs>? DataRejected;
+        public void CallDataRejected(TimeLineContainer? Container) => DataRejected?.Invoke(this, new DataContainerEventArgs() { Container = Container });
+        private void OnDataRejected(object? sender, DataContainerEventArgs? Container)
+        {
+            if (this.InvokeRequired)
+            {
+                this.Invoke(OnDataRejected, sender, Container);
+            }
+            if (Container == null)
+            {
+                return;
+            }
+        }
+        #endregion
     }
 }

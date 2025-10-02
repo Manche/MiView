@@ -48,7 +48,6 @@
 
   <ItemGroup>
     <Folder Include="Common\Connection\REST\Misskey\v2025\API\" />
-    <Folder Include="Common\Notification\Toast\" />
   </ItemGroup>
 
 </Project>

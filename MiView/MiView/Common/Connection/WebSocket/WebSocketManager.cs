@@ -8,256 +8,140 @@ using System.Net.WebSockets;
 using System.Text;
 using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
+using System.Threading;
 using System.Threading.Tasks;
+using System.Diagnostics;
 
 namespace MiView.Common.Connection.WebSocket
 {
     internal class WebSocketManager
     {
-        /// <summary>
-        /// Host
-        /// </summary>
-        protected string _HostUrl
-        {
-            get; set;
-        }
-        = string.Empty;
+        protected string _HostUrl { get; set; } = string.Empty;
+        protected string _HostDefinition { get; set; } = string.Empty;
+        protected string? _APIKey { get; set; } = string.Empty;
 
-        /// <summary>
-        /// Host(original)
-        /// </summary>
-        protected string _HostDefinition
-        {
-            get; set;
-        }
-        = string.Empty;
+        private WebSocketState _State { get; set; } = WebSocketState.None;
+        private WebSocketState _State_Command { get; set; } = WebSocketState.None;
+        private bool _ConnectionClose { get; set; } = false;
 
-        /// <summary>
-        /// APIKey
-        /// </summary>
-        protected string? _APIKey
-        {
-            get; set;
-        }
-        = string.Empty;
+        protected MainForm _MainForm { get; set; } = new MainForm();
+        protected DataGridTimeLine[]? _TimeLineObject { get; set; } = new DataGridTimeLine[0];
 
-        /// <summary>
-        /// Status
-        /// </summary>
-        private WebSocketState _State
-        {
-            get; set;
-        }
-        = WebSocketState.None;
-
-        /// <summary>
-        /// Status/Command
-        /// </summary>
-        private WebSocketState _State_Command
-        {
-            get; set;
-        }
-        = WebSocketState.None;
-
-        /// <summary>
-        /// CloseConnection
-        /// </summary>
-        private bool _ConnectionClose
-        {
-            get; set;
-        }
-        = false;
-
-        protected MainForm _MainForm
-        {
-            get; set;
-        }
-        = new MainForm();
-
-        /// <summary>
-        /// 紐づいているタイムラインオブジェクト
-        /// </summary>
-        protected DataGridTimeLine[]? _TimeLineObject
-        {
-            get; set;
-        }
-        = new DataGridTimeLine[0];
-
-        /// <summary>
-        /// Set TimeLineControl
-        /// </summary>
-        /// <param name="timeLine"></param>
-        public void SetDataGridTimeLine(DataGridTimeLine timeLine)
-        {
-            if (this._TimeLineObject == null)
-            {
-                this._TimeLineObject = new DataGridTimeLine[0];
-            }
-            this._TimeLineObject = this._TimeLineObject.Concat(new DataGridTimeLine[] { timeLine }).ToArray();
-        }
-
-        /// <summary>
-        /// WebSocket
-        /// </summary>
-        private ClientWebSocket _WebSocket
-        {
-            get; set;
-        }
-        = new ClientWebSocket();
+        private ClientWebSocket _WebSocket { get; set; } = new ClientWebSocket();
+        private CancellationTokenSource _Cancellation = new CancellationTokenSource();
 
         public event EventHandler<EventArgs>? ConnectionClosed;
+        public event EventHandler<EventArgs> ConnectionLost;
+        public event EventHandler<ConnectDataReceivedEventArgs> DataReceived;
+        public event EventHandler<DataContainerEventArgs>? DataAccepted;
+        public event EventHandler<DataContainerEventArgs>? DataRejected;
 
-        /// <summary>
-        /// Constructor
-        /// </summary>
         public WebSocketManager()
         {
             this.ConnectionLost += OnConnectionLost;
             this.DataReceived += OnDataReceived;
+            this.DataAccepted += OnDataAccepted;
+            this.DataRejected += OnDataRejected;
         }
 
-        /// <summary>
-        /// ConstructorWithOpen
-        /// </summary>
-        /// <param name="HostUrl"></param>
-        public WebSocketManager(string HostUrl)
+        public WebSocketManager(string HostUrl) : this()
         {
-            this.ConnectionLost += OnConnectionLost;
-            this.DataReceived += OnDataReceived;
-
             this._HostUrl = HostUrl;
-
-            Task.Run(async () =>
-            {
-                await Watcher();
-            });
+            _ = Task.Run(async () => await Watcher());
         }
 
-        /// <summary>
-        /// socket open and start
-        /// </summary>
-        /// <param name="HostUrl"></param>
-        /// <returns></returns>
+        public void SetDataGridTimeLine(DataGridTimeLine timeLine)
+        {
+            if (this._TimeLineObject == null) this._TimeLineObject = new DataGridTimeLine[0];
+            this._TimeLineObject = this._TimeLineObject.Concat(new DataGridTimeLine[] { timeLine }).ToArray();
+        }
+
+        public ClientWebSocket GetSocketClient() => this._WebSocket;
+        public WebSocketState? GetSocketState() => this._WebSocket?.State;
+
+        public void SetSocketState(WebSocketState State) => this._State = State;
+        public bool IsStandBySocketOpen() => GetSocketState() == WebSocketState.None;
+        protected void ConnectionAbort() => this._ConnectionClose = true;
+
         protected WebSocketManager Start(string HostUrl)
         {
             this._HostUrl = HostUrl;
-
-            _ = Task.Run(async () =>
-            {
-                await Watcher();
-            });
-
+            _ = Task.Run(async () => await Watcher());
             return this;
         }
 
-        /// <summary>
-        /// Prepare for Socket Close
-        /// </summary>
-        protected void ConnectionAbort()
+        protected string GetWSURL(string InstanceURL, string? APIKey)
         {
-            this._ConnectionClose = true;
+            this._HostDefinition = InstanceURL;
+            this._APIKey = APIKey;
+
+            return APIKey != null ? $"wss://{InstanceURL}/streaming?i={APIKey}" : $"wss://{InstanceURL}/streaming";
         }
 
-        /// <summary>
-        /// Get Socket
-        /// </summary>
-        /// <returns></returns>
-        public ClientWebSocket GetSocketClient()
-        {
-            return this._WebSocket;
-        }
+        protected virtual void OnConnectionLost(object? sender, EventArgs e) { }
+        protected void CallConnectionLost() => ConnectionLost?.Invoke(this, new EventArgs());
 
-        /// <summary>
-        /// Set WebSocket Status
-        /// </summary>
-        /// <param name="State"></param>
-        public void SetSocketState(WebSocketState State)
+        protected virtual void OnDataReceived(object? sender, ConnectDataReceivedEventArgs e)
         {
-            this._State = State;
         }
-
-        /// <summary>
-        /// Get WebSocket Status
-        /// </summary>
-        /// <returns></returns>
-        public WebSocketState? GetSocketState()
+        protected void CallDataReceived(string ResponseMessage) => DataReceived?.Invoke(this, new ConnectDataReceivedEventArgs() { MessageRaw = ResponseMessage });
+        protected virtual void OnDataAccepted(object? sender, DataContainerEventArgs Container)
         {
-            return this._WebSocket.State;
+            this._MainForm.CallDataAccepted(Container.Container);
         }
-
-        /// <summary>
-        /// Standby WebSocket Open
-        /// </summary>
-        /// <returns></returns>
-        public bool IsStandBySocketOpen()
+        protected void CallDataAccepted(TimeLineContainer Container) => DataAccepted?.Invoke(this, new DataContainerEventArgs());
+        protected virtual void OnDataRejected(object? sender, DataContainerEventArgs Container)
         {
-            return this.GetSocketState() == WebSocketState.None;
+            this._MainForm.CallDataRejected(Container.Container);
         }
+        protected void CallDataRejected(TimeLineContainer Container) => DataRejected?.Invoke(this, new DataContainerEventArgs());
 
-        /// <summary>
-        /// SocketWatcher
-        /// </summary>
         private async Task Watcher()
         {
-            if (_WebSocket == null)
+            if (_WebSocket == null) _WebSocket = new ClientWebSocket();
+
+            while (!_ConnectionClose)
             {
-                _WebSocket = new ClientWebSocket();
-            }
-
-            int TryCnt = 0;
-            while (!this._ConnectionClose)
-            {
-                TryCnt++;
-
-                Thread.Sleep(1000);
-
-                if (_WebSocket.State != WebSocketState.Open)
+                try
                 {
-                    await CreateAndOpen(this._HostUrl);
+                    if (_WebSocket.State != WebSocketState.Open)
+                    {
+                        await CreateAndOpen(_HostUrl);
+
+                        if (_WebSocket.State == WebSocketState.Open)
+                        {
+                            _ = Task.Run(() => ReceiveLoop(_Cancellation.Token));
+                        }
+                    }
                 }
-                if (TryCnt > 10)
+                catch (Exception ex)
                 {
-                    return;
+                    CallError(ex);
                 }
+
+                await Task.Delay(2000, _Cancellation.Token); // CPU暴走防止
             }
         }
 
-        /// <summary>
-        /// SocketOpen
-        /// </summary>
-        /// <param name="HostUrl"></param>
-        /// <exception cref="InvalidOperationException"></exception>
         protected async Task CreateAndOpen(string HostUrl)
         {
             _HostUrl = HostUrl;
 
-            if ((this._State == WebSocketState.Open))
-            {
-                throw new InvalidOperationException("Socket is already opened");
-            }
+            if (_State == WebSocketState.Open)
+                return;
 
-            ClientWebSocket? WS = null;
             try
             {
-                WS = new ClientWebSocket();
-                //if (this._WebSocket != null)
-                //{
-                //    WS = this._WebSocket;
-                //}
+                var WS = new ClientWebSocket();
                 WS.Options.KeepAliveInterval = TimeSpan.Zero;
+                await WS.ConnectAsync(new Uri(_HostUrl), CancellationToken.None);
 
-                await WS.ConnectAsync(new Uri(this._HostUrl), CancellationToken.None);
-
-                if (WS.State != WebSocketState.Open)
-                {
-                    // throw new InvalidOperationException("connection is not opened.");
-                }
-
-                this._WebSocket = WS;
-                this._State = WS.State;
+                _WebSocket = WS;
+                _State = WS.State;
             }
             catch (Exception ex)
             {
+                CallError(ex);
             }
         }
 
@@ -265,58 +149,69 @@ namespace MiView.Common.Connection.WebSocket
         {
             _HostUrl = HostUrl;
 
-            if ((this._State == WebSocketState.Closed))
-            {
-                throw new InvalidOperationException("Socket is already opened");
-            }
+            if (_State == WebSocketState.Closed)
+                throw new InvalidOperationException("Socket is already closed");
 
             try
             {
-
-                await this._WebSocket.CloseAsync(WebSocketCloseStatus.InternalServerError, null, CancellationToken.None);
-                while (this._WebSocket.State != WebSocketState.Closed &&
-                       this._WebSocket.State != WebSocketState.Aborted)
-                {
-                }
-
-                this._WebSocket = this._WebSocket;
-                this._State = this._WebSocket.State;
+                await _WebSocket.CloseAsync(WebSocketCloseStatus.InternalServerError, null, CancellationToken.None);
+                while (_WebSocket.State != WebSocketState.Closed && _WebSocket.State != WebSocketState.Aborted) ;
+                _State = _WebSocket.State;
             }
             catch (Exception ex)
             {
+                CallError(ex);
             }
         }
 
-        /// <summary>
-        /// Set WebSocket URL
-        /// </summary>
-        /// <param name="InstanceURL"></param>
-        /// <param name="APIKey"></param>
-        /// <returns></returns>
-        protected string GetWSURL(string InstanceURL, string? APIKey)
+        private async Task ReceiveLoop(CancellationToken token)
         {
-            this._HostDefinition = InstanceURL;
-            this._APIKey = APIKey;
+            var buffer = new byte[8192];
+            var sb = new StringBuilder();
 
-            return APIKey != null ? string.Format("wss://{0}/streaming?i={1}", InstanceURL, APIKey) : string.Format("wss://{0}/streaming", InstanceURL);
+            try
+            {
+                while (!token.IsCancellationRequested && _WebSocket.State == WebSocketState.Open)
+                {
+                    sb.Clear();
+                    WebSocketReceiveResult result;
+
+                    do
+                    {
+                        result = await _WebSocket.ReceiveAsync(new ArraySegment<byte>(buffer), token);
+
+                        if (result.MessageType == WebSocketMessageType.Close)
+                        {
+                            await _WebSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, string.Empty, token);
+                            CallConnectionLost();
+                            return;
+                        }
+
+                        sb.Append(Encoding.UTF8.GetString(buffer, 0, result.Count));
+
+                    } while (!result.EndOfMessage);
+
+                    var message = sb.ToString();
+                    var totalLength = Encoding.UTF8.GetByteCount(message);
+
+                    Debug.WriteLine($"受信完了: {totalLength} bytes"); // 内部バイト長確認
+                    CallDataReceived(message);
+                }
+            }
+            catch (Exception ex)
+            {
+                CallError(ex);
+            }
+            finally
+            {
+                // CPU暴走防止用に少し待ってから再接続
+                await Task.Delay(1000, token);
+            }
         }
 
-        public event EventHandler<EventArgs> ConnectionLost;
-        protected virtual void OnConnectionLost(object? sender, EventArgs e)
+        private void CallError(Exception ex)
         {
-        }
-        protected void CallConnectionLost()
-        {
-            ConnectionLost(this, new EventArgs());
-        }
-
-        public event EventHandler<ConnectDataReceivedEventArgs> DataReceived;
-        protected virtual void OnDataReceived(object? sender, ConnectDataReceivedEventArgs e)
-        {
-        }
-        protected void CallDataReceived(string ResponseMessage)
-        {
-            DataReceived(this, new ConnectDataReceivedEventArgs() { MessageRaw = ResponseMessage });
+            Debug.WriteLine($"WebSocketManager Error: {ex}");
         }
     }
 }

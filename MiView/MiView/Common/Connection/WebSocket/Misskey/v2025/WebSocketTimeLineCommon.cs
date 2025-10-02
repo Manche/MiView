@@ -6,6 +6,7 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using MiView.Common.AnalyzeData;
+using System.Reflection.Metadata.Ecma335;
 
 namespace MiView.Common.Connection.WebSocket.Misskey.v2025
 {
@@ -213,7 +214,7 @@ namespace MiView.Common.Connection.WebSocket.Misskey.v2025
                         System.Diagnostics.Debug.WriteLine(WSTimeLine._HostUrl);
                         System.Diagnostics.Debug.WriteLine(ce);
 
-                        if (WSTimeLine.GetSocketClient().State != WebSocketState.Open)
+                        if (WSTimeLine.GetSocketClient() != null && WSTimeLine.GetSocketClient().State != WebSocketState.Open)
                         {
                             Thread.Sleep(1000);
 
@@ -283,25 +284,189 @@ namespace MiView.Common.Connection.WebSocket.Misskey.v2025
                 // データ受信不可能の場合
                 return;
             }
-
-            dynamic Res = System.Text.Json.JsonDocument.Parse(e.MessageRaw);
-            var t = JsonNode.Parse(e.MessageRaw);
-
-            // ChannelToTimeLineData.Type(t);
-
-            foreach (DataGridTimeLine DGrid in this._TimeLineObject)
+            try
             {
-                if (DGrid.InvokeRequired)
+                dynamic Res = System.Text.Json.JsonDocument.Parse(e.MessageRaw);
+                var t = JsonNode.Parse(e.MessageRaw);
+
+                // ChannelToTimeLineData.Type(t);
+
+                foreach (DataGridTimeLine DGrid in this._TimeLineObject)
                 {
-                    try
+                    TimeLineContainer TLCon = ChannelToTimeLineContainer.ConvertTimeLineContainer(this._HostDefinition, t);
+                    if (DGrid.InvokeRequired)
                     {
-                        DGrid.Invoke(() => { DGrid.InsertTimeLineData(ChannelToTimeLineContainer.ConvertTimeLineContainer(this._HostDefinition, t)); });
-                    }
-                    catch (Exception ce)
-                    {
-                        System.Diagnostics.Debug.WriteLine(ce.ToString());
+                        if (!DGrid._IsFiltered)
+                        {
+                            // 通常TL
+                            DGrid.Invoke(() => {
+
+                                lock (DGrid)
+                                {
+                                    DGrid.SetTimeLineFilter(TLCon);
+
+                                    int Found = DGrid._FilteringOptions.FindAll(r => { return r.FilterResult(); }).Count();
+                                    int Filted = DGrid._FilteringOptions.Count();
+
+                                    bool CountRet = false;
+                                    if (DGrid._FilterMode)
+                                    {
+                                        CountRet = Found == Filted;
+                                    }
+                                    else
+                                    {
+                                        CountRet = Found > 0;
+                                    }
+
+                                    if (CountRet)
+                                    {
+                                        // 通常TL
+                                        try
+                                        {
+                                            DGrid.InsertTimeLineData(TLCon);
+
+                                            foreach (TimeLineAlertOption Opt in DGrid._AlertAccept)
+                                            {
+                                                Found = Opt._FilterOptions.FindAll(r => { return r.FilterResult(); }).Count();
+                                                Filted = Opt._FilterOptions.Count();
+
+                                                CountRet = false;
+                                                if (Opt._FilterMode)
+                                                {
+                                                    CountRet = Found == Filted;
+                                                }
+                                                else
+                                                {
+                                                    CountRet = Found > 0;
+                                                }
+                                                if (CountRet)
+                                                {
+                                                    Opt.ExecuteAlert();
+                                                }
+                                            }
+                                            CallDataAccepted(TLCon);
+                                        }
+                                        catch (Exception ce)
+                                        {
+                                            System.Diagnostics.Debug.WriteLine(ce.ToString());
+                                        }
+                                    }
+                                    else
+                                    {
+                                        foreach (TimeLineAlertOption Opt in DGrid._AlertReject)
+                                        {
+                                            Found = Opt._FilterOptions.FindAll(r => { return r.FilterResult(); }).Count();
+                                            Filted = Opt._FilterOptions.Count();
+
+                                            CountRet = false;
+                                            if (Opt._FilterMode)
+                                            {
+                                                CountRet = Found == Filted;
+                                            }
+                                            else
+                                            {
+                                                CountRet = Found > 0;
+                                            }
+                                            if (CountRet)
+                                            {
+                                                Opt.ExecuteAlert();
+                                            }
+                                        }
+                                        CallDataRejected(TLCon);
+                                    }
+                                    //System.Diagnostics.Debug.WriteLine(DGrid.Name);
+                                    //System.Diagnostics.Debug.WriteLine("サーチ数：" + DGrid._FilteringOptions.FindAll(r => { return r.FilterResult(); }).Count() + "/結果：" + DGrid._FilteringOptions.Count());
+                                }
+                            });
+                        }
+                        else
+                        {
+                            // フィルタTL
+                            DGrid.Invoke(() => {
+
+                                lock (DGrid)
+                                {
+                                    DGrid.SetTimeLineFilter(TLCon);
+
+                                    int Found = DGrid._FilteringOptions.FindAll(r => { return r.FilterResult(); }).Count();
+                                    int Filted = DGrid._FilteringOptions.Count();
+
+                                    bool CountRet = false;
+                                    if (DGrid._FilterMode)
+                                    {
+                                        CountRet = Found == Filted;
+                                    }
+                                    else
+                                    {
+                                        CountRet = Found > 0;
+                                    }
+
+                                    if (CountRet)
+                                    {
+                                        // 通常TL
+                                        try
+                                        {
+                                            DGrid.InsertTimeLineData(TLCon);
+                                            foreach (TimeLineAlertOption Opt in DGrid._AlertAccept)
+                                            {
+                                                Found = Opt._FilterOptions.FindAll(r => { return r.FilterResult(); }).Count();
+                                                Filted = Opt._FilterOptions.Count();
+
+                                                CountRet = false;
+                                                if (Opt._FilterMode)
+                                                {
+                                                    CountRet = Found == Filted;
+                                                }
+                                                else
+                                                {
+                                                    CountRet = Found > 0;
+                                                }
+                                                if (CountRet)
+                                                {
+                                                    Opt.ExecuteAlert();
+                                                }
+                                            }
+                                            CallDataAccepted(TLCon);
+                                        }
+                                        catch (Exception ce)
+                                        {
+                                            System.Diagnostics.Debug.WriteLine(ce.ToString());
+                                        }
+                                    }
+                                    else
+                                    {
+                                        foreach (TimeLineAlertOption Opt in DGrid._AlertReject)
+                                        {
+                                            Found = Opt._FilterOptions.FindAll(r => { return r.FilterResult(); }).Count();
+                                            Filted = Opt._FilterOptions.Count();
+
+                                            CountRet = false;
+                                            if (Opt._FilterMode)
+                                            {
+                                                CountRet = Found == Filted;
+                                            }
+                                            else
+                                            {
+                                                CountRet = Found > 0;
+                                            }
+                                            if (CountRet)
+                                            {
+                                                Opt.ExecuteAlert();
+                                            }
+                                        }
+                                        CallDataRejected(TLCon);
+                                    }
+                                    //System.Diagnostics.Debug.WriteLine(DGrid.Name);
+                                    //System.Diagnostics.Debug.WriteLine("サーチ数：" + DGrid._FilteringOptions.FindAll(r => { return r.FilterResult(); }).Count() + "/結果：" + DGrid._FilteringOptions.Count());
+                                }
+                            });
+                        }
                     }
                 }
+            }
+            catch (Exception)
+            {
+                System.Diagnostics.Debug.WriteLine(e.MessageRaw);
             }
         }
     }

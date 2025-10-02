@@ -4,9 +4,13 @@ using MiView.Common.Connection.WebSocket.Event;
 using MiView.Common.Connection.WebSocket.Misskey.v2025;
 using MiView.Common.Fonts;
 using MiView.Common.Fonts.Material;
+using MiView.Common.Notification.Baloon;
+using MiView.Common.Notification.Toast;
 using MiView.Common.TimeLine;
 using MiView.ScreenForms.Controls.Combo;
+using MiView.ScreenForms.Controls.Notify;
 using MiView.ScreenForms.DialogForm;
+using System;
 using System.ComponentModel;
 using System.Reflection;
 using System.Security.Policy;
@@ -29,6 +33,13 @@ namespace MiView
         private Dictionary<string, WebSocketTimeLineCommon> _TLManager = new Dictionary<string, WebSocketTimeLineCommon>();
 
         /// <summary>
+        /// 一時タイムラインマネージャ
+        /// </summary>
+        private Dictionary<string, string> _TmpTLManager = new Dictionary<string, string>();
+
+        public NotifyView NotifyView { get; set; }
+
+        /// <summary>
         /// このフォーム
         /// </summary>
         private MainForm MainFormObj;
@@ -48,6 +59,10 @@ namespace MiView
             this.pnMain.Location = new Point(this.pnMain.Location.X, this.pnMain.Location.Y + this.pnSub.Size.Height);
             this.tabControl1.Size = new Size(this.tabControl1.Size.Width, this.tabControl1.Size.Height + this.pnSub.Size.Height);
             this.tbMain.Size = new Size(this.tbMain.Size.Width, this.tbMain.Size.Height + this.pnSub.Size.Height);
+
+            // イベント設定
+            DataAccepted += OnDataAccepted;
+            DataRejected += OnDataRejected;
         }
 
         private List<DataGridTimeLine> DGrids = new List<DataGridTimeLine>();
@@ -58,6 +73,24 @@ namespace MiView
         private void MainForm_Load(object sender, EventArgs e)
         {
             _TLCreator.CreateTimeLine(ref this.MainFormObj, "Main", "tpMain");
+
+        }
+        // 呼び出し元で TabDef が _TmpTLManager に登録されるまで待つ
+        private void WaitForTimeLineObject(string TabName, int timeoutMs = 5000)
+        {
+            int waited = 0;
+            const int interval = 10; // 10ms ごとにチェック
+
+            while (!_TmpTLManager.ContainsKey(TabName) && waited < timeoutMs)
+            {
+                Thread.Sleep(interval);
+                waited += interval;
+            }
+
+            if (!_TmpTLManager.ContainsKey(TabName))
+            {
+                throw new TimeoutException($"TimeLine {TabName} が生成されませんでした");
+            }
         }
 
         public void SelectTabPage(string TabName)
@@ -78,11 +111,11 @@ namespace MiView
             }
         }
 
-        public void AddTimeLine(string InstanceURL, string TabName, string APIKey, TimeLineBasic.ConnectTimeLineKind sTLKind)
+        public void AddTimeLine(string InstanceURL, string TabName, string APIKey, TimeLineBasic.ConnectTimeLineKind sTLKind, bool IsFiltered = false, bool AvoidIntg = false, bool IsVisible = true)
         {
             if (this.InvokeRequired)
             {
-                this.Invoke(AddTimeLine, InstanceURL, TabName, APIKey, sTLKind);
+                this.Invoke(AddTimeLine, InstanceURL, TabName, APIKey, sTLKind, IsFiltered, AvoidIntg, IsVisible);
                 return;
             }
 
@@ -92,15 +125,19 @@ namespace MiView
             var TabDef = System.Guid.NewGuid().ToString();
 
             // タブ追加
-            _TLCreator.CreateTimeLineTab(ref this.MainFormObj, TabDef, TabName);
-            _TLCreator.CreateTimeLine(ref this.MainFormObj, TabDef, TabDef);
+            _TLCreator.CreateTimeLineTab(ref this.MainFormObj, TabDef, TabName, IsVisible);
+            _TLCreator.CreateTimeLine(ref this.MainFormObj, TabDef, TabDef, IsFiltered: IsFiltered);
 
             var WSManager = WebSocketTimeLineCommon.CreateInstance(TLKind);
             try
             {
                 WSManager.OpenTimeLine(InstanceURL, APIKey);
-                WSManager.SetDataGridTimeLine(_TLCreator.GetTimeLineObjectDirect(ref this.MainFormObj, "Main"));
+                if (AvoidIntg == false)
+                {
+                    WSManager.SetDataGridTimeLine(_TLCreator.GetTimeLineObjectDirect(ref this.MainFormObj, "Main"));
+                }
                 WSManager.SetDataGridTimeLine(_TLCreator.GetTimeLineObjectDirect(ref this.MainFormObj, TabDef));
+                _TLCreator.GetTimeLineObjectDirect(ref this.MainFormObj, TabDef).Visible = IsVisible;
                 try
                 {
                     WebSocketTimeLineCommon.ReadTimeLineContinuous(WSManager);
@@ -114,6 +151,9 @@ namespace MiView
                 catch (Exception ex)
                 {
                 }
+
+                _TLManager.Add(TabDef, WSManager);
+                _TmpTLManager.Add(TabName, TabDef);
             }
             catch
             {
@@ -123,6 +163,74 @@ namespace MiView
                 MessageBox.Show("インスタンスの読み込みに失敗しました。");
                 return;
             }
+        }
+
+        public void AddStaticTimeLine(string TabName, string? AttachDef = null, string? AttachName = null, bool IsFiltered = true)
+        {
+            if (this.InvokeRequired)
+            {
+                this.Invoke(AddStaticTimeLine, TabName, AttachDef, AttachName, IsFiltered);
+                return;
+            }
+
+            // タブ識別
+            var TabDef = System.Guid.NewGuid().ToString();
+
+            // タブ追加
+            _TLCreator.CreateTimeLineTab(ref this.MainFormObj, TabDef, TabName);
+            _TLCreator.CreateTimeLine(ref this.MainFormObj, TabDef, TabDef, IsFiltered: IsFiltered);
+            _TmpTLManager.Add(TabName, TabDef);
+
+            if (AttachName == null)
+            {
+                return;
+            }
+            _TLManager[_TmpTLManager[AttachDef]].SetDataGridTimeLine(_TLCreator.GetTimeLineObjectDirect(ref this.MainFormObj, TabDef));
+        }
+
+        public void AppendStaticTimeLine(string TabName, string AttachDef, string? AttachName = null, bool IsFiltered = true)
+        {
+            if (this.InvokeRequired)
+            {
+                this.Invoke(AddStaticTimeLine, TabName, AttachDef, IsFiltered);
+                return;
+            }
+
+            _TLManager[_TmpTLManager[AttachDef]].SetDataGridTimeLine(_TLCreator.GetTimeLineObjectDirect(ref this.MainFormObj, _TmpTLManager[TabName]));
+        }
+
+        private void AppendTimelineFilter(string TabName, string AttachDef, TimeLineFilterlingOption FilterOption)
+        {
+            if (this.InvokeRequired)
+            {
+                this.Invoke(new Action(() => AppendTimelineFilter(TabName, AttachDef, FilterOption)));
+                return;
+            }
+
+            _TLCreator.GetTimeLineObjectDirect(ref this.MainFormObj, _TmpTLManager[TabName])._FilteringOptions.Add(FilterOption);
+        }
+
+        private void AppendTimelineMatchMode(string TabName, string AttachDef, bool FilterMode)
+        {
+            if (this.InvokeRequired)
+            {
+                this.Invoke(new Action(() => AppendTimelineMatchMode(TabName, AttachDef, FilterMode)));
+                return;
+            }
+
+            _TLCreator.GetTimeLineObjectDirect(ref this.MainFormObj, _TmpTLManager[TabName])._FilterMode = FilterMode;
+        }
+
+
+        private void AppendTimelineAlert(string TabName, string AttachDef, TimeLineAlertOption FilterOption)
+        {
+            if (this.InvokeRequired)
+            {
+                this.Invoke(new Action(() => AppendTimelineAlert(TabName, AttachDef, FilterOption)));
+                return;
+            }
+
+            _TLCreator.GetTimeLineObjectDirect(ref this.MainFormObj, _TmpTLManager[TabName])._AlertOptions.Add(FilterOption);
         }
 
         private void cmdAddInstance_Click(object sender, EventArgs e)
@@ -234,5 +342,35 @@ namespace MiView
 
             this.pnMain.ResumeLayout(false);
         }
+
+        #region 外部から呼び出し
+        public event EventHandler<DataContainerEventArgs>? DataAccepted;
+        public void CallDataAccepted(TimeLineContainer? Container) => DataAccepted?.Invoke(this, new DataContainerEventArgs() { Container = Container });
+        private void OnDataAccepted(object? sender, DataContainerEventArgs? Container)
+        {
+            if (this.InvokeRequired)
+            {
+                this.Invoke(OnDataAccepted, sender, Container);
+            }
+            if (Container == null)
+            {
+                return;
+            }
+        }
+
+        public event EventHandler<DataContainerEventArgs>? DataRejected;
+        public void CallDataRejected(TimeLineContainer? Container) => DataRejected?.Invoke(this, new DataContainerEventArgs() { Container = Container });
+        private void OnDataRejected(object? sender, DataContainerEventArgs? Container)
+        {
+            if (this.InvokeRequired)
+            {
+                this.Invoke(OnDataRejected, sender, Container);
+            }
+            if (Container == null)
+            {
+                return;
+            }
+        }
+        #endregion
     }
 }

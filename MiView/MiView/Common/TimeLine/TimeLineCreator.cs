@@ -1,11 +1,13 @@
 ﻿using MiView.Common.AnalyzeData;
 using MiView.Common.Fonts;
 using MiView.Common.Fonts.Material;
+using MiView.Common.Notification;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.DirectoryServices.ActiveDirectory;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.Json.Nodes;
 using System.Threading.Tasks;
@@ -176,7 +178,7 @@ namespace MiView.Common.TimeLine
         /// メインフォームへタイムラインを追加
         /// </summary>
         /// <param name="MainForm"></param>
-        public void CreateTimeLine(ref MainForm MainForm, string Definition, string? ChildDefinition = null)
+        public void CreateTimeLine(ref MainForm MainForm, string Definition, string? ChildDefinition = null, bool IsFiltered = false)
         {
             // コントロールがあるか検索
             var tpObj = GetControlFromMainForm(ref MainForm, ChildDefinition);
@@ -187,6 +189,11 @@ namespace MiView.Common.TimeLine
                 System.Diagnostics.Debug.WriteLine("hoge");
                 DataGridTimeLine Grid = new DataGridTimeLine();
                 ((System.ComponentModel.ISupportInitialize)Grid).BeginInit();
+
+                //
+                // Property
+                //
+                Grid._IsFiltered = IsFiltered;
 
                 // 
                 // Grid
@@ -275,7 +282,7 @@ namespace MiView.Common.TimeLine
             this._MainForm.SetTimeLineContents(OriginalHost, (JsonNode)Node);
         }
 
-        public void CreateTimeLineTab(ref MainForm MainForm, string Name, string Text)
+        public void CreateTimeLineTab(ref MainForm MainForm, string Name, string Text, bool Visible = true)
         {
             var tpObj = GetControlFromMainForm(ref MainForm, null);
             if (tpObj != null)
@@ -571,7 +578,7 @@ namespace MiView.Common.TimeLine
     /// <summary>
     /// タイムラインオブジェクト
     /// </summary>
-    internal class TimeLineContainer
+    public class TimeLineContainer
     {
         public TimeLineContainer() { }
 
@@ -675,6 +682,62 @@ namespace MiView.Common.TimeLine
         private static string _Common_Channel = MaterialIcons.Tv;
 
         /// <summary>
+        /// フィルタTLかどうか
+        /// </summary>
+        public bool _IsFiltered = false;
+        /// <summary>
+        /// フィルタリングオプション
+        /// </summary>
+        public List<TimeLineFilterlingOption> _FilteringOptions = new List<TimeLineFilterlingOption>();
+        /// <summary>
+        /// Grid別条件一致モード
+        /// 
+        /// true=全部一致 false=いずれか一致
+        /// </summary>
+        public bool _FilterMode = true;
+        /// <summary>
+        /// アラートオプション
+        /// </summary>
+        public List<TimeLineAlertOption> _AlertOptions = new List<TimeLineAlertOption>();
+        public List<TimeLineAlertOption> _AlertAccept
+        {
+            get
+            {
+                return _AlertOptions.FindAll(r => { return r._Alert_Timing == TimeLineAlertOption.ALERT_TIMING.ACCEPT; });
+            }
+        }
+        public List<TimeLineAlertOption> _AlertReject
+        {
+            get
+            {
+                return _AlertOptions.FindAll(r => { return r._Alert_Timing == TimeLineAlertOption.ALERT_TIMING.REJECT; });
+            }
+        }
+
+        /// <summary>
+        /// フィルタに投稿を設定
+        /// </summary>
+        /// <param name="Container"></param>
+        public void SetTimeLineFilter(TimeLineContainer Container)
+        {
+            if (this._FilteringOptions == null)
+            {
+                return;
+            }
+            foreach (TimeLineFilterlingOption Opt in this._FilteringOptions)
+            {
+                Opt._Container = Container;
+            }
+            foreach (TimeLineAlertOption Alt in this._AlertOptions)
+            {
+                foreach (TimeLineFilterlingOption Flt in Alt._FilterOptions)
+                {
+                    Flt._Container = Container;
+                }
+            }
+        }
+
+        /// <summary>
         /// 列幅
         /// </summary>
         private static Dictionary<TimeLineCreator.TIMELINE_ELEMENT, int> _ColumWidths = new Dictionary<TIMELINE_ELEMENT, int>()
@@ -736,6 +799,8 @@ namespace MiView.Common.TimeLine
             }
         }
 
+        private static int _cntGlobal = 0;
+
         /// <summary>
         /// 行挿入
         /// </summary>
@@ -744,6 +809,9 @@ namespace MiView.Common.TimeLine
         {
             try
             {
+                _cntGlobal++;
+                System.Diagnostics.Debug.WriteLine(_cntGlobal);
+
                 this.SuspendLayout();
                 // TL統合
                 var Intg = this.Rows.Cast<DataGridViewRow>().Where(r => r.Cells[(int)TIMELINE_ELEMENT.IDENTIFIED].Value.Equals(Container.IDENTIFIED)).ToArray();
@@ -817,6 +885,15 @@ namespace MiView.Common.TimeLine
                 this.ResumeLayout(false);
             }
             //this.Refresh();
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="Container"></param>
+        public bool FilterTimeLineData(TimeLineContainer Container)
+        {
+            return false;
         }
 
         /// <summary>
@@ -997,6 +1074,451 @@ namespace MiView.Common.TimeLine
         public CurrentGridCellEventArgs(MainForm CurrentForm)
         {
             _CurrentForm = CurrentForm;
+        }
+    }
+
+    /// <summary>
+    /// タイムラインフィルタリング設定
+    /// </summary>
+    internal class TimeLineFilterlingOption
+    {
+        /// <summary>
+        /// 一致条件
+        /// </summary>
+        public enum MATCH_MODE
+        {
+            /// <summary>
+            /// 未指定
+            /// </summary>
+            NONE = -1,
+            /// <summary>
+            /// 全てが真
+            /// </summary>
+            ALL = 0,
+            /// <summary>
+            /// いずれかが真
+            /// </summary>
+            PARTIAL = 1,
+            /// <summary>
+            /// 一部重視
+            /// </summary>
+            IMPORTANCE = 2,
+        }
+        public MATCH_MODE _MODE = MATCH_MODE.NONE;
+
+        /// <summary>
+        /// 一致方法指定
+        /// </summary>
+        public enum MATCHER_PATTERN
+        {
+            /// <summary>
+            /// なし
+            /// </summary>
+            NONE = 0,
+            /// <summary>
+            /// 一致
+            /// </summary>
+            MATCH = 1,
+            /// <summary>
+            /// 含む
+            /// </summary>
+            PATTERN = 2,
+            /// <summary>
+            /// ～で始まる
+            /// </summary>
+            START = 3,
+            /// <summary>
+            /// ～で終わる
+            /// </summary>
+            END = 4,
+            /// <summary>
+            /// 正規表現
+            /// </summary>
+            REGEXP = 5,
+        }
+        /// <summary>
+        /// 一致方法
+        /// </summary>
+        public MATCHER_PATTERN _PATTERN = MATCHER_PATTERN.NONE;
+
+        /// <summary>
+        /// 反転(not)条件
+        /// </summary>
+        public bool CONSTRAINT_INVERT = false;
+
+        /// <summary>
+        /// ユーザID指定
+        /// </summary>
+        public bool _Match_UserId = false;
+        /// <summary>
+        /// ユーザID
+        /// </summary>
+        public List<string> _UserIds = new List<string>();
+        /// <summary>
+        /// ユーザ名指定
+        /// </summary>
+        public bool _Match_UserName = false;
+        /// <summary>
+        /// ユーザ名
+        /// </summary>
+        public List<string> _UserNames = new List<string>();
+        /// <summary>
+        /// 詳細指定
+        /// </summary>
+        public bool _Match_Detail = false;
+        /// <summary>
+        /// 詳細
+        /// </summary>
+        public List<string> _Details = new List<string>();
+        /// <summary>
+        /// ソフトウェア指定
+        /// </summary>
+        public bool _Match_Software = false;
+        /// <summary>
+        /// ソフトウェア名
+        /// </summary>
+        public List<string> _Software = new List<string>();
+        /// <summary>
+        /// チャンネル指定
+        /// </summary>
+        public bool _Match_Channel = false;
+        /// <summary>
+        /// チャンネル名
+        /// </summary>
+        public List<string> _ChannelNames = new List<string>();
+
+        /// <summary>
+        /// 一致した件数_開始
+        /// </summary>
+        public int _Matched_Count_Min = 0;
+        /// <summary>
+        /// 一致した件数_終了
+        /// </summary>
+        public int _Matched_Count_Max = 0;
+
+        /// <summary>
+        /// CW指定
+        /// </summary>
+        public bool _Match_CW = false;
+        /// <summary>
+        /// CWを含める
+        /// </summary>
+        public bool _Contain_CW = false;
+        /// <summary>
+        /// Reply指定
+        /// </summary>
+        public bool _Match_Reply = false;
+        /// <summary>
+        /// Replyを含める
+        /// </summary>
+        public bool _Contain_Reply = false;
+        /// <summary>
+        /// RN指定
+        /// </summary>
+        public bool _Match_RN = false;
+        /// <summary>
+        /// ReNoteを含める
+        /// </summary>
+        public bool _Contain_RN = false;
+
+        private TimeLineContainer? _containerBacking;
+        public TimeLineContainer? _Container
+        {
+            get => _containerBacking;
+            set => _containerBacking = value;
+        }
+
+        public TimeLineFilterlingOption()
+        {
+        }
+
+        public bool FilterResult()
+        {
+            bool Result = false;
+            switch (_MODE)
+            {
+                case MATCH_MODE.ALL:
+                    Result = MatchUserId() &&
+                           MatchUserName() &&
+                           MatchDetail() &&
+                           MatchSoftware() &&
+                           MatchChannel() &&
+                           ContainCW() &&
+                           ContainReply() &&
+                           ContainRN();
+                    break;
+                case MATCH_MODE.PARTIAL:
+                    Result = MatchUserId() ||
+                           MatchUserName() ||
+                           MatchDetail() ||
+                           MatchSoftware() ||
+                           MatchChannel() ||
+                           ContainCW() ||
+                           ContainReply() ||
+                           ContainRN();
+                    break;
+
+                default:
+                    Result = false;
+                    break;
+            }
+
+            //System.Diagnostics.Debug.WriteLine("チェック結果：" + Result);
+
+            return !CONSTRAINT_INVERT ? Result : !Result;
+        }
+
+        public bool MatchUserId()
+        {
+            if (_Container == null)
+            {
+                return true;
+            }
+            return ListMatch(_Match_UserId, _UserIds, _Container.USERID);
+        }
+
+        public bool MatchUserName()
+        {
+            if (_Container == null)
+            {
+                return true;
+            }
+            return ListMatch(_Match_UserName, _UserNames, _Container.USERNAME);
+        }
+
+        public bool MatchDetail()
+        {
+            if (_Container == null)
+            {
+                return true;
+            }
+            return ListMatch(_Match_Detail, _Details, _Container.DETAIL);
+        }
+
+        public bool MatchSoftware()
+        {
+            if (_Container == null)
+            {
+                return true;
+            }
+            return ListMatch(_Match_Software, _Software, _Container.SOFTWARE);
+        }
+        
+        public bool MatchChannel()
+        {
+            if (_Container == null)
+            {
+                return true;
+            }
+            if (_Match_Channel)
+            {
+                if (_Container.CHANNEL_NAME == null)
+                {
+                    return false;
+                }
+            }
+            else
+            {
+                return true;
+            }
+            return ListMatch(_Match_Channel, _ChannelNames, _Container.CHANNEL_NAME);
+        }
+
+        public bool ContainCW()
+        {
+            if (_Container == null)
+            {
+                return true;
+            }
+            if (!_Match_CW)
+            {
+                return true;
+            }
+            if (!_Contain_CW)
+            {
+                return true;
+            }
+            return _Container.CW;
+        }
+
+        public bool ContainReply()
+        {
+            if (_Container == null)
+            {
+                return true;
+            }
+            if (!_Match_Reply)
+            {
+                return true;
+            }
+            if (!_Contain_Reply)
+            {
+                return true;
+            }
+            return _Container.REPLAYED;
+        }
+
+        public bool ContainRN()
+        {
+            if (_Container == null)
+            {
+                return true;
+            }
+            if (!_Match_RN)
+            {
+                return true;
+            }
+            if (!_Contain_RN)
+            {
+                return true;
+            }
+            return _Container.RENOTED;
+        }
+
+        public bool ListMatch(bool AppliedMatch, List<string> Patterns, string Value)
+        {
+            if (AppliedMatch == false)
+            {
+                return true;
+            }
+            int MatchedCount = 0;
+            switch(_PATTERN)
+            {
+                case MATCHER_PATTERN.NONE: // 未指定
+                    return false;
+                case MATCHER_PATTERN.MATCH: // 一致
+                    MatchedCount = Patterns.FindAll(r => { return Value == r; }).Count;
+                    break;
+                case MATCHER_PATTERN.PATTERN: // 含む
+                    MatchedCount = Patterns.FindAll(r => { return Value.Contains(r); }).Count;
+                    break;
+                case MATCHER_PATTERN.START:
+                    MatchedCount = Patterns.FindAll(r => { return r.StartsWith(Value); }).Count;
+                    break;
+                case MATCHER_PATTERN.END:
+                    MatchedCount = Patterns.FindAll(r => { return r.EndsWith(Value); }).Count;
+                    break;
+
+                default:
+                    return false;
+            }
+            if (_Matched_Count_Max != 0 && _Matched_Count_Min != 0)
+            {
+                // 範囲
+                return _Matched_Count_Min < MatchedCount && MatchedCount < _Matched_Count_Max;
+            }
+            else
+            {
+                if (_Matched_Count_Max != 0)
+                {
+                    // 最大が決まっている
+                    return MatchedCount < _Matched_Count_Max;
+                }
+                else
+                {
+                    // 最小だけ
+                    return MatchedCount > _Matched_Count_Min;
+                }
+            }
+        }
+    }
+
+    /// <summary>
+    /// タイムラインアラート設定
+    /// </summary>
+    internal class TimeLineAlertOption
+    {
+        public enum ALERT_TIMING
+        {
+            NONE = 0,
+            ACCEPT,
+            REJECT
+        }
+
+        public ALERT_TIMING _Alert_Timing = ALERT_TIMING.NONE;
+
+        /// <summary>
+        /// タイムラインフィルタリング設定
+        /// </summary>
+        public List<TimeLineFilterlingOption> _FilterOptions = new List<TimeLineFilterlingOption>();
+
+        /// <summary>
+        /// フィルタ一致モード
+        /// 
+        /// true=全部一致 false=いずれか一致
+        /// </summary>
+        public bool _FilterMode = true;
+
+        /// <summary>
+        /// アラート方法
+        /// </summary>
+        public enum ALERT_METHOD
+        {
+            NONE = 0,
+            /// <summary>
+            /// シェル実行
+            /// </summary>
+            SHELL,
+            /// <summary>
+            /// メール
+            /// </summary>
+            EMAIL,
+            /// <summary>
+            /// トースト
+            /// </summary>
+            TOAST,
+            /// <summary>
+            /// バルーン
+            /// </summary>
+            BALOON,
+            /// <summary>
+            /// HTTP request
+            /// </summary>
+            HTTP,
+        }
+
+        /// <summary>
+        /// アラート方法設定
+        /// </summary>
+        public List<ALERT_METHOD> _AlertMethods = new List<ALERT_METHOD>();
+
+        /// <summary>
+        /// アラート処理本体
+        /// </summary>
+        public List<NotificationController> _AlertExecution = new List<NotificationController>();
+
+        /// <summary>
+        /// アラート実行
+        /// </summary>
+        /// <returns></returns>
+        public void ExecuteAlert()
+        {
+            try
+            {
+                int Found = this._FilterOptions.Count();
+                int Filted = this._FilterOptions.FindAll(r => { return r.FilterResult(); }).Count();
+
+                bool CountRet = false;
+                if (this._FilterMode)
+                {
+                    CountRet = Found == Filted;
+                }
+                else
+                {
+                    CountRet = Found > 0;
+                }
+                if (CountRet)
+                {
+                    foreach (var Alert in this._AlertExecution)
+                    {
+                        Alert.Execute();
+                    }
+                }
+            }
+            catch (Exception ce)
+            {
+                System.Diagnostics.Debug.WriteLine($"Alert: {ce.Message}");
+            }
         }
     }
 }

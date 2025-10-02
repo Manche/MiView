@@ -4,13 +4,15 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace MiView.Common.Notification.Toast
+namespace MiView.Common.Notification.Http
 {
-    /// <summary>
-    /// トースト通知コントローラ
-    /// </summary>
-    internal class ToastController : NotificationController
+    internal class HttpRequestController : NotificationController
     {
+        /// <summary>
+        /// リクエストURL
+        /// </summary>
+        public string ReqeustUrl { get; set; }
+
         public override void ExecuteMethod()
         {
             throw new NotImplementedException();

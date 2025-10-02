@@ -799,6 +799,8 @@ namespace MiView.Common.TimeLine
             }
         }
 
+        private static int _cntGlobal = 0;
+
         /// <summary>
         /// 行挿入
         /// </summary>
@@ -807,6 +809,9 @@ namespace MiView.Common.TimeLine
         {
             try
             {
+                _cntGlobal++;
+                System.Diagnostics.Debug.WriteLine(_cntGlobal);
+
                 this.SuspendLayout();
                 // TL統合
                 var Intg = this.Rows.Cast<DataGridViewRow>().Where(r => r.Cells[(int)TIMELINE_ELEMENT.IDENTIFIED].Value.Equals(Container.IDENTIFIED)).ToArray();
@@ -1466,6 +1471,10 @@ namespace MiView.Common.TimeLine
             /// バルーン
             /// </summary>
             BALOON,
+            /// <summary>
+            /// HTTP request
+            /// </summary>
+            HTTP,
         }
 
         /// <summary>

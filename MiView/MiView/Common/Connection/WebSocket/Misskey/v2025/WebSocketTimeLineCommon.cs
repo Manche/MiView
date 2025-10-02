@@ -325,10 +325,10 @@ namespace MiView.Common.Connection.WebSocket.Misskey.v2025
                                         {
                                             DGrid.InsertTimeLineData(TLCon);
 
-                                            foreach (TimeLineAlertOption Opt in DGrid._AlertAccept) 
+                                            foreach (TimeLineAlertOption Opt in DGrid._AlertAccept)
                                             {
-                                                Found = Opt.FilterOptions.FindAll(r => { return r.FilterResult(); }).Count();
-                                                Filted = Opt.FilterOptions.Count();
+                                                Found = Opt._FilterOptions.FindAll(r => { return r.FilterResult(); }).Count();
+                                                Filted = Opt._FilterOptions.Count();
 
                                                 CountRet = false;
                                                 if (Opt._FilterMode)
@@ -355,8 +355,8 @@ namespace MiView.Common.Connection.WebSocket.Misskey.v2025
                                     {
                                         foreach (TimeLineAlertOption Opt in DGrid._AlertReject)
                                         {
-                                            Found = Opt.FilterOptions.FindAll(r => { return r.FilterResult(); }).Count();
-                                            Filted = Opt.FilterOptions.Count();
+                                            Found = Opt._FilterOptions.FindAll(r => { return r.FilterResult(); }).Count();
+                                            Filted = Opt._FilterOptions.Count();
 
                                             CountRet = false;
                                             if (Opt._FilterMode)
@@ -409,8 +409,8 @@ namespace MiView.Common.Connection.WebSocket.Misskey.v2025
                                             DGrid.InsertTimeLineData(TLCon);
                                             foreach (TimeLineAlertOption Opt in DGrid._AlertAccept)
                                             {
-                                                Found = Opt.FilterOptions.FindAll(r => { return r.FilterResult(); }).Count();
-                                                Filted = Opt.FilterOptions.Count();
+                                                Found = Opt._FilterOptions.FindAll(r => { return r.FilterResult(); }).Count();
+                                                Filted = Opt._FilterOptions.Count();
 
                                                 CountRet = false;
                                                 if (Opt._FilterMode)
@@ -437,8 +437,8 @@ namespace MiView.Common.Connection.WebSocket.Misskey.v2025
                                     {
                                         foreach (TimeLineAlertOption Opt in DGrid._AlertReject)
                                         {
-                                            Found = Opt.FilterOptions.FindAll(r => { return r.FilterResult(); }).Count();
-                                            Filted = Opt.FilterOptions.Count();
+                                            Found = Opt._FilterOptions.FindAll(r => { return r.FilterResult(); }).Count();
+                                            Filted = Opt._FilterOptions.Count();
 
                                             CountRet = false;
                                             if (Opt._FilterMode)

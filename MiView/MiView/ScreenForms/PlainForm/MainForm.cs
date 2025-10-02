@@ -4,6 +4,8 @@ using MiView.Common.Connection.WebSocket.Event;
 using MiView.Common.Connection.WebSocket.Misskey.v2025;
 using MiView.Common.Fonts;
 using MiView.Common.Fonts.Material;
+using MiView.Common.Notification.Baloon;
+using MiView.Common.Notification.Toast;
 using MiView.Common.TimeLine;
 using MiView.ScreenForms.Controls.Combo;
 using MiView.ScreenForms.Controls.Notify;
@@ -217,6 +219,18 @@ namespace MiView
             }
 
             _TLCreator.GetTimeLineObjectDirect(ref this.MainFormObj, _TmpTLManager[TabName])._FilterMode = FilterMode;
+        }
+
+
+        private void AppendTimelineAlert(string TabName, string AttachDef, TimeLineAlertOption FilterOption)
+        {
+            if (this.InvokeRequired)
+            {
+                this.Invoke(new Action(() => AppendTimelineAlert(TabName, AttachDef, FilterOption)));
+                return;
+            }
+
+            _TLCreator.GetTimeLineObjectDirect(ref this.MainFormObj, _TmpTLManager[TabName])._AlertOptions.Add(FilterOption);
         }
 
         private void cmdAddInstance_Click(object sender, EventArgs e)

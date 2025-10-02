@@ -1,6 +1,7 @@
 ﻿using MiView.Common.AnalyzeData;
 using MiView.Common.Fonts;
 using MiView.Common.Fonts.Material;
+using MiView.Common.Notification;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -727,6 +728,13 @@ namespace MiView.Common.TimeLine
             {
                 Opt._Container = Container;
             }
+            foreach (TimeLineAlertOption Alt in this._AlertOptions)
+            {
+                foreach (TimeLineFilterlingOption Flt in Alt._FilterOptions)
+                {
+                    Flt._Container = Container;
+                }
+            }
         }
 
         /// <summary>
@@ -1427,7 +1435,7 @@ namespace MiView.Common.TimeLine
         /// <summary>
         /// タイムラインフィルタリング設定
         /// </summary>
-        public List<TimeLineFilterlingOption> FilterOptions = new List<TimeLineFilterlingOption>();
+        public List<TimeLineFilterlingOption> _FilterOptions = new List<TimeLineFilterlingOption>();
 
         /// <summary>
         /// フィルタ一致モード
@@ -1454,12 +1462,21 @@ namespace MiView.Common.TimeLine
             /// トースト
             /// </summary>
             TOAST,
+            /// <summary>
+            /// バルーン
+            /// </summary>
+            BALOON,
         }
 
         /// <summary>
         /// アラート方法設定
         /// </summary>
         public List<ALERT_METHOD> _AlertMethods = new List<ALERT_METHOD>();
+
+        /// <summary>
+        /// アラート処理本体
+        /// </summary>
+        public List<NotificationController> _AlertExecution = new List<NotificationController>();
 
         /// <summary>
         /// アラート実行
@@ -1469,9 +1486,29 @@ namespace MiView.Common.TimeLine
         {
             try
             {
+                int Found = this._FilterOptions.Count();
+                int Filted = this._FilterOptions.FindAll(r => { return r.FilterResult(); }).Count();
+
+                bool CountRet = false;
+                if (this._FilterMode)
+                {
+                    CountRet = Found == Filted;
+                }
+                else
+                {
+                    CountRet = Found > 0;
+                }
+                if (CountRet)
+                {
+                    foreach (var Alert in this._AlertExecution)
+                    {
+                        Alert.Execute();
+                    }
+                }
             }
-            catch
+            catch (Exception ce)
             {
+                System.Diagnostics.Debug.WriteLine($"Alert: {ce.Message}");
             }
         }
     }

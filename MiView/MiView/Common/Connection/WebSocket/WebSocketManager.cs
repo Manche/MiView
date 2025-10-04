@@ -6,16 +6,16 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net.WebSockets;
 using System.Text;
-using System.Text.Json.Nodes;
-using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Diagnostics;
 
 namespace MiView.Common.Connection.WebSocket
 {
     internal class WebSocketManager
     {
+        // ------------------------------
+        // 既存フィールドを保持
+        // ------------------------------
         protected string _HostUrl { get; set; } = string.Empty;
         protected string _HostDefinition { get; set; } = string.Empty;
         protected string? _APIKey { get; set; } = string.Empty;
@@ -23,60 +23,66 @@ namespace MiView.Common.Connection.WebSocket
         private WebSocketState _State { get; set; } = WebSocketState.None;
         private WebSocketState _State_Command { get; set; } = WebSocketState.None;
         private bool _ConnectionClose { get; set; } = false;
-
         protected MainForm _MainForm { get; set; } = new MainForm();
         protected DataGridTimeLine[]? _TimeLineObject { get; set; } = new DataGridTimeLine[0];
 
         private ClientWebSocket _WebSocket { get; set; } = new ClientWebSocket();
-        private CancellationTokenSource _Cancellation = new CancellationTokenSource();
 
+        // ------------------------------
+        // 新規内部管理用
+        // ------------------------------
+        private CancellationTokenSource? _watcherCts;
+        private SemaphoreSlim _reconnectLock = new SemaphoreSlim(1, 1);
+        private System.Threading.Timer? _keepAliveTimer;
+        private bool _Accepted = false;
+
+        // ------------------------------
+        // 外部イベント
+        // ------------------------------
         public event EventHandler<EventArgs>? ConnectionClosed;
         public event EventHandler<EventArgs> ConnectionLost;
         public event EventHandler<ConnectDataReceivedEventArgs> DataReceived;
         public event EventHandler<DataContainerEventArgs>? DataAccepted;
         public event EventHandler<DataContainerEventArgs>? DataRejected;
 
+        // ------------------------------
+        // コンストラクタ
+        // ------------------------------
         public WebSocketManager()
         {
-            this.ConnectionLost += OnConnectionLost;
-            this.DataReceived += OnDataReceived;
-            this.DataAccepted += OnDataAccepted;
-            this.DataRejected += OnDataRejected;
+            ConnectionLost += OnConnectionLost;
+            DataReceived += OnDataReceived;
         }
 
         public WebSocketManager(string HostUrl) : this()
         {
-            this._HostUrl = HostUrl;
-            _ = Task.Run(async () => await Watcher());
+            _HostUrl = HostUrl;
+            Task.Run(async () => await Watcher());
         }
 
-        public void SetDataGridTimeLine(DataGridTimeLine timeLine)
+        // ------------------------------
+        // 既存 public メソッド保持
+        // ------------------------------
+        public WebSocketManager Start(string HostUrl)
         {
-            if (this._TimeLineObject == null) this._TimeLineObject = new DataGridTimeLine[0];
-            this._TimeLineObject = this._TimeLineObject.Concat(new DataGridTimeLine[] { timeLine }).ToArray();
-        }
-
-        public ClientWebSocket GetSocketClient() => this._WebSocket;
-        public WebSocketState? GetSocketState() => this._WebSocket?.State;
-
-        public void SetSocketState(WebSocketState State) => this._State = State;
-        public bool IsStandBySocketOpen() => GetSocketState() == WebSocketState.None;
-        protected void ConnectionAbort() => this._ConnectionClose = true;
-
-        protected WebSocketManager Start(string HostUrl)
-        {
-            this._HostUrl = HostUrl;
-            _ = Task.Run(async () => await Watcher());
+            _HostUrl = HostUrl;
+            Task.Run(async () => await Watcher());
             return this;
         }
 
-        protected string GetWSURL(string InstanceURL, string? APIKey)
-        {
-            this._HostDefinition = InstanceURL;
-            this._APIKey = APIKey;
+        public ClientWebSocket GetSocketClient() => _WebSocket;
+        public void SetSocketState(WebSocketState State) => _State = State;
+        public WebSocketState? GetSocketState() => _WebSocket?.State;
+        public bool IsStandBySocketOpen() => GetSocketState() == WebSocketState.None;
 
-            return APIKey != null ? $"wss://{InstanceURL}/streaming?i={APIKey}" : $"wss://{InstanceURL}/streaming";
+        public void SetDataGridTimeLine(DataGridTimeLine timeLine)
+        {
+            _TimeLineObject = _TimeLineObject?.Concat(new DataGridTimeLine[] { timeLine }).ToArray() ?? new DataGridTimeLine[] { timeLine };
         }
+
+        // ------------------------------
+        // 既存イベント呼び出し保持
+        // ------------------------------
 
         protected virtual void OnConnectionLost(object? sender, EventArgs e) { }
         protected void CallConnectionLost() => ConnectionLost?.Invoke(this, new EventArgs());
@@ -96,123 +102,75 @@ namespace MiView.Common.Connection.WebSocket
         }
         protected void CallDataRejected(TimeLineContainer Container) => DataRejected?.Invoke(this, new DataContainerEventArgs());
 
+        // ------------------------------
+        // 内部接続管理
+        // ------------------------------
+        protected void ConnectionAbort() => _ConnectionClose = true;
+
+        protected string GetWSURL(string InstanceURL, string? APIKey)
+        {
+            _HostDefinition = InstanceURL;
+            _APIKey = APIKey;
+            return APIKey != null ? $"wss://{InstanceURL}/streaming?i={APIKey}" : $"wss://{InstanceURL}/streaming";
+        }
+
+        // ------------------------------
+        // Watcher + 再接続 + KeepAlive
+        // ------------------------------
         private async Task Watcher()
         {
             if (_WebSocket == null) _WebSocket = new ClientWebSocket();
+            if (_watcherCts != null) return;
 
-            while (!_ConnectionClose)
+            _watcherCts = new CancellationTokenSource();
+            var token = _watcherCts.Token;
+
+            // KeepAlive: 30秒ごとに Ping
+            _keepAliveTimer = new System.Threading.Timer(async _ =>
             {
-                try
+                if (_WebSocket.State == WebSocketState.Open)
                 {
-                    if (_WebSocket.State != WebSocketState.Open)
+                    try
                     {
-                        await CreateAndOpen(_HostUrl);
-
-                        if (_WebSocket.State == WebSocketState.Open)
-                        {
-                            _ = Task.Run(() => ReceiveLoop(_Cancellation.Token));
-                        }
+                        var ping = Encoding.UTF8.GetBytes("ping");
+                        await _WebSocket.SendAsync(ping, WebSocketMessageType.Text, true, token);
                     }
+                    catch { }
                 }
-                catch (Exception ex)
+            }, null, TimeSpan.Zero, TimeSpan.FromSeconds(30));
+
+            // 監視ループ
+            while (!token.IsCancellationRequested && !_ConnectionClose)
+            {
+                if (_WebSocket.State != WebSocketState.Open)
                 {
-                    CallError(ex);
+                    await TryReconnect();
                 }
-
-                await Task.Delay(2000, _Cancellation.Token); // CPU暴走防止
+                await Task.Delay(5000, token);
             }
         }
 
-        protected async Task CreateAndOpen(string HostUrl)
+        private async Task TryReconnect()
         {
-            _HostUrl = HostUrl;
-
-            if (_State == WebSocketState.Open)
-                return;
-
+            await _reconnectLock.WaitAsync();
             try
             {
-                var WS = new ClientWebSocket();
-                WS.Options.KeepAliveInterval = TimeSpan.Zero;
-                await WS.ConnectAsync(new Uri(_HostUrl), CancellationToken.None);
+                if (_WebSocket.State == WebSocketState.Open) return;
 
-                _WebSocket = WS;
-                _State = WS.State;
-            }
-            catch (Exception ex)
-            {
-                CallError(ex);
-            }
-        }
-
-        protected async Task Close(string HostUrl)
-        {
-            _HostUrl = HostUrl;
-
-            if (_State == WebSocketState.Closed)
-                throw new InvalidOperationException("Socket is already closed");
-
-            try
-            {
-                await _WebSocket.CloseAsync(WebSocketCloseStatus.InternalServerError, null, CancellationToken.None);
-                while (_WebSocket.State != WebSocketState.Closed && _WebSocket.State != WebSocketState.Aborted) ;
+                _WebSocket.Dispose();
+                _WebSocket = new ClientWebSocket();
+                await _WebSocket.ConnectAsync(new Uri(GetWSURL(_HostDefinition, _APIKey)), CancellationToken.None);
                 _State = _WebSocket.State;
+                _Accepted = (_WebSocket.State == WebSocketState.Open);
             }
             catch (Exception ex)
             {
-                CallError(ex);
-            }
-        }
-
-        private async Task ReceiveLoop(CancellationToken token)
-        {
-            var buffer = new byte[8192];
-            var sb = new StringBuilder();
-
-            try
-            {
-                while (!token.IsCancellationRequested && _WebSocket.State == WebSocketState.Open)
-                {
-                    sb.Clear();
-                    WebSocketReceiveResult result;
-
-                    do
-                    {
-                        result = await _WebSocket.ReceiveAsync(new ArraySegment<byte>(buffer), token);
-
-                        if (result.MessageType == WebSocketMessageType.Close)
-                        {
-                            await _WebSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, string.Empty, token);
-                            CallConnectionLost();
-                            return;
-                        }
-
-                        sb.Append(Encoding.UTF8.GetString(buffer, 0, result.Count));
-
-                    } while (!result.EndOfMessage);
-
-                    var message = sb.ToString();
-                    var totalLength = Encoding.UTF8.GetByteCount(message);
-
-                    Debug.WriteLine($"受信完了: {totalLength} bytes"); // 内部バイト長確認
-                    CallDataReceived(message);
-                }
-                await Task.Delay(100, token);
-            }
-            catch (Exception ex)
-            {
-                CallError(ex);
+                System.Diagnostics.Debug.WriteLine("再接続失敗: " + ex.Message);
             }
             finally
             {
-                // CPU暴走防止用に少し待ってから再接続
-                await Task.Delay(1000, token);
+                _reconnectLock.Release();
             }
-        }
-
-        private void CallError(Exception ex)
-        {
-            Debug.WriteLine($"WebSocketManager Error: {ex}");
         }
     }
 }

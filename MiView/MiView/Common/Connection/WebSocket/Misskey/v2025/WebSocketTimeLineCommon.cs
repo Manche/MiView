@@ -1,12 +1,13 @@
-﻿using MiView.Common.Connection.WebSocket.Event;
+﻿using MiView.Common.AnalyzeData;
+using MiView.Common.Connection.WebSocket.Event;
 using MiView.Common.Connection.WebSocket.Structures;
 using MiView.Common.TimeLine;
+using System.Diagnostics;
 using System.Net.WebSockets;
+using System.Reflection.Metadata.Ecma335;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
-using MiView.Common.AnalyzeData;
-using System.Reflection.Metadata.Ecma335;
 
 namespace MiView.Common.Connection.WebSocket.Misskey.v2025
 {
@@ -29,28 +30,35 @@ namespace MiView.Common.Connection.WebSocket.Misskey.v2025
         /// インスタンス作成
         /// </summary>
         /// <returns></returns>
-        public static WebSocketTimeLineCommon CreateInstance(TimeLineBasic.ConnectTimeLineKind TLKind)
+        public static WebSocketTimeLineCommon CreateInstance(TimeLineBasic.ConnectTimeLineKind TLKind, string host, string apikey)
         {
             switch(TLKind)
             {
                 case TimeLineBasic.ConnectTimeLineKind.None:
                     break;
                 case TimeLineBasic.ConnectTimeLineKind.Home:
-                    return new WebSocketTimeLineHome();
+                    return new WebSocketTimeLineHome(host, apikey);
                 case TimeLineBasic.ConnectTimeLineKind.Local:
-                    return new WebSocketTimeLineLocal();
+                    return new WebSocketTimeLineLocal(host, apikey);
                 case TimeLineBasic.ConnectTimeLineKind.Social:
-                    return new WebSocketTimeLineSocial();
+                    return new WebSocketTimeLineSocial(host, apikey);
                 case TimeLineBasic.ConnectTimeLineKind.Global:
-                    return new WebSocketTimeLineGlobal();
+                    return new WebSocketTimeLineGlobal(host, apikey);
             }
             return null;
         }
 
-        // あとで
-        //public WebSocketTimeLineCommon OpenTimeLine(ConnectTimeLineKind TLKind, string InstanceURL, string? ApiKey)
-        //{
-        //}
+        private ClientWebSocket _client;
+        private readonly string _host;
+        private readonly string _apikey;
+        private CancellationTokenSource? _watcherCts;
+
+        public WebSocketTimeLineCommon(string host, string apikey)
+        {
+            _host = host;
+            _apikey = apikey;
+            _client = new ClientWebSocket();
+        }
 
         /// <summary>
         /// タイムライン展開
@@ -116,7 +124,7 @@ namespace MiView.Common.Connection.WebSocket.Misskey.v2025
         public WebSocketTimeLineCommon OpenTimeLineDynamic(string InstanceURL, string ApiKey)
         {
             // WS取得
-            WebSocketTimeLineCommon WSTimeLine = WebSocketTimeLineCommon.CreateInstance(this._TLKind);
+            WebSocketTimeLineCommon WSTimeLine = WebSocketTimeLineCommon.CreateInstance(this._TLKind, InstanceURL, ApiKey);
 
             // タイムライン用WebSocket Open
             this.Start(WSTimeLine.GetWSURL(InstanceURL, ApiKey));
@@ -247,21 +255,38 @@ namespace MiView.Common.Connection.WebSocket.Misskey.v2025
             {
                 return;
             }
-            // オープンを待つ
+            // オープンを待つ (最大5分)
             WebSocketTimeLineCommon WS = (WebSocketTimeLineCommon)sender;
-            while (WS.GetSocketState() != WebSocketState.Open)
+            int retry = 0;
+            while (WS.GetSocketState() != WebSocketState.Open && retry < 5)
             {
-                // 1分おき
-                Thread.Sleep(1000 * 60 * 1);
-                System.Diagnostics.Debug.WriteLine("待機中（　＾ω＾）");
+                retry++;
                 try
                 {
+                    // 接続試行
                     WS.OpenTimeLineDynamic(this._HostDefinition, this._APIKey);
+                    WS.StartWatcher();
                 }
-                catch (Exception)
+                catch (Exception ex)
                 {
+                    System.Diagnostics.Debug.WriteLine($"再接続失敗: {ex.Message}");
                 }
-                System.Diagnostics.Debug.WriteLine("現在の状態：" + ((WebSocketTimeLineCommon)sender).GetSocketClient().State);
+
+                // 状態確認
+                var state = WS.GetSocketClient().State;
+                System.Diagnostics.Debug.WriteLine($"現在の状態: {state}");
+
+                if (state == WebSocketState.Open)
+                    break;
+
+                // 1分待機
+                Thread.Sleep(TimeSpan.FromMinutes(1));
+            }
+
+            // 最大リトライを超えたら諦める
+            if (WS.GetSocketState() != WebSocketState.Open)
+            {
+                System.Diagnostics.Debug.WriteLine("接続失敗: タイムアウト");
             }
             if (WS == null)
             {
@@ -468,6 +493,42 @@ namespace MiView.Common.Connection.WebSocket.Misskey.v2025
             {
                 System.Diagnostics.Debug.WriteLine(e.MessageRaw);
             }
+        }
+
+        public void StartWatcher()
+        {
+            if (_watcherCts != null) return; // 多重起動防止
+            _watcherCts = new CancellationTokenSource();
+            var token = _watcherCts.Token;
+
+            Task.Run(async () =>
+            {
+                while (!token.IsCancellationRequested)
+                {
+                    if (_client.State != WebSocketState.Open)
+                    {
+                        Debug.WriteLine("Watcher: 切断検知 → 再接続試行");
+
+                        try
+                        {
+                            OpenTimeLineDynamic(_host, _apikey);
+                            StartWatcher();
+                        }
+                        catch (Exception ex)
+                        {
+                            Debug.WriteLine("Watcher: 再接続失敗 → " + ex.Message);
+                        }
+                    }
+
+                    await Task.Delay(10_000, token); // 10秒おきに監視
+                }
+            }, token);
+        }
+
+        public void StopWatcher()
+        {
+            _watcherCts?.Cancel();
+            _watcherCts = null;
         }
     }
 }

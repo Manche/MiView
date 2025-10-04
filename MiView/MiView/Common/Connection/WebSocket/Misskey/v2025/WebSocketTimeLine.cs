@@ -12,6 +12,10 @@ namespace MiView.Common.Connection.WebSocket.Misskey.v2025
 {
     internal class WebSocketTimeLineHome : WebSocketTimeLineCommon
     {
+        public WebSocketTimeLineHome(string host, string apikey) : base(host, apikey)
+        {
+        }
+
         /// <summary>
         /// 接続識別子
         /// </summary>
@@ -23,6 +27,10 @@ namespace MiView.Common.Connection.WebSocket.Misskey.v2025
 
     internal class WebSocketTimeLineSocial : WebSocketTimeLineCommon
     {
+        public WebSocketTimeLineSocial(string host, string apikey) : base(host, apikey)
+        {
+        }
+
         /// <summary>
         /// 接続識別子
         /// </summary>
@@ -35,6 +43,10 @@ namespace MiView.Common.Connection.WebSocket.Misskey.v2025
 
     internal class WebSocketTimeLineGlobal : WebSocketTimeLineCommon
     {
+        public WebSocketTimeLineGlobal(string host, string apikey) : base(host, apikey)
+        {
+        }
+
         /// <summary>
         /// 接続識別子
         /// </summary>
@@ -47,6 +59,10 @@ namespace MiView.Common.Connection.WebSocket.Misskey.v2025
 
     internal class WebSocketTimeLineLocal : WebSocketTimeLineCommon
     {
+        public WebSocketTimeLineLocal(string host, string apikey) : base(host, apikey)
+        {
+        }
+
         /// <summary>
         /// 接続識別子
         /// </summary>

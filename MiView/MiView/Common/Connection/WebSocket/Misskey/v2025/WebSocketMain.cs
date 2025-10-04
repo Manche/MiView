@@ -234,27 +234,37 @@ namespace MiView.Common.Connection.WebSocket.Misskey.v2025
             {
                 return;
             }
-            // オープンを待つ
+            // オープンを待つ (最大5分)
             WebSocketMain WS = (WebSocketMain)sender;
-            while (WS.GetSocketState() != WebSocketState.Open)
+            int retry = 0;
+            while (WS.GetSocketState() != WebSocketState.Open && retry < 5)
             {
-                // 1分おき
-                Thread.Sleep(1000 * 60 * 1);
-                System.Diagnostics.Debug.WriteLine("待機中（　＾ω＾）");
+                retry++;
                 try
                 {
+                    // 接続試行
                     WS.OpenMainDynamic(this._HostDefinition, this._APIKey);
                 }
-                catch (Exception)
+                catch (Exception ex)
                 {
+                    System.Diagnostics.Debug.WriteLine($"再接続失敗: {ex.Message}");
                 }
-                if (((WebSocketMain)sender).GetSocketClient() == null)
-                {
-                }
-                else
-                {
-                    System.Diagnostics.Debug.WriteLine("現在の状態：" + ((WebSocketMain)sender).GetSocketClient().State);
-                }
+
+                // 状態確認
+                var state = WS.GetSocketClient().State;
+                System.Diagnostics.Debug.WriteLine($"現在の状態: {state}");
+
+                if (state == WebSocketState.Open)
+                    break;
+
+                // 1分待機
+                Thread.Sleep(TimeSpan.FromMinutes(1));
+            }
+
+            // 最大リトライを超えたら諦める
+            if (WS.GetSocketState() != WebSocketState.Open)
+            {
+                System.Diagnostics.Debug.WriteLine("接続失敗: タイムアウト");
             }
             if (WS == null)
             {

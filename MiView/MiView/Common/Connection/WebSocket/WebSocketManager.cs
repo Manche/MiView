@@ -197,6 +197,7 @@ namespace MiView.Common.Connection.WebSocket
                     Debug.WriteLine($"受信完了: {totalLength} bytes"); // 内部バイト長確認
                     CallDataReceived(message);
                 }
+                await Task.Delay(100, token);
             }
             catch (Exception ex)
             {

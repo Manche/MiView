@@ -5,6 +5,7 @@ using MiView.Common.Connection.WebSocket.Misskey.v2025;
 using MiView.Common.Fonts;
 using MiView.Common.Fonts.Material;
 using MiView.Common.Notification.Baloon;
+using MiView.Common.Notification.Http;
 using MiView.Common.Notification.Toast;
 using MiView.Common.TimeLine;
 using MiView.ScreenForms.Controls.Combo;
@@ -128,7 +129,7 @@ namespace MiView
             _TLCreator.CreateTimeLineTab(ref this.MainFormObj, TabDef, TabName, IsVisible);
             _TLCreator.CreateTimeLine(ref this.MainFormObj, TabDef, TabDef, IsFiltered: IsFiltered);
 
-            var WSManager = WebSocketTimeLineCommon.CreateInstance(TLKind);
+            var WSManager = WebSocketTimeLineCommon.CreateInstance(TLKind, InstanceURL, APIKey);
             try
             {
                 WSManager.OpenTimeLine(InstanceURL, APIKey);

@@ -876,6 +876,11 @@ namespace MiView.Common.TimeLine
                     this.ChangeDispColor(ref Row, Container);
                 }
                 this.ResumeLayout(false);
+
+                if (this.Rows.Count > 10000)
+                {
+                    this.Rows.RemoveAt(0);
+                }
             }
             catch(Exception)
             {

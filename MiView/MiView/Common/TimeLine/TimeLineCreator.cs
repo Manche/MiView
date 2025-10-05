@@ -805,23 +805,13 @@ namespace MiView.Common.TimeLine
 
         private void OnCellValueNeeded(object? sender, DataGridViewCellValueEventArgs e)
         {
-            if (e.RowIndex < 0 || e.RowIndex >= this._TimeLineData.Count)
-                return;
+            if (e.RowIndex < 0 || e.RowIndex >= _TimeLineData.Count) return;
 
-            string[] TimeLineElements = Enum.GetNames(typeof(TimeLineCreator.TIMELINE_ELEMENT));
-            var Names = Enum.GetNames(typeof(TimeLineCreator.TIMELINE_ELEMENT))[e.ColumnIndex];
-            if (!(e.ColumnIndex > 0 && e.ColumnIndex < Names.Length - 1))
-            {
-                return;
-            }
-
-            var Name = Enum.GetName(typeof(TimeLineCreator.TIMELINE_ELEMENT), e.ColumnIndex);
-            if (Name == null)
-            {
-                return;
-            }
-
-            e.Value = this._TimeLineData[e.RowIndex].GetType().GetProperty(Name);
+            var container = _TimeLineData[e.RowIndex];
+            string colName = this.Columns[e.ColumnIndex].Name;
+            var prop = container.GetType().GetProperty(colName);
+            if (prop != null)
+                e.Value = prop.GetValue(container);
         }
 
         private static int _cntGlobal = 0;
@@ -832,7 +822,6 @@ namespace MiView.Common.TimeLine
         /// <param name="Container"></param>
         public void InsertTimeLineData(TimeLineContainer Container)
         {
-            this._TimeLineData.Add(Container);
             try
             {
                 _cntGlobal++;
@@ -860,10 +849,11 @@ namespace MiView.Common.TimeLine
 
 
                 // 行挿入
-                this.Rows.Add();
+                //this.Rows.Add();
                 this._TimeLineData.Add(Container);
+                this.RowCount = this._TimeLineData.Count;
 
-                int CurrentRowIndex = this.Rows.Count - 1;
+                int CurrentRowIndex = this.RowCount - 1;
 
                 // 基本行高さ
                 this.Rows[CurrentRowIndex].Height = 20;

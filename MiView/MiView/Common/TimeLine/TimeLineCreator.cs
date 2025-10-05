@@ -780,6 +780,7 @@ namespace MiView.Common.TimeLine
             // this.DoubleBuffered = true;
             this.VirtualMode = true;
             this.CellValueNeeded += OnCellValueNeeded;
+            this.CellFormatting += OnCellFormatting;
             this.ReadOnly = true;
             this.AllowUserToAddRows = false;
             this.AllowUserToDeleteRows = false;
@@ -829,13 +830,13 @@ namespace MiView.Common.TimeLine
                 e.Value = prop.GetValue(container);
         }
 
-        private void OnCellFormatting(object sender, DataGridViewCellFormattingEventArgs e)
+        private void OnCellFormatting(object? sender, DataGridViewCellFormattingEventArgs e)
         {
             if (e.RowIndex < 0 || e.RowIndex >= _TimeLineData.Count)
                 return;
 
             var TLData = _TimeLineData[e.RowIndex];
-            
+
             foreach (string ColName in Enum.GetNames(typeof(TimeLineCreator.TIMELINE_ELEMENT)))
             {
                 var Prop = typeof(TimeLineContainer).GetProperty(ColName);
@@ -843,20 +844,32 @@ namespace MiView.Common.TimeLine
                 {
                     continue;
                 }
-                var PropVal = Prop.GetValue(Container);
-
-                if (PropVal != null)
-                {
-                    e.Value = PropVal;
-                }
-
-                this.ArrangeTimeLine(e.RowIndex, (int)Enum.Parse(typeof(TimeLineCreator.TIMELINE_ELEMENT), ColName));
-
-                var Row = this.Rows[e.RowIndex];
-
-                // 色変更
-                this.ChangeDispColor(ref Row, TLData);
             }
+            var CCellStyle = e;
+            this.ChangeDispColor(ref CCellStyle, TLData);
+
+            //foreach (string ColName in Enum.GetNames(typeof(TimeLineCreator.TIMELINE_ELEMENT)))
+            //{
+            //    var Prop = typeof(TimeLineContainer).GetProperty(ColName);
+            //    if (Prop == null)
+            //    {
+            //        continue;
+            //    }
+            //    var PropVal = Prop.GetValue(TLData);
+
+            //    if (PropVal != null)
+            //    {
+            //        e.Value = PropVal;
+            //    }
+            //    System.Diagnostics.Debug.WriteLine(PropVal);
+
+            //    // this.ArrangeTimeLine(e.RowIndex, (int)Enum.Parse(typeof(TimeLineCreator.TIMELINE_ELEMENT), ColName));
+
+            //    var Row = this.Rows[e.RowIndex];
+
+            //    // 色変更
+            //    // this.ChangeDispColor(ref Row, TLData);
+            //}
         }
 
         private static int _cntGlobal = 0;
@@ -919,27 +932,27 @@ namespace MiView.Common.TimeLine
                 //DefaultMaterialFont.Dispose();
 
                 // カラム別処理
-                foreach (string ColName in Enum.GetNames(typeof(TimeLineCreator.TIMELINE_ELEMENT)))
-                {
-                    var Prop = typeof(TimeLineContainer).GetProperty(ColName);
-                    if (Prop == null)
-                    {
-                        continue;
-                    }
-                    var PropVal = Prop.GetValue(Container);
+                //foreach (string ColName in Enum.GetNames(typeof(TimeLineCreator.TIMELINE_ELEMENT)))
+                //{
+                //    var Prop = typeof(TimeLineContainer).GetProperty(ColName);
+                //    if (Prop == null)
+                //    {
+                //        continue;
+                //    }
+                //    var PropVal = Prop.GetValue(Container);
 
-                    if (PropVal != null)
-                    {
-                        this.Rows[CurrentRowIndex].Cells[ColName].Value = PropVal;
-                    }
+                //    if (PropVal != null)
+                //    {
+                //        this.Rows[CurrentRowIndex].Cells[ColName].Value = PropVal;
+                //    }
 
-                    this.ArrangeTimeLine(CurrentRowIndex, (int)Enum.Parse(typeof(TimeLineCreator.TIMELINE_ELEMENT), ColName));
+                //    this.ArrangeTimeLine(CurrentRowIndex, (int)Enum.Parse(typeof(TimeLineCreator.TIMELINE_ELEMENT), ColName));
 
-                    var Row = this.Rows[CurrentRowIndex];
+                //    var Row = this.Rows[CurrentRowIndex];
 
-                    // 色変更
-                    this.ChangeDispColor(ref Row, Container);
-                }
+                //    // 色変更
+                //    // this.ChangeDispColor(ref Row, Container);
+                //}
             }
             catch(Exception ce)
             {
@@ -1088,7 +1101,7 @@ namespace MiView.Common.TimeLine
         /// </summary>
         /// <param name="Row"></param>
         /// <param name="Container"></param>
-        private void ChangeDispColor(ref DataGridViewRow Row, TimeLineContainer Container)
+        private void ChangeDispColor(ref DataGridViewCellFormattingEventArgs Row, TimeLineContainer Container)
         {
             if (Container.RENOTED)
             {
@@ -1109,14 +1122,19 @@ namespace MiView.Common.TimeLine
         /// </summary>
         /// <param name="Row"></param>
         /// <param name="DesignColor"></param>
-        private void ChangeDispFgColorCommon(ref DataGridViewRow Row, Color DesignColor)
+        private void ChangeDispFgColorCommon(ref DataGridViewCellFormattingEventArgs Row, Color DesignColor)
         {
-            Row.Cells[(int)TimeLineCreator.TIMELINE_ELEMENT.USERNAME].Style.ForeColor = DesignColor;
-            Row.Cells[(int)TimeLineCreator.TIMELINE_ELEMENT.USERID].Style.ForeColor = DesignColor;
-            Row.Cells[(int)TimeLineCreator.TIMELINE_ELEMENT.DETAIL].Style.ForeColor = DesignColor;
-            Row.Cells[(int)TimeLineCreator.TIMELINE_ELEMENT.UPDATEDAT].Style.ForeColor = DesignColor;
-            Row.Cells[(int)TimeLineCreator.TIMELINE_ELEMENT.SOURCE].Style.ForeColor = DesignColor;
-            Row.Cells[(int)TimeLineCreator.TIMELINE_ELEMENT.SOFTWARE].Style.ForeColor = DesignColor;
+            if (Row.CellStyle == null)
+            {
+                return;
+            }
+            try
+            {
+                Row.CellStyle.ForeColor = DesignColor;
+            }
+            catch
+            {
+            }
         }
 
         /// <summary>
@@ -1124,9 +1142,19 @@ namespace MiView.Common.TimeLine
         /// </summary>
         /// <param name="Row"></param>
         /// <param name="DesignColor"></param>
-        private void ChangeDispBgColorCommon(ref DataGridViewRow Row, Color DesignColor)
+        private void ChangeDispBgColorCommon(ref DataGridViewCellFormattingEventArgs Row, Color DesignColor)
         {
-            Row.DefaultCellStyle.BackColor = DesignColor;
+            if (Row.CellStyle == null)
+            {
+                return;
+            }
+            try
+            {
+                Row.CellStyle.BackColor = DesignColor;
+            }
+            catch
+            {
+            }
         }
     }
 

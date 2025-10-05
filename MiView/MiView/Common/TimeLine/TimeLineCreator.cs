@@ -11,6 +11,8 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.Json.Nodes;
 using System.Threading.Tasks;
+using System.Windows.Forms;
+using System.Xml.Linq;
 using static MiView.Common.TimeLine.TimeLineCreator;
 
 namespace MiView.Common.TimeLine
@@ -178,7 +180,7 @@ namespace MiView.Common.TimeLine
         /// メインフォームへタイムラインを追加
         /// </summary>
         /// <param name="MainForm"></param>
-        public void CreateTimeLine(ref MainForm MainForm, string Definition, string? ChildDefinition = null, bool IsFiltered = false)
+        public void CreateTimeLine(ref MainForm MainForm, string Definition, string? ChildDefinition = null, bool IsFiltered = false, bool IsVisible = true)
         {
             // コントロールがあるか検索
             var tpObj = GetControlFromMainForm(ref MainForm, ChildDefinition);
@@ -189,6 +191,7 @@ namespace MiView.Common.TimeLine
                 System.Diagnostics.Debug.WriteLine("hoge");
                 DataGridTimeLine Grid = new DataGridTimeLine();
                 ((System.ComponentModel.ISupportInitialize)Grid).BeginInit();
+                Grid.Visible = IsVisible;
 
                 //
                 // Property
@@ -717,6 +720,14 @@ namespace MiView.Common.TimeLine
         }
 
         /// <summary>
+        /// タイムライン更新描画をするかどうか
+        /// </summary>
+        /// <remarks>
+        /// デフォルトではON
+        /// </remarks>
+        public bool _IsUpdateTL = true;
+
+        /// <summary>
         /// フィルタに投稿を設定
         /// </summary>
         /// <param name="Container"></param>
@@ -769,9 +780,12 @@ namespace MiView.Common.TimeLine
             // this.DoubleBuffered = true;
             this.VirtualMode = true;
             this.CellValueNeeded += OnCellValueNeeded;
+            this.ReadOnly = true;
+            this.AllowUserToAddRows = false;
+            this.AllowUserToDeleteRows = false;
 
             // 初期設定
-            var DefaultMaterialFont = new FontLoader().LoadFontFromFile(FontLoader.FONT_SELECTOR.MATERIALICONS, 8);
+            var DefaultMaterialFont = FontLoader.Instance.LoadFontFromFile(FontLoader.FONT_SELECTOR.MATERIALICONS, 8);
             foreach (string ColName in Enum.GetNames(typeof(TimeLineCreator.TIMELINE_ELEMENT)))
             {
                 DataGridViewColumn Col = new DataGridViewColumn();
@@ -810,8 +824,39 @@ namespace MiView.Common.TimeLine
             var container = _TimeLineData[e.RowIndex];
             string colName = this.Columns[e.ColumnIndex].Name;
             var prop = container.GetType().GetProperty(colName);
+            // System.Diagnostics.Debug.Write(this.Columns[e.ColumnIndex].Name);
             if (prop != null)
                 e.Value = prop.GetValue(container);
+        }
+
+        private void OnCellFormatting(object sender, DataGridViewCellFormattingEventArgs e)
+        {
+            if (e.RowIndex < 0 || e.RowIndex >= _TimeLineData.Count)
+                return;
+
+            var TLData = _TimeLineData[e.RowIndex];
+            
+            foreach (string ColName in Enum.GetNames(typeof(TimeLineCreator.TIMELINE_ELEMENT)))
+            {
+                var Prop = typeof(TimeLineContainer).GetProperty(ColName);
+                if (Prop == null)
+                {
+                    continue;
+                }
+                var PropVal = Prop.GetValue(Container);
+
+                if (PropVal != null)
+                {
+                    e.Value = PropVal;
+                }
+
+                this.ArrangeTimeLine(e.RowIndex, (int)Enum.Parse(typeof(TimeLineCreator.TIMELINE_ELEMENT), ColName));
+
+                var Row = this.Rows[e.RowIndex];
+
+                // 色変更
+                this.ChangeDispColor(ref Row, TLData);
+            }
         }
 
         private static int _cntGlobal = 0;
@@ -822,6 +867,10 @@ namespace MiView.Common.TimeLine
         /// <param name="Container"></param>
         public void InsertTimeLineData(TimeLineContainer Container)
         {
+            if (!_IsUpdateTL)
+            {
+                return;
+            }
             try
             {
                 _cntGlobal++;
@@ -891,7 +940,6 @@ namespace MiView.Common.TimeLine
                     // 色変更
                     this.ChangeDispColor(ref Row, Container);
                 }
-                this.Invalidate();
             }
             catch(Exception ce)
             {

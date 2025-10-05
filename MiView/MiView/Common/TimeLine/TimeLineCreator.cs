@@ -624,6 +624,8 @@ namespace MiView.Common.TimeLine
     /// </summary>
     partial class DataGridTimeLine : System.Windows.Forms.DataGridView
     {
+        private List<TimeLineContainer> _TimeLineData = new List<TimeLineContainer>();
+
         /// <summary>
         /// 空文字
         /// </summary>
@@ -765,6 +767,8 @@ namespace MiView.Common.TimeLine
         {
             // コントロールが黒くなる不具合ある
             // this.DoubleBuffered = true;
+            this.VirtualMode = true;
+            this.CellValueNeeded += OnCellValueNeeded;
 
             // 初期設定
             var DefaultMaterialFont = new FontLoader().LoadFontFromFile(FontLoader.FONT_SELECTOR.MATERIALICONS, 8);
@@ -799,6 +803,27 @@ namespace MiView.Common.TimeLine
             }
         }
 
+        private void OnCellValueNeeded(object? sender, DataGridViewCellValueEventArgs e)
+        {
+            if (e.RowIndex < 0 || e.RowIndex >= this._TimeLineData.Count)
+                return;
+
+            string[] TimeLineElements = Enum.GetNames(typeof(TimeLineCreator.TIMELINE_ELEMENT));
+            var Names = Enum.GetNames(typeof(TimeLineCreator.TIMELINE_ELEMENT))[e.ColumnIndex];
+            if (!(e.ColumnIndex > 0 && e.ColumnIndex < Names.Length - 1))
+            {
+                return;
+            }
+
+            var Name = Enum.GetName(typeof(TimeLineCreator.TIMELINE_ELEMENT), e.ColumnIndex);
+            if (Name == null)
+            {
+                return;
+            }
+
+            e.Value = this._TimeLineData[e.RowIndex].GetType().GetProperty(Name);
+        }
+
         private static int _cntGlobal = 0;
 
         /// <summary>
@@ -807,27 +832,27 @@ namespace MiView.Common.TimeLine
         /// <param name="Container"></param>
         public void InsertTimeLineData(TimeLineContainer Container)
         {
+            this._TimeLineData.Add(Container);
             try
             {
                 _cntGlobal++;
                 System.Diagnostics.Debug.WriteLine(_cntGlobal);
 
-                this.SuspendLayout();
                 // TL統合
-                var Intg = this.Rows.Cast<DataGridViewRow>().Where(r => r.Cells[(int)TIMELINE_ELEMENT.IDENTIFIED].Value.Equals(Container.IDENTIFIED)).ToArray();
+                var Intg = this._TimeLineData.Cast<TimeLineContainer>().Where(r => r.IDENTIFIED.Equals(Container.IDENTIFIED)).ToArray();
                 if (Intg.Count() > 0)
                 {
-                    var CtlVal = (Intg[0]).Cells[(int)TIMELINE_ELEMENT.TLFROM].Value.ToString();
+                    var CtlVal = (Intg[0]).TLFROM.ToString();
                     if (CtlVal != string.Empty)
                     {
                         if (!CtlVal.Split(',').Contains(Container.TLFROM))
                         {
-                            (Intg[0]).Cells[(int)TIMELINE_ELEMENT.TLFROM].Value = CtlVal + "," + Container.TLFROM;
+                            (Intg[0]).TLFROM = CtlVal + "," + Container.TLFROM;
                         }
                     }
                     else
                     {
-                        (Intg[0]).Cells[(int)TIMELINE_ELEMENT.TLFROM].Value = CtlVal + "," + Container.TLFROM;
+                        (Intg[0]).TLFROM = CtlVal + "," + Container.TLFROM;
                     }
                     //this.ResumeLayout();
                     return;
@@ -836,6 +861,7 @@ namespace MiView.Common.TimeLine
 
                 // 行挿入
                 this.Rows.Add();
+                this._TimeLineData.Add(Container);
 
                 int CurrentRowIndex = this.Rows.Count - 1;
 
@@ -875,20 +901,17 @@ namespace MiView.Common.TimeLine
                     // 色変更
                     this.ChangeDispColor(ref Row, Container);
                 }
-                this.ResumeLayout(false);
-
-                if (this.Rows.Count > 10000)
-                {
-                    this.Rows.RemoveAt(0);
-                }
+                this.Invalidate();
             }
-            catch(Exception)
+            catch(Exception ce)
             {
+                System.Diagnostics.Debug.WriteLine(ce);
             }
             finally
             {
                 this.ResumeLayout(false);
             }
+            System.Diagnostics.Debug.WriteLine("ttt");
             //this.Refresh();
         }
 

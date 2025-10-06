@@ -138,6 +138,7 @@ namespace MiView
                 }
                 WSManager.SetDataGridTimeLine(_TLCreator.GetTimeLineObjectDirect(ref this.MainFormObj, TabDef));
                 _TLCreator.GetTimeLineObjectDirect(ref this.MainFormObj, TabDef).Visible = IsVisible;
+                _TLCreator.GetTimeLineObjectDirect(ref this.MainFormObj, TabDef)._IsUpdateTL = IsVisible;
                 try
                 {
                     WebSocketTimeLineCommon.ReadTimeLineContinuous(WSManager);

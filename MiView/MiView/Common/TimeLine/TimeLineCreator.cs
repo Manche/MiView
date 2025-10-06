@@ -822,12 +822,13 @@ namespace MiView.Common.TimeLine
         {
             if (e.RowIndex < 0 || e.RowIndex >= _TimeLineData.Count) return;
 
-            var container = _TimeLineData[e.RowIndex];
+            var TLData = _TimeLineData[e.RowIndex];
             string colName = this.Columns[e.ColumnIndex].Name;
-            var prop = container.GetType().GetProperty(colName);
-            // System.Diagnostics.Debug.Write(this.Columns[e.ColumnIndex].Name);
+            var prop = TLData.GetType().GetProperty(colName);
             if (prop != null)
-                e.Value = prop.GetValue(container);
+            {
+                e.Value = prop.GetValue(TLData);
+            }
         }
 
         private void OnCellFormatting(object? sender, DataGridViewCellFormattingEventArgs e)
@@ -844,32 +845,10 @@ namespace MiView.Common.TimeLine
                 {
                     continue;
                 }
+                this.ArrangeTimeLine(e.RowIndex, (int)Enum.Parse(typeof(TimeLineCreator.TIMELINE_ELEMENT), ColName));
             }
             var CCellStyle = e;
             this.ChangeDispColor(ref CCellStyle, TLData);
-
-            //foreach (string ColName in Enum.GetNames(typeof(TimeLineCreator.TIMELINE_ELEMENT)))
-            //{
-            //    var Prop = typeof(TimeLineContainer).GetProperty(ColName);
-            //    if (Prop == null)
-            //    {
-            //        continue;
-            //    }
-            //    var PropVal = Prop.GetValue(TLData);
-
-            //    if (PropVal != null)
-            //    {
-            //        e.Value = PropVal;
-            //    }
-            //    System.Diagnostics.Debug.WriteLine(PropVal);
-
-            //    // this.ArrangeTimeLine(e.RowIndex, (int)Enum.Parse(typeof(TimeLineCreator.TIMELINE_ELEMENT), ColName));
-
-            //    var Row = this.Rows[e.RowIndex];
-
-            //    // 色変更
-            //    // this.ChangeDispColor(ref Row, TLData);
-            //}
         }
 
         private static int _cntGlobal = 0;
@@ -967,15 +946,6 @@ namespace MiView.Common.TimeLine
         }
 
         /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="Container"></param>
-        public bool FilterTimeLineData(TimeLineContainer Container)
-        {
-            return false;
-        }
-
-        /// <summary>
         /// タイムライン整形
         /// </summary>
         /// <param name="RowIndex"></param>
@@ -999,6 +969,7 @@ namespace MiView.Common.TimeLine
             }
 
             var CellValue = this.Rows[RowIndex].Cells[ColumnIndex].Value;
+            // var CellValue = this._TimeLineData[RowIndex]
             if (CellValue == null)
             {
                 CellValue = string.Empty;
@@ -1006,7 +977,8 @@ namespace MiView.Common.TimeLine
             switch (ColumnIndex)
             {
                 case (int)TimeLineCreator.TIMELINE_ELEMENT.REPLAYED:
-                    this.Rows[RowIndex].Cells[TimeLineCreator.TIMELINE_ELEMENT.REPLAYED_DISP.ToString()].Value
+                    // this.Rows[RowIndex].Cells[TimeLineCreator.TIMELINE_ELEMENT.REPLAYED_DISP.ToString()].Value
+                    this._TimeLineData[RowIndex].REPLAYED_DISP
                             = (bool)CellValue ? _Common_Alternate_Email : _Common_Empty;
                     this.Rows[RowIndex].Cells[TimeLineCreator.TIMELINE_ELEMENT.REPLAYED_DISP.ToString()].ToolTipText
                             = (bool)CellValue ? "リプライ" : "";
@@ -1017,7 +989,8 @@ namespace MiView.Common.TimeLine
                     if ((bool)CellValue)
                     {
                         // CWはdetailに突っ込む時に処理させる
-                        this.Rows[RowIndex].Cells[TimeLineCreator.TIMELINE_ELEMENT.CW_DISP.ToString()].Value = _Common_Visibility_Off;
+                        this._TimeLineData[RowIndex].CW_DISP = _Common_Visibility_Off;
+                        // this.Rows[RowIndex].Cells[TimeLineCreator.TIMELINE_ELEMENT.CW_DISP.ToString()].Value = _Common_Visibility_Off;
                         this.Rows[RowIndex].Cells[TimeLineCreator.TIMELINE_ELEMENT.CW_DISP.ToString()].ToolTipText = "CW";
                     }
                     break;
@@ -1025,39 +998,45 @@ namespace MiView.Common.TimeLine
                     switch ((TimeLineContainer.PROTECTED_STATUS)CellValue)
                     {
                         case TimeLineContainer.PROTECTED_STATUS.Public:
-                            this.Rows[RowIndex].Cells[(int)TimeLineCreator.TIMELINE_ELEMENT.PROTECTED_DISP].Value
-                                    = _Common_Public;
+                            this._TimeLineData[RowIndex].PROTECTED_DISP = _Common_Public;
+                            //this.Rows[RowIndex].Cells[(int)TimeLineCreator.TIMELINE_ELEMENT.PROTECTED_DISP].Value
+                            //        = _Common_Public;
                             this.Rows[RowIndex].Cells[(int)TimeLineCreator.TIMELINE_ELEMENT.PROTECTED_DISP].ToolTipText
                                     = "パブリック";
                             break;
                         case TimeLineContainer.PROTECTED_STATUS.SemiPublic:
-                            this.Rows[RowIndex].Cells[(int)TimeLineCreator.TIMELINE_ELEMENT.PROTECTED_DISP].Value
-                                    = _Common_Wifi;
+                            this._TimeLineData[RowIndex].PROTECTED_DISP = _Common_Wifi;
+                            //this.Rows[RowIndex].Cells[(int)TimeLineCreator.TIMELINE_ELEMENT.PROTECTED_DISP].Value
+                            //        = _Common_Wifi;
                             this.Rows[RowIndex].Cells[(int)TimeLineCreator.TIMELINE_ELEMENT.PROTECTED_DISP].ToolTipText
                                     = "セミパブリック";
                             break;
                         case TimeLineContainer.PROTECTED_STATUS.Home:
-                            this.Rows[RowIndex].Cells[(int)TimeLineCreator.TIMELINE_ELEMENT.PROTECTED_DISP].Value
-                                    = _Common_Home;
+                            this._TimeLineData[RowIndex].PROTECTED_DISP = _Common_Home;
+                            //this.Rows[RowIndex].Cells[(int)TimeLineCreator.TIMELINE_ELEMENT.PROTECTED_DISP].Value
+                            //        = _Common_Home;
                             this.Rows[RowIndex].Cells[(int)TimeLineCreator.TIMELINE_ELEMENT.PROTECTED_DISP].ToolTipText
                                     = "ホーム";
                             break;
                         case TimeLineContainer.PROTECTED_STATUS.Direct:
-                            this.Rows[RowIndex].Cells[(int)TimeLineCreator.TIMELINE_ELEMENT.PROTECTED_DISP].Value
-                                    = _Common_Direct;
+                            this._TimeLineData[RowIndex].PROTECTED_DISP = _Common_Direct;
+                            //this.Rows[RowIndex].Cells[(int)TimeLineCreator.TIMELINE_ELEMENT.PROTECTED_DISP].Value
+                            //        = _Common_Direct;
                             this.Rows[RowIndex].Cells[(int)TimeLineCreator.TIMELINE_ELEMENT.PROTECTED_DISP].ToolTipText
                                     = "ダイレクトメッセージ";
                             break;
                         case TimeLineContainer.PROTECTED_STATUS.Follower:
-                            this.Rows[RowIndex].Cells[(int)TimeLineCreator.TIMELINE_ELEMENT.PROTECTED_DISP].Value
-                                    = _Common_Locked;
+                            this._TimeLineData[RowIndex].PROTECTED_DISP = _Common_Locked;
+                            //this.Rows[RowIndex].Cells[(int)TimeLineCreator.TIMELINE_ELEMENT.PROTECTED_DISP].Value
+                            //        = _Common_Locked;
                             this.Rows[RowIndex].Cells[(int)TimeLineCreator.TIMELINE_ELEMENT.PROTECTED_DISP].ToolTipText
                                     = "フォロワー";
                             break;
                     }
                     break;
                 case (int)TimeLineCreator.TIMELINE_ELEMENT.ISLOCAL:
-                    this.Rows[RowIndex].Cells[(int)TimeLineCreator.TIMELINE_ELEMENT.ISLOCAL_DISP].Value
+                    this._TimeLineData[RowIndex].ISLOCAL_DISP
+                    //this.Rows[RowIndex].Cells[(int)TimeLineCreator.TIMELINE_ELEMENT.ISLOCAL_DISP].Value
                             = (bool)CellValue ? _Common_Rocket : _Common_Rocket_Launch;
                     this.Rows[RowIndex].Cells[(int)TimeLineCreator.TIMELINE_ELEMENT.ISLOCAL_DISP].ToolTipText
                             = (bool)CellValue ? "ローカルのみ" : "連合";
@@ -1065,7 +1044,8 @@ namespace MiView.Common.TimeLine
                             = (bool)CellValue ? Color.Red : Color.Green;
                     break;
                 case (int)TimeLineCreator.TIMELINE_ELEMENT.RENOTED:
-                    this.Rows[RowIndex].Cells[(int)TimeLineCreator.TIMELINE_ELEMENT.RENOTED_DISP].Value
+                    this._TimeLineData[RowIndex].RENOTED_DISP
+                    //this.Rows[RowIndex].Cells[(int)TimeLineCreator.TIMELINE_ELEMENT.RENOTED_DISP].Value
                             = (bool)CellValue ? _Common_Repeat : _Common_Empty;
                     this.Rows[RowIndex].Cells[(int)TimeLineCreator.TIMELINE_ELEMENT.RENOTED_DISP].ToolTipText
                             = (bool)CellValue ? "リノート" : "";
@@ -1073,21 +1053,21 @@ namespace MiView.Common.TimeLine
                             = (bool)CellValue ? Color.Green : Color.Red;
                     break;
                 case (int)TimeLineCreator.TIMELINE_ELEMENT.ISCHANNEL:
-                    this.Rows[RowIndex].Cells[(int)TimeLineCreator.TIMELINE_ELEMENT.ISCHANNEL_DISP].Value
+                    this._TimeLineData[RowIndex].ISCHANNEL_DISP
+                    //this.Rows[RowIndex].Cells[(int)TimeLineCreator.TIMELINE_ELEMENT.ISCHANNEL_DISP].Value
                             = (bool)CellValue ? _Common_Channel : _Common_Empty;
                     this.Rows[RowIndex].Cells[(int)TimeLineCreator.TIMELINE_ELEMENT.ISCHANNEL_DISP].Style.ForeColor
                             = (bool)CellValue ? Color.Green : Color.Red;
                     break;
                 case (int)TimeLineCreator.TIMELINE_ELEMENT.CHANNEL_NAME:
-                    if (this.Rows[RowIndex].Cells[(int)TimeLineCreator.TIMELINE_ELEMENT.CHANNEL_NAME].Value != null)
+                    if (this._TimeLineData[RowIndex].CHANNEL_NAME != null)
                     {
                         this.Rows[RowIndex].Cells[(int)TimeLineCreator.TIMELINE_ELEMENT.ISCHANNEL_DISP].ToolTipText
                                 = this.Rows[RowIndex].Cells[(int)TimeLineCreator.TIMELINE_ELEMENT.CHANNEL_NAME].Value.ToString();
                     }
                     break;
                 case (int)TimeLineCreator.TIMELINE_ELEMENT.SOFTWARE_INVALIDATED:
-                    if (this.Rows[RowIndex].Cells[(int)TimeLineCreator.TIMELINE_ELEMENT.SOFTWARE_INVALIDATED].Value != null &&
-                        (bool)this.Rows[RowIndex].Cells[(int)TimeLineCreator.TIMELINE_ELEMENT.SOFTWARE_INVALIDATED].Value == true)
+                    if ((bool)this._TimeLineData[RowIndex].SOFTWARE_INVALIDATED == true)
                     {
                         this.Rows[RowIndex].Cells[(int)TimeLineCreator.TIMELINE_ELEMENT.SOFTWARE].ToolTipText
                                 = "ソフトウェア偽装の可能性あり";

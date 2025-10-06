@@ -155,7 +155,10 @@ namespace MiView.Common.Connection.WebSocket
             try
             {
                 await _WebSocket.CloseAsync(WebSocketCloseStatus.InternalServerError, null, CancellationToken.None);
-                while (_WebSocket.State != WebSocketState.Closed && _WebSocket.State != WebSocketState.Aborted) ;
+                while (_WebSocket.State != WebSocketState.Closed && _WebSocket.State != WebSocketState.Aborted)
+                {
+                    await Task.Delay(50);
+                }
                 _State = _WebSocket.State;
             }
             catch (Exception ex)
@@ -188,6 +191,7 @@ namespace MiView.Common.Connection.WebSocket
                         }
 
                         sb.Append(Encoding.UTF8.GetString(buffer, 0, result.Count));
+                        Thread.Sleep(1000);
 
                     } while (!result.EndOfMessage);
 
@@ -196,6 +200,7 @@ namespace MiView.Common.Connection.WebSocket
 
                     Debug.WriteLine($"受信完了: {totalLength} bytes"); // 内部バイト長確認
                     CallDataReceived(message);
+                    Thread.Sleep(1000);
                 }
             }
             catch (Exception ex)

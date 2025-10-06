@@ -44,6 +44,7 @@ namespace MiView.Common.Connection.WebSocket.Misskey.v2025
 
             while (this.GetSocketState() != WebSocketState.Open)
             {
+                Thread.Sleep(1000);
             }
             int RetryCnt = 0;
             while (this.IsStandBySocketOpen())
@@ -78,6 +79,7 @@ namespace MiView.Common.Connection.WebSocket.Misskey.v2025
             });
             while (this.IsStandBySocketOpen())
             {
+                Thread.Sleep(1000);
             }
 
             return this;
@@ -104,6 +106,7 @@ namespace MiView.Common.Connection.WebSocket.Misskey.v2025
 
             while (WSTimeLine.GetSocketState() != WebSocketState.Open)
             {
+                Thread.Sleep(1000);
             }
             int RetryCnt = 0;
             while (WSTimeLine.IsStandBySocketOpen())
@@ -137,6 +140,7 @@ namespace MiView.Common.Connection.WebSocket.Misskey.v2025
             });
             while (this.IsStandBySocketOpen())
             {
+                Thread.Sleep(1000);
             }
 
             return this;
@@ -210,6 +214,7 @@ namespace MiView.Common.Connection.WebSocket.Misskey.v2025
 
                         WSTimeLine.CallConnectionLost();
                     }
+                    Thread.Sleep(1000);
                 }
             });
         }

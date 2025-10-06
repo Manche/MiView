@@ -101,6 +101,7 @@ namespace MiView.Common.Connection.WebSocket.Misskey.v2025
             });
             while (this.IsStandBySocketOpen())
             {
+                Thread.Sleep(1000);
             }
 
             return this;
@@ -156,6 +157,7 @@ namespace MiView.Common.Connection.WebSocket.Misskey.v2025
             });
             while (this.IsStandBySocketOpen())
             {
+                Thread.Sleep(1000);
             }
 
             return this;
@@ -193,6 +195,7 @@ namespace MiView.Common.Connection.WebSocket.Misskey.v2025
                         while (WSTimeLine.GetSocketState() == WebSocketState.Closed)
                         {
                             // 接続スタンバイ
+                            Thread.Sleep(1000);
                         }
                         var Response = await WSTimeLine.GetSocketClient().ReceiveAsync(new ArraySegment<byte>(ResponseBuffer), CancellationToken.None);
                         if (Response.MessageType == WebSocketMessageType.Close)
@@ -223,6 +226,7 @@ namespace MiView.Common.Connection.WebSocket.Misskey.v2025
 
                         WSTimeLine.CallConnectionLost();
                     }
+                    Thread.Sleep(1000);
                 }
             });
         }

@@ -11,6 +11,8 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.Json.Nodes;
 using System.Threading.Tasks;
+using System.Windows.Forms;
+using System.Xml.Linq;
 using static MiView.Common.TimeLine.TimeLineCreator;
 
 namespace MiView.Common.TimeLine
@@ -178,7 +180,7 @@ namespace MiView.Common.TimeLine
         /// メインフォームへタイムラインを追加
         /// </summary>
         /// <param name="MainForm"></param>
-        public void CreateTimeLine(ref MainForm MainForm, string Definition, string? ChildDefinition = null, bool IsFiltered = false)
+        public void CreateTimeLine(ref MainForm MainForm, string Definition, string? ChildDefinition = null, bool IsFiltered = false, bool IsVisible = true)
         {
             // コントロールがあるか検索
             var tpObj = GetControlFromMainForm(ref MainForm, ChildDefinition);
@@ -189,6 +191,7 @@ namespace MiView.Common.TimeLine
                 System.Diagnostics.Debug.WriteLine("hoge");
                 DataGridTimeLine Grid = new DataGridTimeLine();
                 ((System.ComponentModel.ISupportInitialize)Grid).BeginInit();
+                Grid.Visible = IsVisible;
 
                 //
                 // Property
@@ -338,6 +341,7 @@ namespace MiView.Common.TimeLine
         /// <param name="DgTimeLine"></param>
         private void AddDbg(DataGridTimeLine DgTimeLine)
         {
+            var UpdDefault = new DateTime(1900, 1, 1, 1, 1, 1);
 #if DEBUG
             DgTimeLine.InsertTimeLineData(new TimeLineContainer()
             {
@@ -348,7 +352,7 @@ namespace MiView.Common.TimeLine
                 USERNAME = "アプリ",
                 SOFTWARE = "MiView 0.0.1",
                 SOURCE = "localhost",
-                UPDATEDAT = "1960/01/01 00:00:00:000"
+                UPDATEDAT = UpdDefault,
             });
             DgTimeLine.InsertTimeLineData(new TimeLineContainer()
             {
@@ -360,7 +364,7 @@ namespace MiView.Common.TimeLine
                 USERNAME = "アプリ",
                 SOFTWARE = "MiView 0.0.1",
                 SOURCE = "localhost",
-                UPDATEDAT = "1960/01/01 00:00:00:000"
+                UPDATEDAT = UpdDefault
             });
             DgTimeLine.InsertTimeLineData(new TimeLineContainer()
             {
@@ -373,7 +377,7 @@ namespace MiView.Common.TimeLine
                 USERNAME = "アプリ",
                 SOFTWARE = "MiView 0.0.1",
                 SOURCE = "localhost",
-                UPDATEDAT = "1960/01/01 00:00:00:000"
+                UPDATEDAT = UpdDefault
             });
             DgTimeLine.InsertTimeLineData(new TimeLineContainer()
             {
@@ -388,7 +392,7 @@ namespace MiView.Common.TimeLine
                 USERNAME = "アプリ",
                 SOFTWARE = "MiView 0.0.1",
                 SOURCE = "localhost",
-                UPDATEDAT = "1960/01/01 00:00:00:000"
+                UPDATEDAT = UpdDefault
             });
             DgTimeLine.InsertTimeLineData(new TimeLineContainer()
             {
@@ -402,7 +406,7 @@ namespace MiView.Common.TimeLine
                 USERNAME = "アプリ",
                 SOFTWARE = "MiView 0.0.1",
                 SOURCE = "localhost",
-                UPDATEDAT = "1960/01/01 00:00:00:000"
+                UPDATEDAT = UpdDefault
             });
             DgTimeLine.InsertTimeLineData(new TimeLineContainer()
             {
@@ -416,7 +420,7 @@ namespace MiView.Common.TimeLine
                 USERNAME = "アプリ",
                 SOFTWARE = "MiView 0.0.1",
                 SOURCE = "localhost",
-                UPDATEDAT = "1960/01/01 00:00:00:000"
+                UPDATEDAT = UpdDefault
             });
             DgTimeLine.InsertTimeLineData(new TimeLineContainer()
             {
@@ -428,7 +432,7 @@ namespace MiView.Common.TimeLine
                 USERNAME = "アプリ",
                 SOFTWARE = "MiView 0.0.1",
                 SOURCE = "localhost",
-                UPDATEDAT = "1960/01/01 00:00:00:000"
+                UPDATEDAT = UpdDefault
             });
             DgTimeLine.InsertTimeLineData(new TimeLineContainer()
             {
@@ -440,7 +444,7 @@ namespace MiView.Common.TimeLine
                 USERNAME = "アプリ",
                 SOFTWARE = "MiView 0.0.1",
                 SOURCE = "localhost",
-                UPDATEDAT = "1960/01/01 00:00:00:000"
+                UPDATEDAT = UpdDefault
             });
             DgTimeLine.InsertTimeLineData(new TimeLineContainer()
             {
@@ -452,7 +456,7 @@ namespace MiView.Common.TimeLine
                 USERNAME = "アプリ",
                 SOFTWARE = "MiView 0.0.1",
                 SOURCE = "localhost",
-                UPDATEDAT = "1960/01/01 00:00:00:000"
+                UPDATEDAT = UpdDefault
             });
             DgTimeLine.InsertTimeLineData(new TimeLineContainer()
             {
@@ -464,7 +468,7 @@ namespace MiView.Common.TimeLine
                 USERNAME = "アプリ",
                 SOFTWARE = "MiView 0.0.1",
                 SOURCE = "localhost",
-                UPDATEDAT = "1960/01/01 00:00:00:000"
+                UPDATEDAT = UpdDefault
             });
             DgTimeLine.InsertTimeLineData(new TimeLineContainer()
             {
@@ -476,7 +480,7 @@ namespace MiView.Common.TimeLine
                 USERNAME = "アプリ",
                 SOFTWARE = "MiView 0.0.1",
                 SOURCE = "localhost",
-                UPDATEDAT = "1960/01/01 00:00:00:000"
+                UPDATEDAT = UpdDefault
             });
             DgTimeLine.InsertTimeLineData(new TimeLineContainer()
             {
@@ -488,7 +492,7 @@ namespace MiView.Common.TimeLine
                 USERNAME = "アプリ",
                 SOFTWARE = "MiView 0.0.1",
                 SOURCE = "localhost",
-                UPDATEDAT = "1960/01/01 00:00:00:000"
+                UPDATEDAT = UpdDefault
             });
             DgTimeLine.InsertTimeLineData(new TimeLineContainer()
             {
@@ -500,7 +504,7 @@ namespace MiView.Common.TimeLine
                 USERNAME = "アプリ",
                 SOFTWARE = "MiView 0.0.1",
                 SOURCE = "localhost",
-                UPDATEDAT = "1960/01/01 00:00:00:000"
+                UPDATEDAT = UpdDefault
             });
 #endif
         }
@@ -610,7 +614,7 @@ namespace MiView.Common.TimeLine
         public string? CW_DISP { get; set; }
         public string DETAIL { get; set; } = string.Empty;
         public string CONTENT {  get; set; } = string.Empty;
-        public string UPDATEDAT { get; set; } = string.Empty;
+        public DateTime? UPDATEDAT { get; set; } = null;
         public string SOURCE { get; set; } = string.Empty;
         public string SOFTWARE { get; set; } = string.Empty;
         public bool SOFTWARE_INVALIDATED { get; set; } = false;
@@ -624,6 +628,8 @@ namespace MiView.Common.TimeLine
     /// </summary>
     partial class DataGridTimeLine : System.Windows.Forms.DataGridView
     {
+        private List<TimeLineContainer> _TimeLineData = new List<TimeLineContainer>();
+
         /// <summary>
         /// 空文字
         /// </summary>
@@ -715,6 +721,14 @@ namespace MiView.Common.TimeLine
         }
 
         /// <summary>
+        /// タイムライン更新描画をするかどうか
+        /// </summary>
+        /// <remarks>
+        /// デフォルトではON
+        /// </remarks>
+        public bool _IsUpdateTL = true;
+
+        /// <summary>
         /// フィルタに投稿を設定
         /// </summary>
         /// <param name="Container"></param>
@@ -765,9 +779,15 @@ namespace MiView.Common.TimeLine
         {
             // コントロールが黒くなる不具合ある
             // this.DoubleBuffered = true;
+            this.VirtualMode = true;
+            this.CellValueNeeded += OnCellValueNeeded;
+            this.CellFormatting += OnCellFormatting;
+            this.ReadOnly = true;
+            this.AllowUserToAddRows = false;
+            this.AllowUserToDeleteRows = false;
 
             // 初期設定
-            var DefaultMaterialFont = new FontLoader().LoadFontFromFile(FontLoader.FONT_SELECTOR.MATERIALICONS, 8);
+            var DefaultMaterialFont = FontLoader.Instance.LoadFontFromFile(FontLoader.FONT_SELECTOR.MATERIALICONS, 8);
             foreach (string ColName in Enum.GetNames(typeof(TimeLineCreator.TIMELINE_ELEMENT)))
             {
                 DataGridViewColumn Col = new DataGridViewColumn();
@@ -799,6 +819,39 @@ namespace MiView.Common.TimeLine
             }
         }
 
+        private void OnCellValueNeeded(object? sender, DataGridViewCellValueEventArgs e)
+        {
+            if (e.RowIndex < 0 || e.RowIndex >= _TimeLineData.Count) return;
+
+            var TLData = _TimeLineData[e.RowIndex];
+            string colName = this.Columns[e.ColumnIndex].Name;
+            var prop = TLData.GetType().GetProperty(colName);
+            if (prop != null)
+            {
+                e.Value = prop.GetValue(TLData);
+            }
+        }
+
+        private void OnCellFormatting(object? sender, DataGridViewCellFormattingEventArgs e)
+        {
+            if (e.RowIndex < 0 || e.RowIndex >= _TimeLineData.Count)
+                return;
+
+            var TLData = _TimeLineData[e.RowIndex];
+
+            foreach (string ColName in Enum.GetNames(typeof(TimeLineCreator.TIMELINE_ELEMENT)))
+            {
+                var Prop = typeof(TimeLineContainer).GetProperty(ColName);
+                if (Prop == null)
+                {
+                    continue;
+                }
+                this.ArrangeTimeLine(e.RowIndex, (int)Enum.Parse(typeof(TimeLineCreator.TIMELINE_ELEMENT), ColName));
+            }
+            var CCellStyle = e;
+            this.ChangeDispColor(ref CCellStyle, TLData);
+        }
+
         private static int _cntGlobal = 0;
 
         /// <summary>
@@ -807,27 +860,30 @@ namespace MiView.Common.TimeLine
         /// <param name="Container"></param>
         public void InsertTimeLineData(TimeLineContainer Container)
         {
+            if (!_IsUpdateTL)
+            {
+                return;
+            }
             try
             {
                 _cntGlobal++;
                 System.Diagnostics.Debug.WriteLine(_cntGlobal);
 
-                this.SuspendLayout();
                 // TL統合
-                var Intg = this.Rows.Cast<DataGridViewRow>().Where(r => r.Cells[(int)TIMELINE_ELEMENT.IDENTIFIED].Value.Equals(Container.IDENTIFIED)).ToArray();
+                var Intg = this._TimeLineData.Cast<TimeLineContainer>().Where(r => r.IDENTIFIED.Equals(Container.IDENTIFIED)).ToArray();
                 if (Intg.Count() > 0)
                 {
-                    var CtlVal = (Intg[0]).Cells[(int)TIMELINE_ELEMENT.TLFROM].Value.ToString();
+                    var CtlVal = (Intg[0]).TLFROM.ToString();
                     if (CtlVal != string.Empty)
                     {
                         if (!CtlVal.Split(',').Contains(Container.TLFROM))
                         {
-                            (Intg[0]).Cells[(int)TIMELINE_ELEMENT.TLFROM].Value = CtlVal + "," + Container.TLFROM;
+                            (Intg[0]).TLFROM = CtlVal + "," + Container.TLFROM;
                         }
                     }
                     else
                     {
-                        (Intg[0]).Cells[(int)TIMELINE_ELEMENT.TLFROM].Value = CtlVal + "," + Container.TLFROM;
+                        (Intg[0]).TLFROM = CtlVal + "," + Container.TLFROM;
                     }
                     //this.ResumeLayout();
                     return;
@@ -835,9 +891,11 @@ namespace MiView.Common.TimeLine
 
 
                 // 行挿入
-                this.Rows.Add();
+                //this.Rows.Add();
+                this._TimeLineData.Add(Container);
+                this.RowCount = this._TimeLineData.Count;
 
-                int CurrentRowIndex = this.Rows.Count - 1;
+                int CurrentRowIndex = this.RowCount - 1;
 
                 // 基本行高さ
                 this.Rows[CurrentRowIndex].Height = 20;
@@ -854,46 +912,38 @@ namespace MiView.Common.TimeLine
                 //DefaultMaterialFont.Dispose();
 
                 // カラム別処理
-                foreach (string ColName in Enum.GetNames(typeof(TimeLineCreator.TIMELINE_ELEMENT)))
-                {
-                    var Prop = typeof(TimeLineContainer).GetProperty(ColName);
-                    if (Prop == null)
-                    {
-                        continue;
-                    }
-                    var PropVal = Prop.GetValue(Container);
+                //foreach (string ColName in Enum.GetNames(typeof(TimeLineCreator.TIMELINE_ELEMENT)))
+                //{
+                //    var Prop = typeof(TimeLineContainer).GetProperty(ColName);
+                //    if (Prop == null)
+                //    {
+                //        continue;
+                //    }
+                //    var PropVal = Prop.GetValue(Container);
 
-                    if (PropVal != null)
-                    {
-                        this.Rows[CurrentRowIndex].Cells[ColName].Value = PropVal;
-                    }
+                //    if (PropVal != null)
+                //    {
+                //        this.Rows[CurrentRowIndex].Cells[ColName].Value = PropVal;
+                //    }
 
-                    this.ArrangeTimeLine(CurrentRowIndex, (int)Enum.Parse(typeof(TimeLineCreator.TIMELINE_ELEMENT), ColName));
+                //    this.ArrangeTimeLine(CurrentRowIndex, (int)Enum.Parse(typeof(TimeLineCreator.TIMELINE_ELEMENT), ColName));
 
-                    var Row = this.Rows[CurrentRowIndex];
+                //    var Row = this.Rows[CurrentRowIndex];
 
-                    // 色変更
-                    this.ChangeDispColor(ref Row, Container);
-                }
-                this.ResumeLayout(false);
+                //    // 色変更
+                //    // this.ChangeDispColor(ref Row, Container);
+                //}
             }
-            catch(Exception)
+            catch(Exception ce)
             {
+                System.Diagnostics.Debug.WriteLine(ce);
             }
             finally
             {
                 this.ResumeLayout(false);
             }
+            System.Diagnostics.Debug.WriteLine("ttt");
             //this.Refresh();
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="Container"></param>
-        public bool FilterTimeLineData(TimeLineContainer Container)
-        {
-            return false;
         }
 
         /// <summary>
@@ -914,12 +964,14 @@ namespace MiView.Common.TimeLine
                 ColumnIndex != (int)TimeLineCreator.TIMELINE_ELEMENT.CW &&
                 ColumnIndex != (int)TimeLineCreator.TIMELINE_ELEMENT.ISCHANNEL &&
                 ColumnIndex != (int)TimeLineCreator.TIMELINE_ELEMENT.CHANNEL_NAME &&
-                ColumnIndex != (int)TimeLineCreator.TIMELINE_ELEMENT.SOFTWARE_INVALIDATED)
+                ColumnIndex != (int)TimeLineCreator.TIMELINE_ELEMENT.SOFTWARE_INVALIDATED &&
+                ColumnIndex != (int)TimeLineCreator.TIMELINE_ELEMENT.UPDATEDAT)
             {
                 return;
             }
 
             var CellValue = this.Rows[RowIndex].Cells[ColumnIndex].Value;
+            // var CellValue = this._TimeLineData[RowIndex]
             if (CellValue == null)
             {
                 CellValue = string.Empty;
@@ -927,7 +979,8 @@ namespace MiView.Common.TimeLine
             switch (ColumnIndex)
             {
                 case (int)TimeLineCreator.TIMELINE_ELEMENT.REPLAYED:
-                    this.Rows[RowIndex].Cells[TimeLineCreator.TIMELINE_ELEMENT.REPLAYED_DISP.ToString()].Value
+                    // this.Rows[RowIndex].Cells[TimeLineCreator.TIMELINE_ELEMENT.REPLAYED_DISP.ToString()].Value
+                    this._TimeLineData[RowIndex].REPLAYED_DISP
                             = (bool)CellValue ? _Common_Alternate_Email : _Common_Empty;
                     this.Rows[RowIndex].Cells[TimeLineCreator.TIMELINE_ELEMENT.REPLAYED_DISP.ToString()].ToolTipText
                             = (bool)CellValue ? "リプライ" : "";
@@ -938,7 +991,8 @@ namespace MiView.Common.TimeLine
                     if ((bool)CellValue)
                     {
                         // CWはdetailに突っ込む時に処理させる
-                        this.Rows[RowIndex].Cells[TimeLineCreator.TIMELINE_ELEMENT.CW_DISP.ToString()].Value = _Common_Visibility_Off;
+                        this._TimeLineData[RowIndex].CW_DISP = _Common_Visibility_Off;
+                        // this.Rows[RowIndex].Cells[TimeLineCreator.TIMELINE_ELEMENT.CW_DISP.ToString()].Value = _Common_Visibility_Off;
                         this.Rows[RowIndex].Cells[TimeLineCreator.TIMELINE_ELEMENT.CW_DISP.ToString()].ToolTipText = "CW";
                     }
                     break;
@@ -946,39 +1000,45 @@ namespace MiView.Common.TimeLine
                     switch ((TimeLineContainer.PROTECTED_STATUS)CellValue)
                     {
                         case TimeLineContainer.PROTECTED_STATUS.Public:
-                            this.Rows[RowIndex].Cells[(int)TimeLineCreator.TIMELINE_ELEMENT.PROTECTED_DISP].Value
-                                    = _Common_Public;
+                            this._TimeLineData[RowIndex].PROTECTED_DISP = _Common_Public;
+                            //this.Rows[RowIndex].Cells[(int)TimeLineCreator.TIMELINE_ELEMENT.PROTECTED_DISP].Value
+                            //        = _Common_Public;
                             this.Rows[RowIndex].Cells[(int)TimeLineCreator.TIMELINE_ELEMENT.PROTECTED_DISP].ToolTipText
                                     = "パブリック";
                             break;
                         case TimeLineContainer.PROTECTED_STATUS.SemiPublic:
-                            this.Rows[RowIndex].Cells[(int)TimeLineCreator.TIMELINE_ELEMENT.PROTECTED_DISP].Value
-                                    = _Common_Wifi;
+                            this._TimeLineData[RowIndex].PROTECTED_DISP = _Common_Wifi;
+                            //this.Rows[RowIndex].Cells[(int)TimeLineCreator.TIMELINE_ELEMENT.PROTECTED_DISP].Value
+                            //        = _Common_Wifi;
                             this.Rows[RowIndex].Cells[(int)TimeLineCreator.TIMELINE_ELEMENT.PROTECTED_DISP].ToolTipText
                                     = "セミパブリック";
                             break;
                         case TimeLineContainer.PROTECTED_STATUS.Home:
-                            this.Rows[RowIndex].Cells[(int)TimeLineCreator.TIMELINE_ELEMENT.PROTECTED_DISP].Value
-                                    = _Common_Home;
+                            this._TimeLineData[RowIndex].PROTECTED_DISP = _Common_Home;
+                            //this.Rows[RowIndex].Cells[(int)TimeLineCreator.TIMELINE_ELEMENT.PROTECTED_DISP].Value
+                            //        = _Common_Home;
                             this.Rows[RowIndex].Cells[(int)TimeLineCreator.TIMELINE_ELEMENT.PROTECTED_DISP].ToolTipText
                                     = "ホーム";
                             break;
                         case TimeLineContainer.PROTECTED_STATUS.Direct:
-                            this.Rows[RowIndex].Cells[(int)TimeLineCreator.TIMELINE_ELEMENT.PROTECTED_DISP].Value
-                                    = _Common_Direct;
+                            this._TimeLineData[RowIndex].PROTECTED_DISP = _Common_Direct;
+                            //this.Rows[RowIndex].Cells[(int)TimeLineCreator.TIMELINE_ELEMENT.PROTECTED_DISP].Value
+                            //        = _Common_Direct;
                             this.Rows[RowIndex].Cells[(int)TimeLineCreator.TIMELINE_ELEMENT.PROTECTED_DISP].ToolTipText
                                     = "ダイレクトメッセージ";
                             break;
                         case TimeLineContainer.PROTECTED_STATUS.Follower:
-                            this.Rows[RowIndex].Cells[(int)TimeLineCreator.TIMELINE_ELEMENT.PROTECTED_DISP].Value
-                                    = _Common_Locked;
+                            this._TimeLineData[RowIndex].PROTECTED_DISP = _Common_Locked;
+                            //this.Rows[RowIndex].Cells[(int)TimeLineCreator.TIMELINE_ELEMENT.PROTECTED_DISP].Value
+                            //        = _Common_Locked;
                             this.Rows[RowIndex].Cells[(int)TimeLineCreator.TIMELINE_ELEMENT.PROTECTED_DISP].ToolTipText
                                     = "フォロワー";
                             break;
                     }
                     break;
                 case (int)TimeLineCreator.TIMELINE_ELEMENT.ISLOCAL:
-                    this.Rows[RowIndex].Cells[(int)TimeLineCreator.TIMELINE_ELEMENT.ISLOCAL_DISP].Value
+                    this._TimeLineData[RowIndex].ISLOCAL_DISP
+                    //this.Rows[RowIndex].Cells[(int)TimeLineCreator.TIMELINE_ELEMENT.ISLOCAL_DISP].Value
                             = (bool)CellValue ? _Common_Rocket : _Common_Rocket_Launch;
                     this.Rows[RowIndex].Cells[(int)TimeLineCreator.TIMELINE_ELEMENT.ISLOCAL_DISP].ToolTipText
                             = (bool)CellValue ? "ローカルのみ" : "連合";
@@ -986,7 +1046,8 @@ namespace MiView.Common.TimeLine
                             = (bool)CellValue ? Color.Red : Color.Green;
                     break;
                 case (int)TimeLineCreator.TIMELINE_ELEMENT.RENOTED:
-                    this.Rows[RowIndex].Cells[(int)TimeLineCreator.TIMELINE_ELEMENT.RENOTED_DISP].Value
+                    this._TimeLineData[RowIndex].RENOTED_DISP
+                    //this.Rows[RowIndex].Cells[(int)TimeLineCreator.TIMELINE_ELEMENT.RENOTED_DISP].Value
                             = (bool)CellValue ? _Common_Repeat : _Common_Empty;
                     this.Rows[RowIndex].Cells[(int)TimeLineCreator.TIMELINE_ELEMENT.RENOTED_DISP].ToolTipText
                             = (bool)CellValue ? "リノート" : "";
@@ -994,24 +1055,38 @@ namespace MiView.Common.TimeLine
                             = (bool)CellValue ? Color.Green : Color.Red;
                     break;
                 case (int)TimeLineCreator.TIMELINE_ELEMENT.ISCHANNEL:
-                    this.Rows[RowIndex].Cells[(int)TimeLineCreator.TIMELINE_ELEMENT.ISCHANNEL_DISP].Value
+                    this._TimeLineData[RowIndex].ISCHANNEL_DISP
+                    //this.Rows[RowIndex].Cells[(int)TimeLineCreator.TIMELINE_ELEMENT.ISCHANNEL_DISP].Value
                             = (bool)CellValue ? _Common_Channel : _Common_Empty;
                     this.Rows[RowIndex].Cells[(int)TimeLineCreator.TIMELINE_ELEMENT.ISCHANNEL_DISP].Style.ForeColor
                             = (bool)CellValue ? Color.Green : Color.Red;
                     break;
                 case (int)TimeLineCreator.TIMELINE_ELEMENT.CHANNEL_NAME:
-                    if (this.Rows[RowIndex].Cells[(int)TimeLineCreator.TIMELINE_ELEMENT.CHANNEL_NAME].Value != null)
+                    if (this._TimeLineData[RowIndex].CHANNEL_NAME != null)
                     {
                         this.Rows[RowIndex].Cells[(int)TimeLineCreator.TIMELINE_ELEMENT.ISCHANNEL_DISP].ToolTipText
                                 = this.Rows[RowIndex].Cells[(int)TimeLineCreator.TIMELINE_ELEMENT.CHANNEL_NAME].Value.ToString();
                     }
                     break;
                 case (int)TimeLineCreator.TIMELINE_ELEMENT.SOFTWARE_INVALIDATED:
-                    if (this.Rows[RowIndex].Cells[(int)TimeLineCreator.TIMELINE_ELEMENT.SOFTWARE_INVALIDATED].Value != null &&
-                        (bool)this.Rows[RowIndex].Cells[(int)TimeLineCreator.TIMELINE_ELEMENT.SOFTWARE_INVALIDATED].Value == true)
+                    if ((bool)this._TimeLineData[RowIndex].SOFTWARE_INVALIDATED == true)
                     {
                         this.Rows[RowIndex].Cells[(int)TimeLineCreator.TIMELINE_ELEMENT.SOFTWARE].ToolTipText
                                 = "ソフトウェア偽装の可能性あり";
+                    }
+                    break;
+                case (int)TimeLineCreator.TIMELINE_ELEMENT.UPDATEDAT:
+                    if (this._TimeLineData[RowIndex].UPDATEDAT != null)
+                    {
+                        try
+                        {
+                            this.Rows[RowIndex].Cells[(int)TimeLineCreator.TIMELINE_ELEMENT.UPDATEDAT].Value =
+                                _TimeLineData[RowIndex].UPDATEDAT;
+                        }
+                        catch(Exception ce)
+                        {
+                            this.Rows[RowIndex].Cells[(int)TimeLineCreator.TIMELINE_ELEMENT.UPDATEDAT].Value = "1900/01/01 00:00:00";
+                        }
                     }
                     break;
             }
@@ -1022,7 +1097,7 @@ namespace MiView.Common.TimeLine
         /// </summary>
         /// <param name="Row"></param>
         /// <param name="Container"></param>
-        private void ChangeDispColor(ref DataGridViewRow Row, TimeLineContainer Container)
+        private void ChangeDispColor(ref DataGridViewCellFormattingEventArgs Row, TimeLineContainer Container)
         {
             if (Container.RENOTED)
             {
@@ -1043,14 +1118,19 @@ namespace MiView.Common.TimeLine
         /// </summary>
         /// <param name="Row"></param>
         /// <param name="DesignColor"></param>
-        private void ChangeDispFgColorCommon(ref DataGridViewRow Row, Color DesignColor)
+        private void ChangeDispFgColorCommon(ref DataGridViewCellFormattingEventArgs Row, Color DesignColor)
         {
-            Row.Cells[(int)TimeLineCreator.TIMELINE_ELEMENT.USERNAME].Style.ForeColor = DesignColor;
-            Row.Cells[(int)TimeLineCreator.TIMELINE_ELEMENT.USERID].Style.ForeColor = DesignColor;
-            Row.Cells[(int)TimeLineCreator.TIMELINE_ELEMENT.DETAIL].Style.ForeColor = DesignColor;
-            Row.Cells[(int)TimeLineCreator.TIMELINE_ELEMENT.UPDATEDAT].Style.ForeColor = DesignColor;
-            Row.Cells[(int)TimeLineCreator.TIMELINE_ELEMENT.SOURCE].Style.ForeColor = DesignColor;
-            Row.Cells[(int)TimeLineCreator.TIMELINE_ELEMENT.SOFTWARE].Style.ForeColor = DesignColor;
+            if (Row.CellStyle == null)
+            {
+                return;
+            }
+            try
+            {
+                Row.CellStyle.ForeColor = DesignColor;
+            }
+            catch
+            {
+            }
         }
 
         /// <summary>
@@ -1058,9 +1138,19 @@ namespace MiView.Common.TimeLine
         /// </summary>
         /// <param name="Row"></param>
         /// <param name="DesignColor"></param>
-        private void ChangeDispBgColorCommon(ref DataGridViewRow Row, Color DesignColor)
+        private void ChangeDispBgColorCommon(ref DataGridViewCellFormattingEventArgs Row, Color DesignColor)
         {
-            Row.DefaultCellStyle.BackColor = DesignColor;
+            if (Row.CellStyle == null)
+            {
+                return;
+            }
+            try
+            {
+                Row.CellStyle.BackColor = DesignColor;
+            }
+            catch
+            {
+            }
         }
     }
 

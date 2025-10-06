@@ -1,42 +1,53 @@
 ﻿using System;
-using System.CodeDom;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Drawing.Text;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.IO;
 
 namespace MiView.Common.Fonts
 {
-    internal class FontLoader
+    internal sealed class FontLoader
     {
         /// <summary>
-        /// ふぉんとコレクション
+        /// フォントコレクション（アプリ全体で共有）
         /// </summary>
-        private PrivateFontCollection _Fonts = new PrivateFontCollection();
+        private readonly PrivateFontCollection _Fonts = new();
 
         /// <summary>
-        /// フォント格納先基準ディレクトリ
+        /// 読み込んだ FontFamily のキャッシュ
+        /// </summary>
+        private readonly Dictionary<FONT_SELECTOR, FontFamily> _CachedFamilies = new();
+
+        /// <summary>
+        /// サイズごとの Font インスタンスキャッシュ
+        /// </summary>
+        private readonly Dictionary<string, Font> _FontCache = new();
+
+        /// <summary>
+        /// フォント格納ディレクトリ
         /// </summary>
         private const string _FontDirectory = @"./Common/Fonts";
 
+        /// <summary>
+        /// フォント識別名のプリフィクス
+        /// </summary>
         private const string _Font_Prefix = "_Font_";
 
         /// <summary>
-        /// フォント格納先/MaterialIcon
+        /// フォントファイル定義
         /// </summary>
         private const string _Font_MaterialIcons = @"/Material/MaterialIcons-Regular.ttf";
 
         /// <summary>
-        /// フォント名と定数のペア
+        /// ロード対象のペア
         /// </summary>
-        private readonly Dictionary<FONT_SELECTOR, string> _FontPair = new Dictionary<FONT_SELECTOR, string>()
+        private readonly Dictionary<FONT_SELECTOR, string> _FontPair = new()
         {
             { FONT_SELECTOR.MATERIALICONS, _Font_MaterialIcons },
         };
 
         /// <summary>
-        /// 読み込みフォント指定
+        /// フォント選択肢
         /// </summary>
         public enum FONT_SELECTOR
         {
@@ -45,30 +56,52 @@ namespace MiView.Common.Fonts
         }
 
         /// <summary>
-        /// コンストラクタ
+        /// シングルトンインスタンス
         /// </summary>
-        public FontLoader()
+        public static FontLoader Instance { get; } = new FontLoader();
+
+        /// <summary>
+        /// コンストラクタ（外部から呼び出し不可）
+        /// </summary>
+        private FontLoader()
         {
+            // 起動時にすべてのフォントを登録
+            foreach (var kvp in _FontPair)
+            {
+                string fullPath = Path.GetFullPath(Path.Combine(_FontDirectory, kvp.Value.TrimStart('/')));
+                if (File.Exists(fullPath))
+                {
+                    _Fonts.AddFontFile(fullPath);
+                    _CachedFamilies[kvp.Key] = _Fonts.Families[^1];
+                }
+                else
+                {
+                    Console.WriteLine($"[FontLoader] Missing font file: {fullPath}");
+                }
+            }
         }
 
         /// <summary>
-        /// フォントデータをファイルから取得
+        /// 指定フォントを取得（キャッシュを優先）
         /// </summary>
-        /// <param name="Selector">フォント指定</param>
-        /// <param name="Size">フォントサイズ</param>
+        /// <param name="selector">フォント種別</param>
+        /// <param name="size">サイズ</param>
         /// <returns>Font</returns>
-        /// <exception cref="KeyNotFoundException">対応するフォントがない</exception>
-        public Font LoadFontFromFile(FONT_SELECTOR Selector, float Size)
+        /// <exception cref="KeyNotFoundException"></exception>
+        public Font LoadFontFromFile(FONT_SELECTOR selector, float size)
         {
-            if (!this._FontPair.ContainsKey(Selector))
-            {
-                throw new KeyNotFoundException();
-            }
+            if (!_CachedFamilies.ContainsKey(selector))
+                throw new KeyNotFoundException($"Font not found for selector {selector}");
 
-            System.Drawing.Text.PrivateFontCollection Col = new System.Drawing.Text.PrivateFontCollection();
-            Col.AddFontFile(_FontDirectory + _FontPair[Selector]);
+            string cacheKey = $"{selector}_{size}";
 
-            return new System.Drawing.Font(Col.Families[0], Size);
+            if (_FontCache.TryGetValue(cacheKey, out var cached))
+                return cached;
+
+            // キャッシュになければ新規生成して保存
+            var font = new Font(_CachedFamilies[selector], size, FontStyle.Regular, GraphicsUnit.Point);
+            _FontCache[cacheKey] = font;
+            return font;
         }
     }
 }

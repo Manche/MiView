@@ -1,4 +1,5 @@
-﻿using System;
+﻿using MiView.Common.TimeLine;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -48,6 +49,11 @@ namespace MiView.Common.Notification
         /// コントローラ名
         /// </summary>
         public string _ControllerName { get; set; }
+
+        /// <summary>
+        /// タイムラインコンテナ
+        /// </summary>
+        public TimeLineContainer _Container { get; set; } = new TimeLineContainer();
 
         /// <summary>
         /// コンストラクタ

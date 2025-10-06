@@ -341,6 +341,7 @@ namespace MiView.Common.TimeLine
         /// <param name="DgTimeLine"></param>
         private void AddDbg(DataGridTimeLine DgTimeLine)
         {
+            var UpdDefault = new DateTime(1900, 1, 1, 1, 1, 1);
 #if DEBUG
             DgTimeLine.InsertTimeLineData(new TimeLineContainer()
             {
@@ -351,7 +352,7 @@ namespace MiView.Common.TimeLine
                 USERNAME = "アプリ",
                 SOFTWARE = "MiView 0.0.1",
                 SOURCE = "localhost",
-                UPDATEDAT = "1960/01/01 00:00:00:000"
+                UPDATEDAT = UpdDefault,
             });
             DgTimeLine.InsertTimeLineData(new TimeLineContainer()
             {
@@ -363,7 +364,7 @@ namespace MiView.Common.TimeLine
                 USERNAME = "アプリ",
                 SOFTWARE = "MiView 0.0.1",
                 SOURCE = "localhost",
-                UPDATEDAT = "1960/01/01 00:00:00:000"
+                UPDATEDAT = UpdDefault
             });
             DgTimeLine.InsertTimeLineData(new TimeLineContainer()
             {
@@ -376,7 +377,7 @@ namespace MiView.Common.TimeLine
                 USERNAME = "アプリ",
                 SOFTWARE = "MiView 0.0.1",
                 SOURCE = "localhost",
-                UPDATEDAT = "1960/01/01 00:00:00:000"
+                UPDATEDAT = UpdDefault
             });
             DgTimeLine.InsertTimeLineData(new TimeLineContainer()
             {
@@ -391,7 +392,7 @@ namespace MiView.Common.TimeLine
                 USERNAME = "アプリ",
                 SOFTWARE = "MiView 0.0.1",
                 SOURCE = "localhost",
-                UPDATEDAT = "1960/01/01 00:00:00:000"
+                UPDATEDAT = UpdDefault
             });
             DgTimeLine.InsertTimeLineData(new TimeLineContainer()
             {
@@ -405,7 +406,7 @@ namespace MiView.Common.TimeLine
                 USERNAME = "アプリ",
                 SOFTWARE = "MiView 0.0.1",
                 SOURCE = "localhost",
-                UPDATEDAT = "1960/01/01 00:00:00:000"
+                UPDATEDAT = UpdDefault
             });
             DgTimeLine.InsertTimeLineData(new TimeLineContainer()
             {
@@ -419,7 +420,7 @@ namespace MiView.Common.TimeLine
                 USERNAME = "アプリ",
                 SOFTWARE = "MiView 0.0.1",
                 SOURCE = "localhost",
-                UPDATEDAT = "1960/01/01 00:00:00:000"
+                UPDATEDAT = UpdDefault
             });
             DgTimeLine.InsertTimeLineData(new TimeLineContainer()
             {
@@ -431,7 +432,7 @@ namespace MiView.Common.TimeLine
                 USERNAME = "アプリ",
                 SOFTWARE = "MiView 0.0.1",
                 SOURCE = "localhost",
-                UPDATEDAT = "1960/01/01 00:00:00:000"
+                UPDATEDAT = UpdDefault
             });
             DgTimeLine.InsertTimeLineData(new TimeLineContainer()
             {
@@ -443,7 +444,7 @@ namespace MiView.Common.TimeLine
                 USERNAME = "アプリ",
                 SOFTWARE = "MiView 0.0.1",
                 SOURCE = "localhost",
-                UPDATEDAT = "1960/01/01 00:00:00:000"
+                UPDATEDAT = UpdDefault
             });
             DgTimeLine.InsertTimeLineData(new TimeLineContainer()
             {
@@ -455,7 +456,7 @@ namespace MiView.Common.TimeLine
                 USERNAME = "アプリ",
                 SOFTWARE = "MiView 0.0.1",
                 SOURCE = "localhost",
-                UPDATEDAT = "1960/01/01 00:00:00:000"
+                UPDATEDAT = UpdDefault
             });
             DgTimeLine.InsertTimeLineData(new TimeLineContainer()
             {
@@ -467,7 +468,7 @@ namespace MiView.Common.TimeLine
                 USERNAME = "アプリ",
                 SOFTWARE = "MiView 0.0.1",
                 SOURCE = "localhost",
-                UPDATEDAT = "1960/01/01 00:00:00:000"
+                UPDATEDAT = UpdDefault
             });
             DgTimeLine.InsertTimeLineData(new TimeLineContainer()
             {
@@ -479,7 +480,7 @@ namespace MiView.Common.TimeLine
                 USERNAME = "アプリ",
                 SOFTWARE = "MiView 0.0.1",
                 SOURCE = "localhost",
-                UPDATEDAT = "1960/01/01 00:00:00:000"
+                UPDATEDAT = UpdDefault
             });
             DgTimeLine.InsertTimeLineData(new TimeLineContainer()
             {
@@ -491,7 +492,7 @@ namespace MiView.Common.TimeLine
                 USERNAME = "アプリ",
                 SOFTWARE = "MiView 0.0.1",
                 SOURCE = "localhost",
-                UPDATEDAT = "1960/01/01 00:00:00:000"
+                UPDATEDAT = UpdDefault
             });
             DgTimeLine.InsertTimeLineData(new TimeLineContainer()
             {
@@ -503,7 +504,7 @@ namespace MiView.Common.TimeLine
                 USERNAME = "アプリ",
                 SOFTWARE = "MiView 0.0.1",
                 SOURCE = "localhost",
-                UPDATEDAT = "1960/01/01 00:00:00:000"
+                UPDATEDAT = UpdDefault
             });
 #endif
         }
@@ -613,7 +614,7 @@ namespace MiView.Common.TimeLine
         public string? CW_DISP { get; set; }
         public string DETAIL { get; set; } = string.Empty;
         public string CONTENT {  get; set; } = string.Empty;
-        public string UPDATEDAT { get; set; } = string.Empty;
+        public DateTime? UPDATEDAT { get; set; } = null;
         public string SOURCE { get; set; } = string.Empty;
         public string SOFTWARE { get; set; } = string.Empty;
         public bool SOFTWARE_INVALIDATED { get; set; } = false;
@@ -963,7 +964,8 @@ namespace MiView.Common.TimeLine
                 ColumnIndex != (int)TimeLineCreator.TIMELINE_ELEMENT.CW &&
                 ColumnIndex != (int)TimeLineCreator.TIMELINE_ELEMENT.ISCHANNEL &&
                 ColumnIndex != (int)TimeLineCreator.TIMELINE_ELEMENT.CHANNEL_NAME &&
-                ColumnIndex != (int)TimeLineCreator.TIMELINE_ELEMENT.SOFTWARE_INVALIDATED)
+                ColumnIndex != (int)TimeLineCreator.TIMELINE_ELEMENT.SOFTWARE_INVALIDATED &&
+                ColumnIndex != (int)TimeLineCreator.TIMELINE_ELEMENT.UPDATEDAT)
             {
                 return;
             }
@@ -1071,6 +1073,20 @@ namespace MiView.Common.TimeLine
                     {
                         this.Rows[RowIndex].Cells[(int)TimeLineCreator.TIMELINE_ELEMENT.SOFTWARE].ToolTipText
                                 = "ソフトウェア偽装の可能性あり";
+                    }
+                    break;
+                case (int)TimeLineCreator.TIMELINE_ELEMENT.UPDATEDAT:
+                    if (this._TimeLineData[RowIndex].UPDATEDAT != null)
+                    {
+                        try
+                        {
+                            this.Rows[RowIndex].Cells[(int)TimeLineCreator.TIMELINE_ELEMENT.UPDATEDAT].Value =
+                                _TimeLineData[RowIndex].UPDATEDAT;
+                        }
+                        catch(Exception ce)
+                        {
+                            this.Rows[RowIndex].Cells[(int)TimeLineCreator.TIMELINE_ELEMENT.UPDATEDAT].Value = "1900/01/01 00:00:00";
+                        }
                     }
                     break;
             }

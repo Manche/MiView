@@ -1,4 +1,5 @@
 ﻿using MiView.Common.AnalyzeData;
+using MiView.Common.Connection.VersionInfo;
 using MiView.Common.Fonts;
 using MiView.Common.Fonts.Material;
 using MiView.Common.Notification;
@@ -125,6 +126,10 @@ namespace MiView.Common.TimeLine
             /// 読み取り元
             /// </summary>
             TLFROM,
+            /// <summary>
+            /// バージョン
+            /// </summary>
+            VERSION,
         }
 
         /// <summary>
@@ -145,6 +150,7 @@ namespace MiView.Common.TimeLine
             // TIMELINE_ELEMENT.TLFROM,
             TIMELINE_ELEMENT.SOFTWARE_INVALIDATED,
             TIMELINE_ELEMENT.ORIGINAL_HOST,
+            TIMELINE_ELEMENT.VERSION,
         };
 
         public List<TimeLineContainer> TimeLineData = new List<TimeLineContainer>();
@@ -621,6 +627,8 @@ namespace MiView.Common.TimeLine
         public JsonNode ORIGINAL { get; set; } = string.Empty;
         public string ORIGINAL_HOST {  get; set; } = string.Empty;
         public string TLFROM { get; set; } = string.Empty;
+
+        public MMisskeyVersionInfo VERSION { get; set; }
     }
 
     /// <summary>

@@ -37,6 +37,11 @@
             txtTabName = new TextBox();
             cmbTLKind = new ComboBox();
             label4 = new Label();
+            cmbSoftware = new ComboBox();
+            label5 = new Label();
+            label6 = new Label();
+            txtSoftwareVersion = new TextBox();
+            cmdGetVersionInfo = new Button();
             SuspendLayout();
             // 
             // label1
@@ -73,11 +78,11 @@
             // 
             // cmdApply
             // 
-            cmdApply.Location = new Point(373, 141);
+            cmdApply.Location = new Point(373, 194);
             cmdApply.Name = "cmdApply";
             cmdApply.Size = new Size(75, 23);
             cmdApply.TabIndex = 2;
-            cmdApply.Text = "認証";
+            cmdApply.Text = "追加";
             cmdApply.UseVisualStyleBackColor = true;
             cmdApply.Click += cmdApply_Click;
             // 
@@ -116,15 +121,67 @@
             label4.TabIndex = 0;
             label4.Text = "TL種類";
             // 
+            // cmbSoftware
+            // 
+            cmbSoftware.DropDownStyle = ComboBoxStyle.DropDownList;
+            cmbSoftware.Enabled = false;
+            cmbSoftware.FormattingEnabled = true;
+            cmbSoftware.Items.AddRange(new object[] { "ホームTL", "ローカルTL", "ソーシャルTL", "グローバルTL" });
+            cmbSoftware.Location = new Point(100, 122);
+            cmbSoftware.Name = "cmbSoftware";
+            cmbSoftware.Size = new Size(348, 23);
+            cmbSoftware.TabIndex = 3;
+            // 
+            // label5
+            // 
+            label5.AutoSize = true;
+            label5.Location = new Point(12, 125);
+            label5.Name = "label5";
+            label5.Size = new Size(57, 15);
+            label5.TabIndex = 0;
+            label5.Text = "ソフトウェア";
+            // 
+            // label6
+            // 
+            label6.AutoSize = true;
+            label6.Location = new Point(12, 154);
+            label6.Name = "label6";
+            label6.Size = new Size(51, 15);
+            label6.TabIndex = 0;
+            label6.Text = "バージョン";
+            // 
+            // txtSoftwareVersion
+            // 
+            txtSoftwareVersion.Enabled = false;
+            txtSoftwareVersion.Location = new Point(100, 151);
+            txtSoftwareVersion.Name = "txtSoftwareVersion";
+            txtSoftwareVersion.Size = new Size(348, 23);
+            txtSoftwareVersion.TabIndex = 1;
+            // 
+            // cmdGetVersionInfo
+            // 
+            cmdGetVersionInfo.Location = new Point(292, 194);
+            cmdGetVersionInfo.Name = "cmdGetVersionInfo";
+            cmdGetVersionInfo.Size = new Size(75, 23);
+            cmdGetVersionInfo.TabIndex = 2;
+            cmdGetVersionInfo.Text = "認証";
+            cmdGetVersionInfo.UseVisualStyleBackColor = true;
+            cmdGetVersionInfo.Click += cmdGetVersionInfo_Click;
+            // 
             // AddInstanceWithAPIKey
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(460, 176);
+            ClientSize = new Size(460, 229);
+            Controls.Add(cmbSoftware);
             Controls.Add(cmbTLKind);
+            Controls.Add(cmdGetVersionInfo);
             Controls.Add(cmdApply);
+            Controls.Add(txtSoftwareVersion);
             Controls.Add(txtTabName);
             Controls.Add(txtAPIKey);
+            Controls.Add(label6);
+            Controls.Add(label5);
             Controls.Add(label4);
             Controls.Add(label3);
             Controls.Add(txtInstanceURL);
@@ -149,5 +206,10 @@
         private TextBox txtTabName;
         private ComboBox cmbTLKind;
         private Label label4;
+        private ComboBox cmbSoftware;
+        private Label label5;
+        private Label label6;
+        private TextBox txtSoftwareVersion;
+        private Button cmdGetVersionInfo;
     }
 }

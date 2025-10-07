@@ -80,6 +80,10 @@ namespace MiView.ScreenForms.DialogForm
             });
         }
 
+        private void cmdGetVersionInfo_Click(object sender, EventArgs e)
+        {
+        }
+
         private void AddInstanceWithAPIKey_Load(object sender, EventArgs e)
         {
             this.cmbTLKind.Items.Clear();
@@ -99,6 +103,11 @@ namespace MiView.ScreenForms.DialogForm
             // グローバルTL
             this.cmbTLKind.Items.Add(new CmbInstance(Common.Connection.WebSocket.TimeLineBasic.ConnectTimeLineKind.Global,
                                      "グローバル"));
+
+            // 
+            this.cmbSoftware.Items.Add(new CmbSoftware(Common.Connection.VersionInfo.CSoftwareVersionInfo.SOFTWARE_LIST.NONE));
+            //
+            this.cmbSoftware.Items.Add(new CmbSoftware(Common.Connection.VersionInfo.CSoftwareVersionInfo.SOFTWARE_LIST.MISSKEY));
         }
     }
 }

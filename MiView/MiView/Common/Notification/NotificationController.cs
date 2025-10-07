@@ -33,7 +33,7 @@ namespace MiView.Common.Notification
         }
 
         /// <summary>
-        /// 通知実行処理
+        /// 通知処理本体
         /// </summary>
         public abstract void ExecuteMethod();
     }

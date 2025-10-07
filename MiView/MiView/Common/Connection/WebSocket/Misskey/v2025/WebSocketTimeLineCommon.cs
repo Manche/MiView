@@ -345,7 +345,7 @@ namespace MiView.Common.Connection.WebSocket.Misskey.v2025
                                                 }
                                                 if (CountRet)
                                                 {
-                                                    Opt.ExecuteAlert();
+                                                    Opt.ExecuteAlert(TLCon);
                                                 }
                                             }
                                             CallDataAccepted(TLCon);
@@ -373,7 +373,7 @@ namespace MiView.Common.Connection.WebSocket.Misskey.v2025
                                             }
                                             if (CountRet)
                                             {
-                                                Opt.ExecuteAlert();
+                                                Opt.ExecuteAlert(TLCon);
                                             }
                                         }
                                         CallDataRejected(TLCon);
@@ -427,7 +427,7 @@ namespace MiView.Common.Connection.WebSocket.Misskey.v2025
                                                 }
                                                 if (CountRet)
                                                 {
-                                                    Opt.ExecuteAlert();
+                                                    Opt.ExecuteAlert(TLCon);
                                                 }
                                             }
                                             CallDataAccepted(TLCon);
@@ -455,7 +455,7 @@ namespace MiView.Common.Connection.WebSocket.Misskey.v2025
                                             }
                                             if (CountRet)
                                             {
-                                                Opt.ExecuteAlert();
+                                                Opt.ExecuteAlert(TLCon);
                                             }
                                         }
                                         CallDataRejected(TLCon);

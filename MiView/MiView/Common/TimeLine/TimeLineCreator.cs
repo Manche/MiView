@@ -10,6 +10,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.Json.Nodes;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Xml.Linq;
@@ -621,6 +622,18 @@ namespace MiView.Common.TimeLine
         public JsonNode ORIGINAL { get; set; } = string.Empty;
         public string ORIGINAL_HOST {  get; set; } = string.Empty;
         public string TLFROM { get; set; } = string.Empty;
+
+        public static string[] TRANSABLE =
+        {
+            "USERNAME",
+            "USERID",
+            "CHANNEL_NAME",
+            "CW",
+            "DETAIL",
+            "UPDATEAT",
+            "SOURCE",
+            "SOFTWARE",
+        };
     }
 
     /// <summary>
@@ -1488,6 +1501,9 @@ namespace MiView.Common.TimeLine
                 case MATCHER_PATTERN.END:
                     MatchedCount = Patterns.FindAll(r => { return r.EndsWith(Value); }).Count;
                     break;
+                case MATCHER_PATTERN.REGEXP:
+                    MatchedCount = Patterns.FindAll(r => { return Regex.Matches(r, Value).Count > 0; }).Count;
+                    break;
 
                 default:
                     return false;
@@ -1581,7 +1597,7 @@ namespace MiView.Common.TimeLine
         /// アラート実行
         /// </summary>
         /// <returns></returns>
-        public void ExecuteAlert()
+        public void ExecuteAlert(TimeLineContainer Container)
         {
             try
             {
@@ -1601,6 +1617,7 @@ namespace MiView.Common.TimeLine
                 {
                     foreach (var Alert in this._AlertExecution)
                     {
+                        Alert.SetTimeLineContainer(Container);
                         Alert.Execute();
                     }
                 }

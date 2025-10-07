@@ -16,18 +16,24 @@ namespace MiView.Common.Connection.WebSocket
 {
     internal class WebSocketManager
     {
-        protected string _HostUrl { get; set; } = string.Empty;
-        protected string _HostDefinition { get; set; } = string.Empty;
+        public string _HostUrl { get; set; } = string.Empty;
+        public string _HostDefinition { get; set; } = string.Empty;
         protected string? _APIKey { get; set; } = string.Empty;
+        public string? APIKey { get { return _APIKey; } }
+        public string _Host { get { return _OHost; } }
+        protected string _OHost { get; set; } = string.Empty;
+        public DateTime _LastDataReceived { get; set; }
 
         private WebSocketState _State { get; set; } = WebSocketState.None;
         private WebSocketState _State_Command { get; set; } = WebSocketState.None;
         private bool _ConnectionClose { get; set; } = false;
+        public bool _ConnectionClosed { get { return _ConnectionClose; } }
 
         protected MainForm _MainForm { get; set; } = new MainForm();
         protected DataGridTimeLine[]? _TimeLineObject { get; set; } = new DataGridTimeLine[0];
 
         private ClientWebSocket _WebSocket { get; set; } = new ClientWebSocket();
+        public ClientWebSocket WebSocket { get { return _WebSocket; } }
         private CancellationTokenSource _Cancellation = new CancellationTokenSource();
 
         public event EventHandler<EventArgs>? ConnectionClosed;
@@ -75,6 +81,7 @@ namespace MiView.Common.Connection.WebSocket
             this._HostDefinition = InstanceURL;
             this._APIKey = APIKey;
 
+            _OHost = APIKey != null ? $"wss://{InstanceURL}/streaming?i={APIKey}" : $"wss://{InstanceURL}/streaming";
             return APIKey != null ? $"wss://{InstanceURL}/streaming?i={APIKey}" : $"wss://{InstanceURL}/streaming";
         }
 
@@ -84,7 +91,11 @@ namespace MiView.Common.Connection.WebSocket
         protected virtual void OnDataReceived(object? sender, ConnectDataReceivedEventArgs e)
         {
         }
-        protected void CallDataReceived(string ResponseMessage) => DataReceived?.Invoke(this, new ConnectDataReceivedEventArgs() { MessageRaw = ResponseMessage });
+        protected void CallDataReceived(string ResponseMessage)
+        {
+            this._LastDataReceived = DateTime.Now;
+            DataReceived?.Invoke(this, new ConnectDataReceivedEventArgs() { MessageRaw = ResponseMessage });
+        }
         protected virtual void OnDataAccepted(object? sender, DataContainerEventArgs Container)
         {
             this._MainForm.CallDataAccepted(Container.Container);
@@ -127,7 +138,8 @@ namespace MiView.Common.Connection.WebSocket
         {
             _HostUrl = HostUrl;
 
-            if (_State == WebSocketState.Open)
+            if (_State == WebSocketState.Open &&
+                this._WebSocket.State == WebSocketState.Open)
                 return;
 
             try
@@ -143,6 +155,13 @@ namespace MiView.Common.Connection.WebSocket
             {
                 CallError(ex);
             }
+        }
+        /// <summary>
+        /// 再接続
+        /// </summary>
+        public void CreateAndReOpen()
+        {
+            var _ = new Action(async () => { await CreateAndOpen(_HostUrl); });
         }
 
         protected async Task Close(string HostUrl)

@@ -5,6 +5,7 @@ using MiView.Common.Connection.WebSocket.Misskey.v2025;
 using MiView.Common.Fonts;
 using MiView.Common.Fonts.Material;
 using MiView.Common.Notification.Baloon;
+using MiView.Common.Notification.Http;
 using MiView.Common.Notification.Toast;
 using MiView.Common.TimeLine;
 using MiView.ScreenForms.Controls.Combo;
@@ -14,6 +15,7 @@ using System;
 using System.ComponentModel;
 using System.Reflection;
 using System.Security.Policy;
+using System.Security.Principal;
 using System.Text;
 using System.Text.Json.Nodes;
 using System.Windows.Forms;
@@ -38,6 +40,8 @@ namespace MiView
         private Dictionary<string, string> _TmpTLManager = new Dictionary<string, string>();
 
         public NotifyView NotifyView { get; set; }
+
+        private APIStatusForm _APIStatusForm = new APIStatusForm();
 
         /// <summary>
         /// ‚±‚ÌƒtƒH[ƒ€
@@ -74,7 +78,96 @@ namespace MiView
         {
             _TLCreator.CreateTimeLine(ref this.MainFormObj, "Main", "tpMain");
 
+            var Ac = new Task(async () => { await ConnectWatcher(); });
+            Ac.Start();
+            this._APIStatusForm.Show();
         }
+
+        private async Task ConnectWatcher()
+        {
+            if (InvokeRequired)
+            {
+                Invoke(new Action(async () => { await ConnectWatcher(); }));
+            }
+            while(true)
+            {
+                List<APIStatusDispData> APIDisp = new List<APIStatusDispData>();
+                foreach (var TLCon in _TmpTLManager)
+                {
+                    try
+                    {
+                        //System.Diagnostics.Debug.WriteLine(_TLManager[TLCon.Value]._Host);
+                        //System.Diagnostics.Debug.WriteLine(_TLManager[TLCon.Value].GetSocketState());
+                        //System.Diagnostics.Debug.WriteLine(_TLManager[TLCon.Value]._ConnectionClosed);
+                        //System.Diagnostics.Debug.WriteLine(_TLManager[TLCon.Value].WebSocket.State);
+                        APIDisp.Add(new APIStatusDispData() 
+                            {
+                            _HostUrl = _TLManager[TLCon.Value]._Host,
+                            _Host = _TLManager[TLCon.Value]._HostUrl,
+                            _ConnectStatus = _TLManager[TLCon.Value].GetSocketState() == System.Net.WebSockets.WebSocketState.Open && _TLManager[TLCon.Value]._IsOpenTimeLine,
+                            _LastReceived = _TLManager[TLCon.Value]._LastDataReceived,
+                            _ConnectionClosed = _TLManager[TLCon.Value]._ConnectionClosed
+                        });
+                        if (_TLManager[TLCon.Value].GetSocketState() != System.Net.WebSockets.WebSocketState.Open ||
+                            _TLManager[TLCon.Value]._IsOpenTimeLine == false)
+                        {
+                            var _ = new Action(() =>
+                            {
+                                int Wait = 0;
+                                while (Wait < 10)
+                                {
+                                    _TLManager[TLCon.Value].CreateAndReOpen();
+                                    try
+                                    {
+                                        WebSocketTimeLineCommon.ReadTimeLineContinuous(_TLManager[TLCon.Value]);
+
+                                        if (_TLManager[TLCon.Value].APIKey != string.Empty)
+                                        {
+                                            var WTManager = WebSocketMain.CreateInstance().OpenMain(_TLManager[TLCon.Value]._HostDefinition, _TLManager[TLCon.Value].APIKey);
+                                            WebSocketMain.ReadMainContinuous(WTManager);
+                                            int Wt = 0;
+                                            while (Wt < 10)
+                                            {
+                                                if (WTManager.GetSocketState() == System.Net.WebSockets.WebSocketState.Open)
+                                                {
+                                                    break;
+                                                }
+                                                else
+                                                {
+                                                    _TLManager[TLCon.Value].SetSocketState(System.Net.WebSockets.WebSocketState.Closed);
+                                                }
+                                                Wt++;
+                                                Thread.Sleep(1000);
+                                            }
+                                        }
+                                    }
+                                    catch (Exception ex)
+                                    {
+                                    }
+
+                                    Wait++;
+                                    System.Diagnostics.Debug.WriteLine(_TLManager[TLCon.Value]._HostDefinition);
+                                    System.Diagnostics.Debug.WriteLine($"{Wait}•b‘Ò‹@’†");
+
+                                    if (_TLManager[TLCon.Value].GetSocketState() == System.Net.WebSockets.WebSocketState.Open)
+                                    {
+                                        break;
+                                    }
+
+                                    Thread.Sleep(1000);
+                                }
+                            });
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                    }
+                }
+                this._APIStatusForm.SetStatus(APIDisp);
+                await Task.Delay(1000);
+            }
+        }
+
         // ŒÄ‚Ño‚µŒ³‚Å TabDef ‚ª _TmpTLManager ‚É“o˜^‚³‚ê‚é‚Ü‚Å‘Ò‚Â
         private void WaitForTimeLineObject(string TabName, int timeoutMs = 5000)
         {

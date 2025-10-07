@@ -11,6 +11,10 @@ namespace MiView.Common.Notification.Shell
     /// </summary>
     internal class ShellController : NotificationController
     {
+        /// <summary>
+        /// 通知処理本体
+        /// </summary>
+        /// <exception cref="NotImplementedException"></exception>
         public override void ExecuteMethod()
         {
             throw new NotImplementedException();

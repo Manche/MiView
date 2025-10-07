@@ -52,7 +52,10 @@ namespace MiView.Common.Connection.WebSocket
 
         public WebSocketManager(string HostUrl) : this()
         {
-            this._HostUrl = HostUrl;
+            if (this._HostUrl == null || this._HostUrl == string.Empty)
+            {
+                this._HostUrl = HostUrl;
+            }
             _ = Task.Run(async () => await Watcher());
         }
 
@@ -68,10 +71,14 @@ namespace MiView.Common.Connection.WebSocket
         public void SetSocketState(WebSocketState State) => this._State = State;
         public bool IsStandBySocketOpen() => GetSocketState() == WebSocketState.None;
         protected void ConnectionAbort() => this._ConnectionClose = true;
+        public bool _IsOpenTimeLine = false;
 
         protected WebSocketManager Start(string HostUrl)
         {
-            this._HostUrl = HostUrl;
+            if (this._HostUrl == null || this._HostUrl == string.Empty)
+            {
+                this._HostUrl = HostUrl;
+            }
             _ = Task.Run(async () => await Watcher());
             return this;
         }
@@ -136,8 +143,24 @@ namespace MiView.Common.Connection.WebSocket
 
         protected async Task CreateAndOpen(string HostUrl)
         {
-            _HostUrl = HostUrl;
+            if (this._HostUrl == null || this._HostUrl == string.Empty)
+            {
+                this._HostUrl = HostUrl;
+            }
 
+            await this._CreateAndOpen(_HostUrl);
+        }
+
+        /// <summary>
+        /// 再接続
+        /// </summary>
+        public void CreateAndReOpen()
+        {
+            var _ = new Action(async () => { await _CreateAndOpen(this._HostDefinition); });
+        }
+
+        private async Task _CreateAndOpen(string HostUrl)
+        {
             if (_State == WebSocketState.Open &&
                 this._WebSocket.State == WebSocketState.Open)
                 return;
@@ -156,17 +179,13 @@ namespace MiView.Common.Connection.WebSocket
                 CallError(ex);
             }
         }
-        /// <summary>
-        /// 再接続
-        /// </summary>
-        public void CreateAndReOpen()
-        {
-            var _ = new Action(async () => { await CreateAndOpen(_HostUrl); });
-        }
 
         protected async Task Close(string HostUrl)
         {
-            _HostUrl = HostUrl;
+            if (this._HostUrl == null || this._HostUrl == string.Empty)
+            {
+                this._HostUrl = HostUrl;
+            }
 
             if (_State == WebSocketState.Closed)
                 throw new InvalidOperationException("Socket is already closed");
@@ -179,6 +198,7 @@ namespace MiView.Common.Connection.WebSocket
                     await Task.Delay(50);
                 }
                 _State = _WebSocket.State;
+                _IsOpenTimeLine = false;
             }
             catch (Exception ex)
             {
@@ -205,6 +225,7 @@ namespace MiView.Common.Connection.WebSocket
                         if (result.MessageType == WebSocketMessageType.Close)
                         {
                             await _WebSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, string.Empty, token);
+                            _IsOpenTimeLine = false;
                             CallConnectionLost();
                             return;
                         }
@@ -220,6 +241,7 @@ namespace MiView.Common.Connection.WebSocket
                     Debug.WriteLine($"受信完了: {totalLength} bytes"); // 内部バイト長確認
                     CallDataReceived(message);
                     Thread.Sleep(1000);
+                    _IsOpenTimeLine = true;
                 }
             }
             catch (Exception ex)

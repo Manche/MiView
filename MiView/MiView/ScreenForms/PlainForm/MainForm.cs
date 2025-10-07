@@ -95,42 +95,58 @@ namespace MiView
                 {
                     try
                     {
-                        System.Diagnostics.Debug.WriteLine(_TLManager[TLCon.Value]._Host);
-                        System.Diagnostics.Debug.WriteLine(_TLManager[TLCon.Value].GetSocketState());
-                        System.Diagnostics.Debug.WriteLine(_TLManager[TLCon.Value]._ConnectionClosed);
-                        System.Diagnostics.Debug.WriteLine(_TLManager[TLCon.Value].WebSocket.State);
+                        //System.Diagnostics.Debug.WriteLine(_TLManager[TLCon.Value]._Host);
+                        //System.Diagnostics.Debug.WriteLine(_TLManager[TLCon.Value].GetSocketState());
+                        //System.Diagnostics.Debug.WriteLine(_TLManager[TLCon.Value]._ConnectionClosed);
+                        //System.Diagnostics.Debug.WriteLine(_TLManager[TLCon.Value].WebSocket.State);
                         APIDisp.Add(new APIStatusDispData() 
                             {
                             _HostUrl = _TLManager[TLCon.Value]._Host,
                             _Host = _TLManager[TLCon.Value]._HostUrl,
-                            _ConnectStatus = _TLManager[TLCon.Value].GetSocketState() == System.Net.WebSockets.WebSocketState.Open,
+                            _ConnectStatus = _TLManager[TLCon.Value].GetSocketState() == System.Net.WebSockets.WebSocketState.Open && _TLManager[TLCon.Value]._IsOpenTimeLine,
                             _LastReceived = _TLManager[TLCon.Value]._LastDataReceived,
                             _ConnectionClosed = _TLManager[TLCon.Value]._ConnectionClosed
                         });
-                        if (_TLManager[TLCon.Value].GetSocketState() != System.Net.WebSockets.WebSocketState.Open)
+                        if (_TLManager[TLCon.Value].GetSocketState() != System.Net.WebSockets.WebSocketState.Open ||
+                            _TLManager[TLCon.Value]._IsOpenTimeLine == false)
                         {
-                            _TLManager[TLCon.Value].CreateAndReOpen();
-                            try
-                            {
-                                WebSocketTimeLineCommon.ReadTimeLineContinuous(_TLManager[TLCon.Value]);
-
-                                if (_TLManager[TLCon.Value].APIKey != string.Empty)
-                                {
-                                    var WTManager = WebSocketMain.CreateInstance().OpenMain(_TLManager[TLCon.Value]._Host, _TLManager[TLCon.Value].APIKey);
-                                    WebSocketMain.ReadMainContinuous(WTManager);
-                                }
-                            }
-                            catch (Exception ex)
-                            {
-                            }
-
-                            if (_TLManager[TLCon.Value].GetSocketState() != System.Net.WebSockets.WebSocketState.Open)
+                            var _ = new Action(() =>
                             {
                                 int Wait = 0;
                                 while (Wait < 10)
                                 {
+                                    _TLManager[TLCon.Value].CreateAndReOpen();
+                                    try
+                                    {
+                                        WebSocketTimeLineCommon.ReadTimeLineContinuous(_TLManager[TLCon.Value]);
+
+                                        if (_TLManager[TLCon.Value].APIKey != string.Empty)
+                                        {
+                                            var WTManager = WebSocketMain.CreateInstance().OpenMain(_TLManager[TLCon.Value]._HostDefinition, _TLManager[TLCon.Value].APIKey);
+                                            WebSocketMain.ReadMainContinuous(WTManager);
+                                            int Wt = 0;
+                                            while (Wt < 10)
+                                            {
+                                                if (WTManager.GetSocketState() == System.Net.WebSockets.WebSocketState.Open)
+                                                {
+                                                    break;
+                                                }
+                                                else
+                                                {
+                                                    _TLManager[TLCon.Value].SetSocketState(System.Net.WebSockets.WebSocketState.Closed);
+                                                }
+                                                Wt++;
+                                                Thread.Sleep(1000);
+                                            }
+                                        }
+                                    }
+                                    catch (Exception ex)
+                                    {
+                                    }
+
                                     Wait++;
-                                    System.Diagnostics.Debug.WriteLine(string.Format("%s•b‘Ò‹@’†", Wait));
+                                    System.Diagnostics.Debug.WriteLine(_TLManager[TLCon.Value]._HostDefinition);
+                                    System.Diagnostics.Debug.WriteLine($"{Wait}•b‘Ò‹@’†");
 
                                     if (_TLManager[TLCon.Value].GetSocketState() == System.Net.WebSockets.WebSocketState.Open)
                                     {
@@ -139,7 +155,7 @@ namespace MiView
 
                                     Thread.Sleep(1000);
                                 }
-                            }
+                            });
                         }
                     }
                     catch (Exception ex)

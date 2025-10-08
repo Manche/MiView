@@ -155,9 +155,14 @@ namespace MiView.Common.Notification.Http
             {
                 this._HttpRequest?.Headers.Add(Head.Key, Head.Value);
             }
-
-            this._HttpResponse = await this._HttpClient.SendAsync(this._HttpRequest);
-            this._HttpResponseBody = await this._HttpResponse.Content.ReadAsStringAsync();
+            try
+            {
+                this._HttpResponse = await this._HttpClient.SendAsync(this._HttpRequest);
+                this._HttpResponseBody = await this._HttpResponse.Content.ReadAsStringAsync();
+            }
+            catch (Exception ex)
+            {
+            }
         }
 
         /// <summary>
@@ -181,9 +186,14 @@ namespace MiView.Common.Notification.Http
             {
                 this._HttpRequest.Content?.Headers.Add(Head.Key, Head.Value);
             }
-
-            this._HttpResponse = await this._HttpClient.SendAsync(this._HttpRequest);
-            this._HttpResponseBody = await this._HttpResponse.Content.ReadAsStringAsync();
+            try
+            {
+                this._HttpResponse = await this._HttpClient.SendAsync(this._HttpRequest);
+                this._HttpResponseBody = await this._HttpResponse.Content.ReadAsStringAsync();
+            }
+            catch (Exception ex)
+            {
+            }
         }
     }
 }

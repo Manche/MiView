@@ -67,6 +67,11 @@ namespace MiView.Common.Notification.Http
         public Dictionary<string, string> RequestHeader = new Dictionary<string, string>();
 
         /// <summary>
+        /// 非同期処理かどうか
+        /// </summary>
+        public bool IsAsync { get; set; } = true;
+
+        /// <summary>
         /// リクエスト方法
         /// </summary>
         public enum EXECUTE_PROCESS
@@ -96,6 +101,7 @@ namespace MiView.Common.Notification.Http
             switch (ExecuteProcess)
             {
                 case EXECUTE_PROCESS.GET:
+                    _HttpMethod = HttpMethod.Get;
                     Mt = new Task(async () =>
                     {
                         await GetSubHttpRoutine();
@@ -103,12 +109,28 @@ namespace MiView.Common.Notification.Http
                     Mt.Start();
                     break;
                 case EXECUTE_PROCESS.POST:
+                    _HttpMethod = HttpMethod.Post;
                     Mt = new Task(async () =>
                     {
                         await PostSubHttpRoutine();
                     });
                     Mt.Start();
                     break;
+            }
+            if (!IsAsync)
+            {
+                int TTWait = 0;
+                while(TTWait < 10)
+                {
+                    if (this.HttpResponse != null &&
+                        this.HttpResponse.StatusCode == System.Net.HttpStatusCode.OK)
+                    {
+                        break;
+                    }
+                    Thread.Sleep(1000);
+                    TTWait++;
+                    System.Diagnostics.Debug.WriteLine($"{TTWait}秒待機中");
+                }
             }
         }
 
@@ -144,6 +166,24 @@ namespace MiView.Common.Notification.Http
         /// <returns></returns>
         private async Task PostSubHttpRoutine()
         {
+            /// リクエスト作成
+            this._HttpRequest = new HttpRequestMessage(_HttpMethod, this.ReqeustUrl);
+            if (this._HttpRequest == null)
+            {
+                return;
+            }
+
+            // ボディ
+            this._HttpRequest.Content = this._RequestContent;
+
+            // ヘッダ
+            foreach (var Head in this.RequestHeader)
+            {
+                this._HttpRequest.Content?.Headers.Add(Head.Key, Head.Value);
+            }
+
+            this._HttpResponse = await this._HttpClient.SendAsync(this._HttpRequest);
+            this._HttpResponseBody = await this._HttpResponse.Content.ReadAsStringAsync();
         }
     }
 }

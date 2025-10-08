@@ -47,6 +47,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="Common\AnalyzeData\Format\Misskey\v2024\" />
     <Folder Include="Common\Connection\REST\Misskey\v2025\API\" />
   </ItemGroup>
 

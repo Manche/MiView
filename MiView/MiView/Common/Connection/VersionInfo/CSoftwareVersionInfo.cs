@@ -1,4 +1,5 @@
-﻿using System;
+﻿using MiView.ScreenForms.Controls.Combo;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -32,13 +33,14 @@ namespace MiView.Common.Connection.VersionInfo
         /// <summary>
         /// バージョン
         /// </summary>
-        public VersionAttribute? Version { get; set; }
+        public VersionAttribute Version { get; set; } = new VersionAttribute();
     }
 
     public class VersionAttribute
     {
         public int MajorVersion { get; set; } = 0;
         public int MinorVersion { get; set; } = 0;
+        public int Revision { get; set; } = 0;
         public int BuildVersion { get; set; } = 0;
     }
 }

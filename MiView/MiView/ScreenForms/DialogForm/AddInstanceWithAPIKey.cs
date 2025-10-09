@@ -19,7 +19,7 @@ namespace MiView.ScreenForms.DialogForm
     public partial class AddInstanceWithAPIKey : Form
     {
         private MainForm? _MainForm = null;
-        private CSoftwareVersionInfo? _VerInfo { get; set; } = null;
+        private CSoftwareVersionInfo? _VerInfo { get; set; } = new CSoftwareVersionInfo();
 
         public AddInstanceWithAPIKey(MainForm MainForm)
         {
@@ -83,7 +83,11 @@ namespace MiView.ScreenForms.DialogForm
                 {
                 }
 
-                this._MainForm.BeginInvoke(new Action(() => _MainForm.AddTimeLine(txtInstanceURL.Text, txtTabName.Text, txtAPIKey.Text, ((CmbInstance)cmbTLKind.SelectedItem)._TLKind)));
+                this._MainForm.BeginInvoke(new Action(() => _MainForm.AddTimeLine(InstanceURL: txtInstanceURL.Text,
+                                                                                  TabName: txtTabName.Text,
+                                                                                  APIKey: txtAPIKey.Text,
+                                                                                  sTLKind: ((CmbInstance)cmbTLKind.SelectedItem)._TLKind,
+                                                                                  SoftwareVersionInfo: _VerInfo)));
             });
         }
 

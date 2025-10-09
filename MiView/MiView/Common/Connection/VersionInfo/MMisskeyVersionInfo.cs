@@ -1,4 +1,5 @@
-﻿using System;
+﻿using MiView.Common.Connection.REST.Constraint;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -12,11 +13,11 @@ namespace MiView.Common.Connection.VersionInfo
         /// <summary>
         /// デフォルトソフトウェア名
         /// </summary>
-        public new const string _DefaultSoftwareName = "Misskey";
+        public override SOFTWARE_LIST _DefaultSoftwareType { get { return SOFTWARE_LIST.MISSKEY; } }
         /// <summary>
-        /// ソフトウェア名
+        /// デフォルトソフトウェア名
         /// </summary>
-        public override string? SoftwareName { get; set; } = _DefaultSoftwareName;
+        public new const string _DefaultSoftwareName = ConnectionRESTConstraint.MisskeySoftwareName;
     }
 
     public class MMisskeyVersionConst
@@ -39,7 +40,7 @@ namespace MiView.Common.Connection.VersionInfo
                 case 2025:
                     return meta_V2025;
             }
-            throw new NotImplementedException();
+            throw new NotImplementedException("URLがありません");
         }
 
         public static MMisskeyVersionInfo GetVersionInfo(string? VersionPattern)
@@ -48,7 +49,6 @@ namespace MiView.Common.Connection.VersionInfo
             var res = Regex.Match(VersionPattern, @"(\d+)\.(\d+)\.(\d+)(?:[-.]([A-Za-z0-9_]+))*(?:\.(\d+))?");
 
             MMisskeyVersionInfo VerInfo = new MMisskeyVersionInfo();
-            VerInfo.SoftwareName = "Misskey";
 
             VersionAttribute Attr = new VersionAttribute();
             Attr.MajorVersion = int.TryParse(res.Groups[1].Value, out _) ? int.Parse(res.Groups[1].Value) : -1;

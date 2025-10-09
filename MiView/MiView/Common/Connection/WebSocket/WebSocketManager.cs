@@ -1,16 +1,20 @@
 ﻿using MiView.Common.AnalyzeData;
+using MiView.Common.Connection.VersionInfo;
 using MiView.Common.Connection.WebSocket.Event;
+using MiView.Common.Connection.WebSocket.Misskey.v2025;
+using MiView.Common.Connection.WebSocket.Structures;
 using MiView.Common.TimeLine;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Net.WebSockets;
 using System.Text;
+using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Diagnostics;
 
 namespace MiView.Common.Connection.WebSocket
 {
@@ -23,6 +27,10 @@ namespace MiView.Common.Connection.WebSocket
         public string _Host { get { return _OHost; } }
         protected string _OHost { get; set; } = string.Empty;
         public DateTime _LastDataReceived { get; set; }
+        protected TimeLineBasic.ConnectTimeLineKind _TLKind
+        {
+            set; get;
+        } = TimeLineBasic.ConnectTimeLineKind.None;
 
         private WebSocketState _State { get; set; } = WebSocketState.None;
         private WebSocketState _State_Command { get; set; } = WebSocketState.None;
@@ -35,6 +43,8 @@ namespace MiView.Common.Connection.WebSocket
         private ClientWebSocket _WebSocket { get; set; } = new ClientWebSocket();
         public ClientWebSocket WebSocket { get { return _WebSocket; } }
         private CancellationTokenSource _Cancellation = new CancellationTokenSource();
+
+        public CSoftwareVersionInfo SoftwareVersion { get; set; }
 
         public event EventHandler<EventArgs>? ConnectionClosed;
         public event EventHandler<EventArgs> ConnectionLost;
@@ -70,7 +80,7 @@ namespace MiView.Common.Connection.WebSocket
 
         public void SetSocketState(WebSocketState State) => this._State = State;
         public bool IsStandBySocketOpen() => GetSocketState() == WebSocketState.None;
-        protected void ConnectionAbort() => this._ConnectionClose = true;
+        public void ConnectionAbort() => this._ConnectionClose = true;
         public bool _IsOpenTimeLine = false;
 
         protected WebSocketManager Start(string HostUrl)
@@ -83,22 +93,18 @@ namespace MiView.Common.Connection.WebSocket
             return this;
         }
 
-        protected string GetWSURL(string InstanceURL, string? APIKey)
+        protected virtual string GetWSURL(string InstanceURL, string? APIKey)
         {
-            this._HostDefinition = InstanceURL;
-            this._APIKey = APIKey;
-
-            _OHost = APIKey != null ? $"wss://{InstanceURL}/streaming?i={APIKey}" : $"wss://{InstanceURL}/streaming";
-            return APIKey != null ? $"wss://{InstanceURL}/streaming?i={APIKey}" : $"wss://{InstanceURL}/streaming";
+            throw new NotImplementedException("継承元クラスです");
         }
 
         protected virtual void OnConnectionLost(object? sender, EventArgs e) { }
-        protected void CallConnectionLost() => ConnectionLost?.Invoke(this, new EventArgs());
+        public void CallConnectionLost() => ConnectionLost?.Invoke(this, new EventArgs());
 
         protected virtual void OnDataReceived(object? sender, ConnectDataReceivedEventArgs e)
         {
         }
-        protected void CallDataReceived(string ResponseMessage)
+        public void CallDataReceived(string ResponseMessage)
         {
             this._LastDataReceived = DateTime.Now;
             DataReceived?.Invoke(this, new ConnectDataReceivedEventArgs() { MessageRaw = ResponseMessage });
@@ -107,12 +113,12 @@ namespace MiView.Common.Connection.WebSocket
         {
             this._MainForm.CallDataAccepted(Container.Container);
         }
-        protected void CallDataAccepted(TimeLineContainer Container) => DataAccepted?.Invoke(this, new DataContainerEventArgs());
+        public void CallDataAccepted(TimeLineContainer Container) => DataAccepted?.Invoke(this, new DataContainerEventArgs());
         protected virtual void OnDataRejected(object? sender, DataContainerEventArgs Container)
         {
             this._MainForm.CallDataRejected(Container.Container);
         }
-        protected void CallDataRejected(TimeLineContainer Container) => DataRejected?.Invoke(this, new DataContainerEventArgs());
+        public void CallDataRejected(TimeLineContainer Container) => DataRejected?.Invoke(this, new DataContainerEventArgs());
 
         private async Task Watcher()
         {
@@ -259,5 +265,45 @@ namespace MiView.Common.Connection.WebSocket
         {
             Debug.WriteLine($"WebSocketManager Error: {ex}");
         }
+
+        #region タイムライン操作
+        /// <summary>
+        /// 接続識別子
+        /// </summary>
+        protected virtual ConnectMainBody? _WebSocketConnectionObj { get; }
+
+        /// <summary>
+        /// タイムライン展開
+        /// </summary>
+        /// <param name="InstanceURL"></param>
+        /// <param name="ApiKey"></param>
+        /// <returns></returns>
+        /// <exception cref="InvalidOperationException"></exception>
+        public virtual WebSocketManager OpenTimeLine(string InstanceURL, string? ApiKey)
+        {
+            throw new NotImplementedException("タイムラインを開けません。");
+        }
+
+        /// <summary>
+        /// タイムライン展開(持続的)
+        /// </summary>
+        /// <param name="InstanceURL"></param>
+        /// <param name="ApiKey"></param>
+        /// <returns></returns>
+        /// <exception cref="InvalidOperationException"></exception>
+        public virtual WebSocketManager OpenTimeLineDynamic(string InstanceURL, string ApiKey)
+        {
+            throw new NotImplementedException("dynamicがありません。");
+        }
+
+        /// <summary>
+        /// タイムライン取得
+        /// </summary>
+        /// <param name="WSTimeLine"></param>
+        public virtual void ReadTimeLineContinuous(WebSocketManager WSTimeLine)
+        {
+            throw new NotImplementedException("受信TLがありません。");
+        }
+        #endregion
     }
 }

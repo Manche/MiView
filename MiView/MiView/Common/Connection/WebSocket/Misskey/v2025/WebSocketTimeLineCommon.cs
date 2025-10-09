@@ -7,51 +7,24 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 using MiView.Common.AnalyzeData;
 using System.Reflection.Metadata.Ecma335;
+using System.Runtime.CompilerServices;
+using MiView.Common.Connection.VersionInfo;
+using MiView.Common.Connection.WebSocket.Controller;
 
 namespace MiView.Common.Connection.WebSocket.Misskey.v2025
 {
     abstract class WebSocketTimeLineCommon : WebSocketManager
     {
-        /// <summary>
-        /// 接続識別子
-        /// </summary>
-        abstract protected ConnectMainBody? _WebSocketConnectionObj { get; }
-
-        /// <summary>
-        /// 接続先タイムライン
-        /// </summary>
-        protected TimeLineBasic.ConnectTimeLineKind _TLKind
+        protected override string GetWSURL(string InstanceURL, string? APIKey)
         {
-            set; get;
-        } = TimeLineBasic.ConnectTimeLineKind.None;
+            this._HostDefinition = InstanceURL;
+            this._APIKey = APIKey;
 
-        /// <summary>
-        /// インスタンス作成
-        /// </summary>
-        /// <returns></returns>
-        public static WebSocketTimeLineCommon CreateInstance(TimeLineBasic.ConnectTimeLineKind TLKind)
-        {
-            switch(TLKind)
-            {
-                case TimeLineBasic.ConnectTimeLineKind.None:
-                    break;
-                case TimeLineBasic.ConnectTimeLineKind.Home:
-                    return new WebSocketTimeLineHome();
-                case TimeLineBasic.ConnectTimeLineKind.Local:
-                    return new WebSocketTimeLineLocal();
-                case TimeLineBasic.ConnectTimeLineKind.Social:
-                    return new WebSocketTimeLineSocial();
-                case TimeLineBasic.ConnectTimeLineKind.Global:
-                    return new WebSocketTimeLineGlobal();
-            }
-            return null;
+            _OHost = APIKey != null ? $"wss://{InstanceURL}/streaming?i={APIKey}" : $"wss://{InstanceURL}/streaming";
+            return APIKey != null ? $"wss://{InstanceURL}/streaming?i={APIKey}" : $"wss://{InstanceURL}/streaming";
         }
 
-        // あとで
-        //public WebSocketTimeLineCommon OpenTimeLine(ConnectTimeLineKind TLKind, string InstanceURL, string? ApiKey)
-        //{
-        //}
-
+        #region タイムライン操作
         /// <summary>
         /// タイムライン展開
         /// </summary>
@@ -59,7 +32,7 @@ namespace MiView.Common.Connection.WebSocket.Misskey.v2025
         /// <param name="ApiKey"></param>
         /// <returns></returns>
         /// <exception cref="InvalidOperationException"></exception>
-        public WebSocketTimeLineCommon OpenTimeLine(string InstanceURL, string? ApiKey)
+        public override WebSocketManager OpenTimeLine(string InstanceURL, string? ApiKey)
         {
             // タイムライン用WebSocket Open
             this.Start(this.GetWSURL(InstanceURL, ApiKey));
@@ -107,6 +80,9 @@ namespace MiView.Common.Connection.WebSocket.Misskey.v2025
             return this;
         }
 
+
+        #endregion
+
         /// <summary>
         /// タイムライン展開(持続的)
         /// </summary>
@@ -114,13 +90,19 @@ namespace MiView.Common.Connection.WebSocket.Misskey.v2025
         /// <param name="ApiKey"></param>
         /// <returns></returns>
         /// <exception cref="InvalidOperationException"></exception>
-        public WebSocketTimeLineCommon OpenTimeLineDynamic(string InstanceURL, string ApiKey)
+        public override WebSocketTimeLineCommon OpenTimeLineDynamic(string InstanceURL, string ApiKey)
         {
             // WS取得
-            WebSocketTimeLineCommon WSTimeLine = WebSocketTimeLineCommon.CreateInstance(this._TLKind);
+            WebSocketManager? WSTimeLine =
+                WebSocketTimeLineController.CreateWSTLManager(this.SoftwareVersion.SoftwareType, this.SoftwareVersion.Version, this._TLKind);
+            if (WSTimeLine == null && WSTimeLine.GetType() != typeof(WebSocketTimeLineCommon))
+            {
+                throw new InvalidOperationException("インスタンスの生成に失敗しました。");
+            }
+            WSTimeLine = ((WebSocketTimeLineCommon)WSTimeLine);
 
             // タイムライン用WebSocket Open
-            this.Start(WSTimeLine.GetWSURL(InstanceURL, ApiKey));
+            this.Start(this.GetWSURL(InstanceURL, ApiKey));
             if (this.GetSocketClient() == null || this._WebSocketConnectionObj == null)
             {
                 throw new InvalidOperationException("connection is not opened.");
@@ -134,7 +116,8 @@ namespace MiView.Common.Connection.WebSocket.Misskey.v2025
                 {
                     if (WSTimeLine.GetSocketState() != WebSocketState.Open)
                     {
-                        WSTimeLine.OnConnectionLost(WSTimeLine, new EventArgs());
+                        this.OnConnectionLost(WSTimeLine, new EventArgs());
+                        _IsOpenTimeLine = false;
                     }
                 }
             }
@@ -167,68 +150,75 @@ namespace MiView.Common.Connection.WebSocket.Misskey.v2025
         /// タイムライン取得
         /// </summary>
         /// <param name="WSTimeLine"></param>
-        public static void ReadTimeLineContinuous(WebSocketTimeLineCommon WSTimeLine)
+        public override void ReadTimeLineContinuous(WebSocketManager WSTimeLine)
         {
             // バッファは多めに取っておく(どうせあとでカットする)
             var ResponseBuffer = new byte[4096 * 4];
-            _ = Task.Run(async () =>
+            try
             {
-                //if (WSTimeLine.GetSocketState() != WebSocketState.Open)
-                //{
-                //    WSTimeLine.OnConnectionLost(WSTimeLine, new EventArgs());
-                //}
-                while (WSTimeLine.GetSocketState() == WebSocketState.Open)
+                _ = Task.Run(async () =>
                 {
-                    // 受信本体
-                    try
+                    while (WSTimeLine.GetSocketState() == WebSocketState.Open)
                     {
-                        // 受信可能になるまで待機
-                        if (WSTimeLine.GetSocketClient().State != WebSocketState.Open)
+                        // 受信本体
+                        try
                         {
-                            System.Diagnostics.Debug.WriteLine(WSTimeLine.GetSocketClient().State);
-                        }
-                        if (WSTimeLine.GetSocketClient().State != WebSocketState.Open && WSTimeLine._HostUrl != null)
-                        {
-                            // 再接続
-                            await WSTimeLine.GetSocketClient().ConnectAsync(new Uri(WSTimeLine._HostUrl), CancellationToken.None);
-                        }
-                        while (WSTimeLine.GetSocketState() == WebSocketState.Closed)
-                        {
-                            // 接続スタンバイ
-                            Thread.Sleep(1000);
-                        }
-                        var Response = await WSTimeLine.GetSocketClient().ReceiveAsync(new ArraySegment<byte>(ResponseBuffer), CancellationToken.None);
-                        if (Response.MessageType == WebSocketMessageType.Close)
-                        {
-                            WSTimeLine.ConnectionAbort();
-                            return;
-                        }
-                        else
-                        {
-                            var ResponseMessage = Encoding.UTF8.GetString(ResponseBuffer, 0, Response.Count);
-                            DbgOutputSocketReceived(ResponseMessage);
+                            // 受信可能になるまで待機
+                            if (WSTimeLine.GetSocketClient().State != WebSocketState.Open)
+                            {
+                                System.Diagnostics.Debug.WriteLine(WSTimeLine.GetSocketClient().State);
+                            }
+                            if (WSTimeLine.GetSocketClient().State != WebSocketState.Open && WSTimeLine._HostUrl != null)
+                            {
+                                // 再接続
+                                await WSTimeLine.GetSocketClient().ConnectAsync(new Uri(WSTimeLine._HostUrl), CancellationToken.None);
+                            }
+                            while (WSTimeLine.GetSocketState() == WebSocketState.Closed)
+                            {
+                                // 接続スタンバイ
+                                Thread.Sleep(1000);
+                            }
+                            var Response = await WSTimeLine.GetSocketClient().ReceiveAsync(new ArraySegment<byte>(ResponseBuffer), CancellationToken.None);
+                            if (Response.MessageType == WebSocketMessageType.Close)
+                            {
+                                WSTimeLine.ConnectionAbort();
+                                WSTimeLine._IsOpenTimeLine = false;
+                                return;
+                            }
+                            else
+                            {
+                                var ResponseMessage = Encoding.UTF8.GetString(ResponseBuffer, 0, Response.Count);
+                                DbgOutputSocketReceived(ResponseMessage);
 
-                            WSTimeLine.CallDataReceived(ResponseMessage);
+                                WSTimeLine.CallDataReceived(ResponseMessage);
+                                WSTimeLine._IsOpenTimeLine = true;
+                            }
                         }
+                        catch (Exception ce)
+                        {
+                            System.Diagnostics.Debug.WriteLine("receive failed");
+                            System.Diagnostics.Debug.WriteLine(WSTimeLine._HostUrl);
+                            System.Diagnostics.Debug.WriteLine(ce);
+
+                            if (WSTimeLine.GetSocketClient() != null && WSTimeLine.GetSocketClient().State != WebSocketState.Open)
+                            {
+                                Thread.Sleep(1000);
+
+                                this.ReadTimeLineContinuous(WSTimeLine);
+                            }
+
+                            WSTimeLine._IsOpenTimeLine = false;
+                            WSTimeLine.CallConnectionLost();
+                            WSTimeLine.SetSocketState(WebSocketState.Closed);
+                        }
+                        Thread.Sleep(1000);
                     }
-                    catch (Exception ce)
-                    {
-                        System.Diagnostics.Debug.WriteLine("receive failed");
-                        System.Diagnostics.Debug.WriteLine(WSTimeLine._HostUrl);
-                        System.Diagnostics.Debug.WriteLine(ce);
-
-                        if (WSTimeLine.GetSocketClient() != null && WSTimeLine.GetSocketClient().State != WebSocketState.Open)
-                        {
-                            Thread.Sleep(1000);
-
-                            WebSocketTimeLineCommon.ReadTimeLineContinuous(WSTimeLine);
-                        }
-
-                        WSTimeLine.CallConnectionLost();
-                    }
-                    Thread.Sleep(1000);
-                }
-            });
+                });
+            }
+            catch(OperationCanceledException oce)
+            {
+                WSTimeLine._IsOpenTimeLine = false;
+            }
         }
 
         private static void DbgOutputSocketReceived(string Response)
@@ -265,6 +255,9 @@ namespace MiView.Common.Connection.WebSocket.Misskey.v2025
                 catch (Exception)
                 {
                 }
+                WS._IsOpenTimeLine = false;
+
+                _IsOpenTimeLine = false;
                 System.Diagnostics.Debug.WriteLine("現在の状態：" + ((WebSocketTimeLineCommon)sender).GetSocketClient().State);
             }
             if (WS == null)
@@ -290,6 +283,8 @@ namespace MiView.Common.Connection.WebSocket.Misskey.v2025
             }
             try
             {
+
+                _IsOpenTimeLine = true;
                 dynamic Res = System.Text.Json.JsonDocument.Parse(e.MessageRaw);
                 var t = JsonNode.Parse(e.MessageRaw);
 
@@ -345,7 +340,7 @@ namespace MiView.Common.Connection.WebSocket.Misskey.v2025
                                                 }
                                                 if (CountRet)
                                                 {
-                                                    Opt.ExecuteAlert();
+                                                    Opt.ExecuteAlert(TLCon);
                                                 }
                                             }
                                             CallDataAccepted(TLCon);
@@ -373,7 +368,7 @@ namespace MiView.Common.Connection.WebSocket.Misskey.v2025
                                             }
                                             if (CountRet)
                                             {
-                                                Opt.ExecuteAlert();
+                                                Opt.ExecuteAlert(TLCon);
                                             }
                                         }
                                         CallDataRejected(TLCon);
@@ -427,7 +422,7 @@ namespace MiView.Common.Connection.WebSocket.Misskey.v2025
                                                 }
                                                 if (CountRet)
                                                 {
-                                                    Opt.ExecuteAlert();
+                                                    Opt.ExecuteAlert(TLCon);
                                                 }
                                             }
                                             CallDataAccepted(TLCon);
@@ -455,7 +450,7 @@ namespace MiView.Common.Connection.WebSocket.Misskey.v2025
                                             }
                                             if (CountRet)
                                             {
-                                                Opt.ExecuteAlert();
+                                                Opt.ExecuteAlert(TLCon);
                                             }
                                         }
                                         CallDataRejected(TLCon);

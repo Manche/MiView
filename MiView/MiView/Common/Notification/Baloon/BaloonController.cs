@@ -11,6 +11,19 @@ namespace MiView.Common.Notification.Baloon
     /// </summary>
     internal class BaloonController : NotificationController
     {
+        /// <summary>
+        /// バルーンタイトル
+        /// </summary>
+        public string BaloonTitle { get; set; } = string.Empty;
+        /// <summary>
+        /// バルーン本文
+        /// </summary>
+        public string BaloonContent { get; set; } = string.Empty;
+
+        /// <summary>
+        /// 通知処理本体
+        /// </summary>
+        /// <exception cref="NotImplementedException"></exception>
         public override void ExecuteMethod()
         {
             using (NotifyIcon Icn = new NotifyIcon())
@@ -18,7 +31,7 @@ namespace MiView.Common.Notification.Baloon
                 Icn.Icon = SystemIcons.Information;
                 Icn.Visible = true;
 
-                Icn.ShowBalloonTip(3000, "test", "content", ToolTipIcon.Info);
+                Icn.ShowBalloonTip(3000, GetFormattedStr(BaloonTitle), GetFormattedStr(BaloonContent), ToolTipIcon.Info);
             }
         }
     }

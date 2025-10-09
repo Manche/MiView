@@ -2,7 +2,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace MiView.Common.Notification
@@ -30,7 +33,7 @@ namespace MiView.Common.Notification
         }
 
         /// <summary>
-        /// 通知実行処理
+        /// 通知処理本体
         /// </summary>
         public abstract void ExecuteMethod();
     }
@@ -53,7 +56,7 @@ namespace MiView.Common.Notification
         /// <summary>
         /// タイムラインコンテナ
         /// </summary>
-        public TimeLineContainer _Container { get; set; } = new TimeLineContainer();
+        private TimeLineContainer _Container { get; set; } = new TimeLineContainer();
 
         /// <summary>
         /// コンストラクタ
@@ -64,9 +67,53 @@ namespace MiView.Common.Notification
             _ControllerName = string.Empty;
         }
 
-        public NotificationControllerCommon Create()
+        /// <summary>
+        /// タイムラインコンテナの設定
+        /// </summary>
+        /// <param name="Container"></param>
+        public void SetTimeLineContainer(TimeLineContainer Container)
         {
-            return new NotificationControllerCommon();
+            _Container = Container;
+        }
+
+        public string GetFormattedStr(string StrInput)
+        {
+            PropertyInfo[] PropInfos = typeof(TimeLineContainer).GetProperties();
+            string[] PropNames = PropInfos.ToList().FindAll(r => { return TimeLineContainer.TRANSABLE.Contains(r.Name); }).Select(p => { return p.Name; }).ToArray();
+
+            foreach (string Name in PropNames)
+            {
+                string Mt = @"\[["+Name+@"\]]+\";
+                var Prp = this._Container.GetType().GetProperty(Name);
+                if (Prp == null)
+                {
+                    continue;
+                }
+                var Rt = Prp.GetValue(this._Container);
+                if (Rt == null)
+                {
+                    continue;
+                }
+
+                string Ptn = @"\[(.*?)\]"; // [～] の中身をキャプチャ
+                string Rs = Regex.Replace(StrInput, Ptn, match =>
+                {
+                    string k = match.Groups[1].Value; // [NAME] → "NAME"
+
+                    if (k == Name)
+                    {
+                        return Prp.GetValue(this._Container).ToString();
+                    }
+                    return match.Value;
+                });
+                StrInput = Rs;
+            }
+            if (StrInput == string.Empty)
+            {
+                return "ERR";
+            }
+
+            return StrInput;
         }
     }
 }

@@ -6,6 +6,7 @@ using MiView.Common.Fonts;
 using MiView.Common.Fonts.Material;
 using MiView.Common.Notification.Baloon;
 using MiView.Common.Notification.Http;
+using MiView.Common.Notification.Shell;
 using MiView.Common.Notification.Toast;
 using MiView.Common.TimeLine;
 using MiView.ScreenForms.Controls.Combo;
@@ -81,6 +82,15 @@ namespace MiView
             var Ac = new Task(async () => { await ConnectWatcher(); });
             Ac.Start();
             this._APIStatusForm.Show();
+
+            //ShellController ShellCon = new ShellController();
+            //ShellCon.Script = "ping 192.168.0.1";
+            //ShellCon.Execute();
+
+            //BaloonController BCon = new BaloonController();
+            //BCon.BaloonTitle = "test";
+            //BCon.BaloonContent = ShellCon.Output ?? "" + "\r\n\r\n" + ShellCon.OutError ?? "";
+            //BCon.Execute();
         }
 
         private async Task ConnectWatcher()

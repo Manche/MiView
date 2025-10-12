@@ -12,19 +12,23 @@ using System.Threading.Tasks;
 
 namespace MiView.Common.Connection.WebSocket.Misskey.v2025
 {
-    internal class WebSocketMain : WebSocketManager
+    internal class WebSocketMainMisskey2025 : WebSocketMain
     {
-        public static WebSocketMain CreateInstance()
-        {
-            return new WebSocketMain();
-        }
-
         /// <summary>
         /// 接続識別子
         /// </summary>
-        protected ConnectMainBody _WebSocketConnectionObj
+        protected override ConnectMainBody _WebSocketConnectionObj
         {
             get { return new ConnectMainBody() { channel = "main", id = "hoge" }; }
+        }
+
+        protected override string GetWSURL(string InstanceURL, string? APIKey)
+        {
+            this._HostDefinition = InstanceURL;
+            this._APIKey = APIKey;
+
+            _OHost = APIKey != null ? $"wss://{InstanceURL}/streaming?i={APIKey}" : $"wss://{InstanceURL}/streaming";
+            return APIKey != null ? $"wss://{InstanceURL}/streaming?i={APIKey}" : $"wss://{InstanceURL}/streaming";
         }
 
         /// <summary>
@@ -33,7 +37,7 @@ namespace MiView.Common.Connection.WebSocket.Misskey.v2025
         /// <param name="InstanceURL"></param>
         /// <param name="ApiKey"></param>
         /// <returns></returns>
-        public WebSocketMain OpenMain(string InstanceURL, string? ApiKey)
+        public override WebSocketMainMisskey2025 OpenMain(string InstanceURL, string? ApiKey)
         {
             // タイムライン用WebSocket Open
             this.Start(this.GetWSURL(InstanceURL, ApiKey));
@@ -92,10 +96,10 @@ namespace MiView.Common.Connection.WebSocket.Misskey.v2025
         /// <param name="ApiKey"></param>
         /// <returns></returns>
         /// <exception cref="InvalidOperationException"></exception>
-        public WebSocketMain OpenMainDynamic(string InstanceURL, string ApiKey)
+        public override WebSocketMainMisskey2025 OpenMainDynamic(string InstanceURL, string ApiKey)
         {
             // WS取得
-            WebSocketMain WSTimeLine = new WebSocketMain();
+            WebSocketMainMisskey2025 WSTimeLine = new WebSocketMainMisskey2025();
 
             // タイムライン用WebSocket Open
             this.Start(WSTimeLine.GetWSURL(InstanceURL, ApiKey));
@@ -147,84 +151,6 @@ namespace MiView.Common.Connection.WebSocket.Misskey.v2025
         }
 
         /// <summary>
-        /// main取得
-        /// </summary>
-        /// <param name="WSTimeLine"></param>
-        public static void ReadMainContinuous(WebSocketMain WSTimeLine)
-        {
-            // バッファは多めに取っておく(どうせあとでカットする)
-            var ResponseBuffer = new byte[4096 * 4];
-            _ = Task.Run(async () =>
-            {
-                //if (WSTimeLine.GetSocketState() != WebSocketState.Open)
-                //{
-                //    WSTimeLine.OnConnectionLost(WSTimeLine, new EventArgs());
-                //}
-                while (WSTimeLine.GetSocketState() == WebSocketState.Open)
-                {
-                    // 受信本体
-                    try
-                    {
-                        // 受信可能になるまで待機
-                        if (WSTimeLine.GetSocketClient().State != WebSocketState.Open)
-                        {
-                            System.Diagnostics.Debug.WriteLine(WSTimeLine.GetSocketClient().State);
-                        }
-                        if (WSTimeLine.GetSocketClient().State != WebSocketState.Open && WSTimeLine._HostUrl != null)
-                        {
-                            // 再接続
-                            await WSTimeLine.GetSocketClient().ConnectAsync(new Uri(WSTimeLine._HostUrl), CancellationToken.None);
-                        }
-                        while (WSTimeLine.GetSocketState() == WebSocketState.Closed)
-                        {
-                            // 接続スタンバイ
-                        }
-                        var Response = await WSTimeLine.GetSocketClient().ReceiveAsync(new ArraySegment<byte>(ResponseBuffer), CancellationToken.None);
-                        if (Response.MessageType == WebSocketMessageType.Close)
-                        {
-                            WSTimeLine.ConnectionAbort();
-                            return;
-                        }
-                        else
-                        {
-                            var ResponseMessage = Encoding.UTF8.GetString(ResponseBuffer, 0, Response.Count);
-                            DbgOutputSocketReceived(ResponseMessage);
-
-                            WSTimeLine.CallDataReceived(ResponseMessage);
-                        }
-                    }
-                    catch (Exception ce)
-                    {
-                        System.Diagnostics.Debug.WriteLine("receive failed");
-                        System.Diagnostics.Debug.WriteLine(WSTimeLine._HostUrl);
-                        System.Diagnostics.Debug.WriteLine(ce);
-
-                        try
-                        {
-                            if (WSTimeLine.GetSocketClient() != null && WSTimeLine.GetSocketClient().State != WebSocketState.Open)
-                            {
-                                Thread.Sleep(1000);
-
-                                WebSocketMain.ReadMainContinuous(WSTimeLine);
-                            }
-                        }
-                        catch
-                        {
-                        }
-
-                        WSTimeLine.CallConnectionLost();
-                    }
-                    Thread.Sleep(1000);
-                }
-            });
-        }
-
-        private static void DbgOutputSocketReceived(string Response)
-        {
-            System.Diagnostics.Debug.WriteLine(Response);
-        }
-
-        /// <summary>
         /// 接続喪失時
         /// </summary>
         /// <param name="sender"></param>
@@ -235,12 +161,12 @@ namespace MiView.Common.Connection.WebSocket.Misskey.v2025
             {
                 return;
             }
-            if (sender.GetType() != typeof(WebSocketMain))
+            if (sender.GetType() != typeof(WebSocketMainMisskey2025))
             {
                 return;
             }
             // オープンを待つ
-            WebSocketMain WS = (WebSocketMain)sender;
+            WebSocketMainMisskey2025 WS = (WebSocketMainMisskey2025)sender;
             while (WS.GetSocketState() != WebSocketState.Open)
             {
                 // 1分おき
@@ -253,12 +179,12 @@ namespace MiView.Common.Connection.WebSocket.Misskey.v2025
                 catch (Exception)
                 {
                 }
-                if (((WebSocketMain)sender).GetSocketClient() == null)
+                if (((WebSocketMainMisskey2025)sender).GetSocketClient() == null)
                 {
                 }
                 else
                 {
-                    System.Diagnostics.Debug.WriteLine("現在の状態：" + ((WebSocketMain)sender).GetSocketClient().State);
+                    System.Diagnostics.Debug.WriteLine("現在の状態：" + ((WebSocketMainMisskey2025)sender).GetSocketClient().State);
                 }
             }
             if (WS == null)

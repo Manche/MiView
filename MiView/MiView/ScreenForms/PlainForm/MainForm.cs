@@ -1,5 +1,9 @@
 using MiView.Common.AnalyzeData;
+using MiView.Common.Connection.REST.Misskey;
+using MiView.Common.Connection.REST.Misskey.v2025.API.Notes;
+using MiView.Common.Connection.VersionInfo;
 using MiView.Common.Connection.WebSocket;
+using MiView.Common.Connection.WebSocket.Controller;
 using MiView.Common.Connection.WebSocket.Event;
 using MiView.Common.Connection.WebSocket.Misskey.v2025;
 using MiView.Common.Fonts;
@@ -12,9 +16,13 @@ using MiView.Common.TimeLine;
 using MiView.ScreenForms.Controls.Combo;
 using MiView.ScreenForms.Controls.Notify;
 using MiView.ScreenForms.DialogForm;
+using MiView.ScreenForms.DialogForm.Event;
+using MiView.ScreenForms.DialogForm.Setting;
 using System;
 using System.ComponentModel;
+using System.Drawing;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Security.Policy;
 using System.Security.Principal;
 using System.Text;
@@ -33,7 +41,7 @@ namespace MiView
         /// <summary>
         /// タイムラインマネージャ
         /// </summary>
-        private Dictionary<string, WebSocketTimeLineCommon> _TLManager = new Dictionary<string, WebSocketTimeLineCommon>();
+        private Dictionary<string, WebSocketManager> _TLManager = new Dictionary<string, WebSocketManager>();
 
         /// <summary>
         /// 一時タイムラインマネージャ
@@ -43,6 +51,7 @@ namespace MiView
         public NotifyView NotifyView { get; set; }
 
         private APIStatusForm _APIStatusForm = new APIStatusForm();
+        private TimeLineSetting _TLSettingForm = new TimeLineSetting();
 
         /// <summary>
         /// このフォーム
@@ -68,6 +77,8 @@ namespace MiView
             // イベント設定
             DataAccepted += OnDataAccepted;
             DataRejected += OnDataRejected;
+
+            this._TLSettingForm.SettingChanged += SettingFormSettingChanged;
         }
 
         private List<DataGridTimeLine> DGrids = new List<DataGridTimeLine>();
@@ -98,8 +109,9 @@ namespace MiView
             if (InvokeRequired)
             {
                 Invoke(new Action(async () => { await ConnectWatcher(); }));
+                return;
             }
-            while(true)
+            while (true)
             {
                 List<APIStatusDispData> APIDisp = new List<APIStatusDispData>();
                 foreach (var TLCon in _TmpTLManager)
@@ -110,8 +122,9 @@ namespace MiView
                         //System.Diagnostics.Debug.WriteLine(_TLManager[TLCon.Value].GetSocketState());
                         //System.Diagnostics.Debug.WriteLine(_TLManager[TLCon.Value]._ConnectionClosed);
                         //System.Diagnostics.Debug.WriteLine(_TLManager[TLCon.Value].WebSocket.State);
-                        APIDisp.Add(new APIStatusDispData() 
-                            {
+                        APIDisp.Add(new APIStatusDispData()
+                        {
+                            _TabDefinition = TLCon.Value,
                             _HostUrl = _TLManager[TLCon.Value]._Host,
                             _Host = _TLManager[TLCon.Value]._HostUrl,
                             _ConnectStatus = _TLManager[TLCon.Value].GetSocketState() == System.Net.WebSockets.WebSocketState.Open && _TLManager[TLCon.Value]._IsOpenTimeLine,
@@ -121,19 +134,40 @@ namespace MiView
                         if (_TLManager[TLCon.Value].GetSocketState() != System.Net.WebSockets.WebSocketState.Open ||
                             _TLManager[TLCon.Value]._IsOpenTimeLine == false)
                         {
-                            var _ = new Action(() =>
+                            Task Tj = new Task(() =>
                             {
                                 int Wait = 0;
                                 while (Wait < 10)
                                 {
                                     _TLManager[TLCon.Value].CreateAndReOpen();
+                                    int Wait2 = 0;
+                                    while (Wait2 < 10)
+                                    {
+                                        if (_TLManager[TLCon.Value].GetSocketState() == System.Net.WebSockets.WebSocketState.Open)
+                                        {
+                                            break;
+                                        }
+                                        Task.Delay(1000);
+                                        Wait2++;
+                                    }
+                                    if (Wait2 == 10)
+                                    {
+                                        break;
+                                    }
                                     try
                                     {
-                                        WebSocketTimeLineCommon.ReadTimeLineContinuous(_TLManager[TLCon.Value]);
+                                        _TLManager[TLCon.Value].ReadTimeLineContinuous(_TLManager[TLCon.Value]);
 
                                         if (_TLManager[TLCon.Value].APIKey != string.Empty)
                                         {
-                                            var WTManager = WebSocketMain.CreateInstance().OpenMain(_TLManager[TLCon.Value]._HostDefinition, _TLManager[TLCon.Value].APIKey);
+                                            var WTManager = WebSocketMainController.CreateWSTLManager(_TLManager[TLCon.Value].SoftwareVersion.SoftwareType, _TLManager[TLCon.Value].SoftwareVersion.Version);
+                                            if (WTManager == null)
+                                            {
+                                                Thread.Sleep(1000);
+                                                continue;
+                                            }
+
+                                            WTManager.OpenMain(_TLManager[TLCon.Value]._HostDefinition, _TLManager[TLCon.Value].APIKey);
                                             WebSocketMain.ReadMainContinuous(WTManager);
                                             int Wt = 0;
                                             while (Wt < 10)
@@ -153,6 +187,7 @@ namespace MiView
                                     }
                                     catch (Exception ex)
                                     {
+                                        System.Diagnostics.Debug.WriteLine(ex.ToString());
                                     }
 
                                     Wait++;
@@ -167,13 +202,28 @@ namespace MiView
                                     Thread.Sleep(1000);
                                 }
                             });
+                            Tj.Start();
                         }
                     }
                     catch (Exception ex)
                     {
+                        System.Diagnostics.Debug.WriteLine(ex.ToString());
                     }
                 }
-                this._APIStatusForm.SetStatus(APIDisp);
+                try
+                {
+                    this._APIStatusForm.SetStatus(APIDisp);
+                }
+                catch (Exception ex)
+                {
+                }
+                try
+                {
+                    this._TLSettingForm.SetStatus(APIDisp);
+                }
+                catch (Exception ex)
+                {
+                }
                 await Task.Delay(1000);
             }
         }
@@ -214,7 +264,14 @@ namespace MiView
             }
         }
 
-        public void AddTimeLine(string InstanceURL, string TabName, string APIKey, TimeLineBasic.ConnectTimeLineKind sTLKind, bool IsFiltered = false, bool AvoidIntg = false, bool IsVisible = true)
+        public void AddTimeLine(string InstanceURL,
+                                string TabName,
+                                string APIKey,
+                                TimeLineBasic.ConnectTimeLineKind sTLKind,
+                                CSoftwareVersionInfo? SoftwareVersionInfo,
+                                bool IsFiltered = false,
+                                bool AvoidIntg = false,
+                                bool IsVisible = true)
         {
             if (this.InvokeRequired)
             {
@@ -224,14 +281,25 @@ namespace MiView
 
             var TLKind = sTLKind;
 
+            WebSocketManager? WSManager = WebSocketTimeLineController.CreateWSTLManager(SoftwareVersionInfo.SoftwareType, SoftwareVersionInfo.Version, TLKind);
+            if (WSManager == null)
+            {
+                MessageBox.Show("非対応APIが使用されています。");
+                return;
+            }
+            var WTManager = WebSocketMainController.CreateWSTLManager(WSManager.SoftwareVersion.SoftwareType, WSManager.SoftwareVersion.Version);
+            if (WTManager == null)
+            {
+                MessageBox.Show("非対応APIが使用されています。");
+                return;
+            }
+
             // タブ識別
             var TabDef = System.Guid.NewGuid().ToString();
 
             // タブ追加
             _TLCreator.CreateTimeLineTab(ref this.MainFormObj, TabDef, TabName, IsVisible);
             _TLCreator.CreateTimeLine(ref this.MainFormObj, TabDef, TabDef, IsFiltered: IsFiltered);
-
-            var WSManager = WebSocketTimeLineCommon.CreateInstance(TLKind);
             try
             {
                 WSManager.OpenTimeLine(InstanceURL, APIKey);
@@ -244,23 +312,34 @@ namespace MiView
                 _TLCreator.GetTimeLineObjectDirect(ref this.MainFormObj, TabDef)._IsUpdateTL = IsVisible;
                 try
                 {
-                    WebSocketTimeLineCommon.ReadTimeLineContinuous(WSManager);
+                    WSManager.ReadTimeLineContinuous(WSManager);
 
                     if (APIKey != string.Empty)
                     {
-                        var WTManager = WebSocketMain.CreateInstance().OpenMain(InstanceURL, APIKey);
+                        WTManager.OpenMain(WSManager._HostDefinition, WSManager.APIKey);
                         WebSocketMain.ReadMainContinuous(WTManager);
                     }
                 }
                 catch (Exception ex)
                 {
+                    System.Diagnostics.Debug.WriteLine(ex.ToString());
                 }
+
+                // ここで手動で入れておく
+                WSManager._IsOpenTimeLine = true;
+                WSManager._LastDataReceived = DateTime.Now;
 
                 _TLManager.Add(TabDef, WSManager);
                 _TmpTLManager.Add(TabName, TabDef);
+
+                //var c = MisskeyAPIController.CreateInstance(MisskeyAPIConst.API_ENDPOINT.NOTES_TIMELINE);
+                //c.Request(WSManager._HostDefinition, WSManager.APIKey, null, null);
+                //c.GetNotes();
+                //var tm = c.GetNotes();
             }
-            catch
+            catch (Exception ce)
             {
+                System.Diagnostics.Debug.WriteLine(ce.ToString());
             }
             if (WSManager.GetSocketState() != System.Net.WebSockets.WebSocketState.Open)
             {
@@ -343,26 +422,26 @@ namespace MiView
             AddFrm.ShowDialog();
         }
 
-        private void tbMain_SelectedIndexChanged(object sender, EventArgs e)
-        {
-            //((TabControl)sender).SuspendLayout();
+        //private void tbMain_SelectedIndexChanged(object sender, EventArgs e)
+        //{
+        //    //((TabControl)sender).SuspendLayout();
 
-            var TPages = ((TabControl)sender).TabPages;
-            foreach (TabPage TPage in TPages)
-            {
-                foreach (DataGridTimeLine DGView in TPage.Controls.Cast<Control>().ToList().FindAll(r => { return r.GetType() == typeof(DataGridTimeLine); }))
-                {
-                    DGView.Visible = true;
-                    // DGView.Visible = TPages.IndexOf(TPage) == ((TabControl)sender).SelectedIndex;
+        //    var TPages = ((TabControl)sender).TabPages;
+        //    foreach (TabPage TPage in TPages)
+        //    {
+        //        foreach (DataGridTimeLine DGView in TPage.Controls.Cast<Control>().ToList().FindAll(r => { return r.GetType() == typeof(DataGridTimeLine); }))
+        //        {
+        //            DGView.Visible = true;
+        //            // DGView.Visible = TPages.IndexOf(TPage) == ((TabControl)sender).SelectedIndex;
 
-                    //if (DGView.Visible)
-                    //{
-                    //    DGView.Refresh();
-                    //}
-                }
-            }
-            //((TabControl)sender).ResumeLayout(false);
-        }
+        //            //if (DGView.Visible)
+        //            //{
+        //            //    DGView.Refresh();
+        //            //}
+        //        }
+        //    }
+        //    //((TabControl)sender).ResumeLayout(false);
+        //}
 
         public void SetTimeLineContents(string OriginalHost, JsonNode Node)
         {
@@ -476,5 +555,54 @@ namespace MiView
             }
         }
         #endregion
+
+        private void cmdSetting_Click(object sender, EventArgs e)
+        {
+
+            List<string> tpNames = new List<string>();
+            Dictionary<string, DataGridTimeLine> Grids = new Dictionary<string, DataGridTimeLine>();
+            var MainGrid = _TLCreator.GetTimeLineObjectDirect(ref this.MainFormObj, "Main");
+            Grids.Add("Main", MainGrid);
+            foreach (TabPage tp in this.tbMain.TabPages)
+            {
+                tpNames.Add(tp.Text);
+
+                try
+                {
+                    var tpGrid = _TLCreator.GetTimeLineObjectDirect(ref this.MainFormObj, _TmpTLManager[tp.Text]);
+                    Grids.Add(_TmpTLManager[tp.Text], tpGrid);
+                }
+                catch (Exception ex)
+                {
+                }
+            }
+            _TLSettingForm.SetTPNames(tpNames);
+            _TLSettingForm.SetTLGrids(Grids);
+            _TLSettingForm.SetTLManagers(this._TLManager, this._TmpTLManager);
+            _TLSettingForm.ShowDialog();
+        }
+
+        private void SettingFormSettingChanged(object? sender, SettingChangeEventArgs e)
+        {
+            WebSocketManager? WSManager = e._WSManager;
+            string WSDefinition = e._WSDefinition;
+            DataGridTimeLine? Grid = e._GridTimeLine;
+            bool? UpdateIntg = e.UpdateIntg;
+
+            if (WSManager != null)
+            {
+                // TimeLineManager更新
+                this._TLManager[WSDefinition] = WSManager;
+            }
+            if (Grid != null)
+            {
+                // DataGridTimeLine更新
+                _TLCreator.SetTimeLineObjectDirect(ref this.MainFormObj, e._WSDefinition, Grid);
+            }
+            if (UpdateIntg != null)
+            {
+                // 統合TLへの反映をするかどうか
+            }
+        }
     }
 }

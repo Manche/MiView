@@ -16,7 +16,7 @@ namespace MiView.Common.Notification
     /// <remarks>
     /// 通知追加にはこのコントローラを参照する
     /// </remarks>
-    abstract class NotificationController : NotificationControllerCommon
+    public abstract class NotificationController : NotificationControllerCommon
     {
         /// <summary>
         /// 通知実行

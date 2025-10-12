@@ -1,4 +1,5 @@
 ﻿using MiView.Common.AnalyzeData;
+using MiView.Common.Connection.VersionInfo;
 using MiView.Common.Fonts;
 using MiView.Common.Fonts.Material;
 using MiView.Common.Notification;
@@ -126,6 +127,10 @@ namespace MiView.Common.TimeLine
             /// 読み取り元
             /// </summary>
             TLFROM,
+            /// <summary>
+            /// バージョン
+            /// </summary>
+            VERSION,
         }
 
         /// <summary>
@@ -146,6 +151,7 @@ namespace MiView.Common.TimeLine
             // TIMELINE_ELEMENT.TLFROM,
             TIMELINE_ELEMENT.SOFTWARE_INVALIDATED,
             TIMELINE_ELEMENT.ORIGINAL_HOST,
+            TIMELINE_ELEMENT.VERSION,
         };
 
         public List<TimeLineContainer> TimeLineData = new List<TimeLineContainer>();
@@ -176,6 +182,21 @@ namespace MiView.Common.TimeLine
             }
             return this.Grids[Definition];
         }
+        /// <summary>
+        /// フォームオブジェクトの設定
+        /// </summary>
+        /// <param name="MainForm"></param>
+        /// <param name="Definition"></param>
+        /// <param name="Grid"></param>
+        /// <exception cref="KeyNotFoundException"></exception>
+        public void SetTimeLineObjectDirect(ref MainForm MainForm, string Definition, DataGridTimeLine Grid)
+        {
+            if (!this.Grids.ContainsKey(Definition))
+            {
+                throw new KeyNotFoundException();
+            }
+            this.Grids[Definition] = Grid;
+        }
 
         /// <summary>
         /// メインフォームへタイムラインを追加
@@ -193,6 +214,8 @@ namespace MiView.Common.TimeLine
                 DataGridTimeLine Grid = new DataGridTimeLine();
                 ((System.ComponentModel.ISupportInitialize)Grid).BeginInit();
                 Grid.Visible = IsVisible;
+                Grid._Definition = Definition;
+                Grid._MainForm = MainForm;
 
                 //
                 // Property
@@ -323,6 +346,19 @@ namespace MiView.Common.TimeLine
         }
 
         private Control? GetControlFromMainForm(ref MainForm MainForm, string? ChildDefinition)
+        {
+            var tpObj = MainForm.Controls.Cast<Control>().ToList().Find(r => { return r.Name == "tbMain"; });
+            if (ChildDefinition != null)
+            {
+                var tpObjb = tpObj.Controls.Find(ChildDefinition, false);
+                if (tpObjb.Length > 0)
+                {
+                    tpObj = tpObj.Controls.Find(ChildDefinition, false)[0];
+                }
+            }
+            return tpObj;
+        }
+        public Control? GetControlFromMainForm(MainForm MainForm, string? ChildDefinition)
         {
             var tpObj = MainForm.Controls.Cast<Control>().ToList().Find(r => { return r.Name == "tbMain"; });
             if (ChildDefinition != null)
@@ -623,6 +659,8 @@ namespace MiView.Common.TimeLine
         public string ORIGINAL_HOST {  get; set; } = string.Empty;
         public string TLFROM { get; set; } = string.Empty;
 
+        public MMisskeyVersionInfo VERSION { get; set; }
+
         public static string[] TRANSABLE =
         {
             "USERNAME",
@@ -634,14 +672,24 @@ namespace MiView.Common.TimeLine
             "SOURCE",
             "SOFTWARE",
         };
+
     }
 
     /// <summary>
     /// タイムラインコントロール
     /// </summary>
-    partial class DataGridTimeLine : System.Windows.Forms.DataGridView
+    public partial class DataGridTimeLine : System.Windows.Forms.DataGridView
     {
         private List<TimeLineContainer> _TimeLineData = new List<TimeLineContainer>();
+
+        /// <summary>
+        /// 定義識別値
+        /// </summary>
+        public string _Definition;
+        /// <summary>
+        /// メインフォーム
+        /// </summary>
+        public MainForm _MainForm { get; set; }
 
         /// <summary>
         /// 空文字
@@ -1183,7 +1231,7 @@ namespace MiView.Common.TimeLine
     /// <summary>
     /// タイムラインフィルタリング設定
     /// </summary>
-    internal class TimeLineFilterlingOption
+    public class TimeLineFilterlingOption
     {
         /// <summary>
         /// 一致条件
@@ -1532,7 +1580,7 @@ namespace MiView.Common.TimeLine
     /// <summary>
     /// タイムラインアラート設定
     /// </summary>
-    internal class TimeLineAlertOption
+    public class TimeLineAlertOption
     {
         public enum ALERT_TIMING
         {

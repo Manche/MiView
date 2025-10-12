@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace MiView.Common.Connection.WebSocket.Event
 {
-    internal class ConnectDataReceivedEventArgs : EventArgs
+    public class ConnectDataReceivedEventArgs : EventArgs
     {
         public string MessageRaw
         {

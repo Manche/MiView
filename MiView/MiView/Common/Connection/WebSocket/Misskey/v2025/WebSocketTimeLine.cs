@@ -19,6 +19,13 @@ namespace MiView.Common.Connection.WebSocket.Misskey.v2025
         {
             get { return new ConnectMainBody() { channel = "homeTimeline", id = "hoge" }; }
         }
+        /// <summary>
+        /// タイムライン種類
+        /// </summary>
+        protected override TimeLineBasic.ConnectTimeLineKind _TLKind
+        {
+            set; get;
+        } = TimeLineBasic.ConnectTimeLineKind.Home;
     }
 
     internal class WebSocketTimeLineSocial : WebSocketTimeLineCommon
@@ -30,6 +37,13 @@ namespace MiView.Common.Connection.WebSocket.Misskey.v2025
         {
             get { return new ConnectMainBody() { channel = "hybridTimeline", id = "hoge" }; }
         }
+        /// <summary>
+        /// タイムライン種類
+        /// </summary>
+        protected override TimeLineBasic.ConnectTimeLineKind _TLKind
+        {
+            set; get;
+        } = TimeLineBasic.ConnectTimeLineKind.Social;
     }
 
 
@@ -42,6 +56,13 @@ namespace MiView.Common.Connection.WebSocket.Misskey.v2025
         {
             get { return new ConnectMainBody() { channel = "globalTimeline", id = "hoge" }; }
         }
+        /// <summary>
+        /// タイムライン種類
+        /// </summary>
+        protected override TimeLineBasic.ConnectTimeLineKind _TLKind
+        {
+            set; get;
+        } = TimeLineBasic.ConnectTimeLineKind.Global;
     }
 
 
@@ -54,5 +75,12 @@ namespace MiView.Common.Connection.WebSocket.Misskey.v2025
         {
             get { return new ConnectMainBody() { channel = "localTimeline", id = "hoge" }; }
         }
+        /// <summary>
+        /// タイムライン種類
+        /// </summary>
+        protected override TimeLineBasic.ConnectTimeLineKind _TLKind
+        {
+            set; get;
+        } = TimeLineBasic.ConnectTimeLineKind.Local;
     }
 }

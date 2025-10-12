@@ -1,4 +1,4 @@
-﻿using MiView.Common.AnalyzeData.Format;
+﻿using MiView.Common.AnalyzeData.Format.Misskey.v2025;
 using MiView.Common.TimeLine;
 using System;
 using System.Collections.Generic;
@@ -24,24 +24,11 @@ namespace MiView.Common.AnalyzeData
         public JsonNode? ResponseId { get { return this.ResponseBody?["id"]; } }
         public JsonNode? ResponseNoteType { get { return this.ResponseBody?["type"]; } }
         public Note Note { get { return new Note() { Node = this.ResponseBody?["body"] }; } }
-
-
-        //public static JsonNode? ResponseType(JsonNode? Input) { return Input?["type"]; }
-        //public static JsonNode? ResponseBody(JsonNode? Input) { return Input?["body"]; }
-        //public static JsonNode? ResponseId(JsonNode Input) { return ResponseBody(Input)?["id"]; }
-        //public static JsonNode? ResponseNoteType(JsonNode Input) { return ResponseBody(Input)?["type"]; }
-
-
-
-
-        //public static JsonNode? NoteChannelChannelId(JsonNode Input) { return NoteChannel(Input)?["id"]; }
-        //public static JsonNode? NoteChannelName(JsonNode Input) { return NoteChannel(Input)?["name"]; }
-        //public static JsonNode? NoteChannelColor(JsonNode Input) { return NoteChannel(Input)?["color"]; }
     }
 
     internal class ChannelToTimeLineContainer
     {
-        private const string _RenoteSign = " RN:";
+        protected const string _RenoteSign = " RN:";
 
         public static TimeLineContainer ConvertTimeLineContainer(string OriginalHost, JsonNode? Input)
         {

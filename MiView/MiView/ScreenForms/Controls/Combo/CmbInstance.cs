@@ -1,4 +1,5 @@
-﻿using MiView.Common.Connection.WebSocket;
+﻿using MiView.Common.Connection.VersionInfo;
+using MiView.Common.Connection.WebSocket;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -21,6 +22,21 @@ namespace MiView.ScreenForms.Controls.Combo
         public override string ToString()
         {
             return _ViewText;
+        }
+    }
+
+    class CmbSoftware
+    {
+        public CSoftwareVersionInfo.SOFTWARE_LIST _SOFTWARE;
+
+        public CmbSoftware(CSoftwareVersionInfo.SOFTWARE_LIST Software)
+        {
+            _SOFTWARE = Software;
+        }
+
+        public override string ToString()
+        {
+            return CSoftwareVersionInfo.SoftwareNames[_SOFTWARE];
         }
     }
 }

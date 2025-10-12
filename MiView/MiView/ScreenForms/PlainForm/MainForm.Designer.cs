@@ -50,6 +50,7 @@ namespace MiView
             tabControl1 = new TabControl();
             tpNotification = new TabPage();
             tpDebug = new TabPage();
+            cmdSetting = new Button();
             tbMain.SuspendLayout();
             statusStrip1.SuspendLayout();
             pnMain.SuspendLayout();
@@ -76,7 +77,7 @@ namespace MiView
             tbMain.SelectedIndex = 0;
             tbMain.Size = new Size(784, 242);
             tbMain.TabIndex = 1;
-            tbMain.SelectedIndexChanged += tbMain_SelectedIndexChanged;
+            // tbMain.SelectedIndexChanged += tbMain_SelectedIndexChanged;
             // 
             // tpMain
             // 
@@ -245,6 +246,17 @@ namespace MiView
             tpDebug.Text = "デバッグ";
             tpDebug.UseVisualStyleBackColor = true;
             // 
+            // cmdSetting
+            // 
+            cmdSetting.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
+            cmdSetting.Location = new Point(116, 624);
+            cmdSetting.Name = "cmdSetting";
+            cmdSetting.Size = new Size(106, 23);
+            cmdSetting.TabIndex = 7;
+            cmdSetting.Text = "インスタンス追加";
+            cmdSetting.UseVisualStyleBackColor = true;
+            cmdSetting.Click += cmdSetting_Click;
+            // 
             // MainForm
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
@@ -252,6 +264,7 @@ namespace MiView
             ClientSize = new Size(784, 673);
             Controls.Add(pnSub);
             Controls.Add(pnMain);
+            Controls.Add(cmdSetting);
             Controls.Add(cmdAddInstance);
             Controls.Add(cmbInstanceSelect);
             Controls.Add(textBox1);
@@ -295,5 +308,6 @@ namespace MiView
         private TabPage tpNotification;
         private TabPage tpDebug;
         private Label lblTLFrom;
+        private Button cmdSetting;
     }
 }

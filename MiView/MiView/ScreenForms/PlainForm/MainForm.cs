@@ -1,4 +1,6 @@
 using MiView.Common.AnalyzeData;
+using MiView.Common.Connection.REST.Misskey;
+using MiView.Common.Connection.REST.Misskey.v2025.API.Notes;
 using MiView.Common.Connection.VersionInfo;
 using MiView.Common.Connection.WebSocket;
 using MiView.Common.Connection.WebSocket.Controller;
@@ -13,10 +15,13 @@ using MiView.Common.TimeLine;
 using MiView.ScreenForms.Controls.Combo;
 using MiView.ScreenForms.Controls.Notify;
 using MiView.ScreenForms.DialogForm;
+using MiView.ScreenForms.DialogForm.Event;
+using MiView.ScreenForms.DialogForm.Setting;
 using System;
 using System.ComponentModel;
 using System.Drawing;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Security.Policy;
 using System.Security.Principal;
 using System.Text;
@@ -45,6 +50,7 @@ namespace MiView
         public NotifyView NotifyView { get; set; }
 
         private APIStatusForm _APIStatusForm = new APIStatusForm();
+        private TimeLineSetting _TLSettingForm = new TimeLineSetting();
 
         /// <summary>
         /// このフォーム
@@ -70,6 +76,8 @@ namespace MiView
             // イベント設定
             DataAccepted += OnDataAccepted;
             DataRejected += OnDataRejected;
+
+            this._TLSettingForm.SettingChanged += SettingFormSettingChanged;
         }
 
         private List<DataGridTimeLine> DGrids = new List<DataGridTimeLine>();
@@ -91,8 +99,9 @@ namespace MiView
             if (InvokeRequired)
             {
                 Invoke(new Action(async () => { await ConnectWatcher(); }));
+                return;
             }
-            while(true)
+            while (true)
             {
                 List<APIStatusDispData> APIDisp = new List<APIStatusDispData>();
                 foreach (var TLCon in _TmpTLManager)
@@ -103,8 +112,9 @@ namespace MiView
                         //System.Diagnostics.Debug.WriteLine(_TLManager[TLCon.Value].GetSocketState());
                         //System.Diagnostics.Debug.WriteLine(_TLManager[TLCon.Value]._ConnectionClosed);
                         //System.Diagnostics.Debug.WriteLine(_TLManager[TLCon.Value].WebSocket.State);
-                        APIDisp.Add(new APIStatusDispData() 
-                            {
+                        APIDisp.Add(new APIStatusDispData()
+                        {
+                            _TabDefinition = TLCon.Value,
                             _HostUrl = _TLManager[TLCon.Value]._Host,
                             _Host = _TLManager[TLCon.Value]._HostUrl,
                             _ConnectStatus = _TLManager[TLCon.Value].GetSocketState() == System.Net.WebSockets.WebSocketState.Open && _TLManager[TLCon.Value]._IsOpenTimeLine,
@@ -114,12 +124,26 @@ namespace MiView
                         if (_TLManager[TLCon.Value].GetSocketState() != System.Net.WebSockets.WebSocketState.Open ||
                             _TLManager[TLCon.Value]._IsOpenTimeLine == false)
                         {
-                            var _ = new Action(() =>
+                            Task Tj = new Task(() =>
                             {
                                 int Wait = 0;
                                 while (Wait < 10)
                                 {
                                     _TLManager[TLCon.Value].CreateAndReOpen();
+                                    int Wait2 = 0;
+                                    while (Wait2 < 10)
+                                    {
+                                        if (_TLManager[TLCon.Value].GetSocketState() == System.Net.WebSockets.WebSocketState.Open)
+                                        {
+                                            break;
+                                        }
+                                        Task.Delay(1000);
+                                        Wait2++;
+                                    }
+                                    if (Wait2 == 10)
+                                    {
+                                        break;
+                                    }
                                     try
                                     {
                                         _TLManager[TLCon.Value].ReadTimeLineContinuous(_TLManager[TLCon.Value]);
@@ -168,6 +192,7 @@ namespace MiView
                                     Thread.Sleep(1000);
                                 }
                             });
+                            Tj.Start();
                         }
                     }
                     catch (Exception ex)
@@ -175,7 +200,20 @@ namespace MiView
                         System.Diagnostics.Debug.WriteLine(ex.ToString());
                     }
                 }
-                this._APIStatusForm.SetStatus(APIDisp);
+                try
+                {
+                    this._APIStatusForm.SetStatus(APIDisp);
+                }
+                catch (Exception ex)
+                {
+                }
+                try
+                {
+                    this._TLSettingForm.SetStatus(APIDisp);
+                }
+                catch (Exception ex)
+                {
+                }
                 await Task.Delay(1000);
             }
         }
@@ -277,8 +315,17 @@ namespace MiView
                     System.Diagnostics.Debug.WriteLine(ex.ToString());
                 }
 
+                // ここで手動で入れておく
+                WSManager._IsOpenTimeLine = true;
+                WSManager._LastDataReceived = DateTime.Now;
+
                 _TLManager.Add(TabDef, WSManager);
                 _TmpTLManager.Add(TabName, TabDef);
+
+                //var c = MisskeyAPIController.CreateInstance(MisskeyAPIConst.API_ENDPOINT.NOTES_TIMELINE);
+                //c.Request(WSManager._HostDefinition, WSManager.APIKey, null, null);
+                //c.GetNotes();
+                //var tm = c.GetNotes();
             }
             catch (Exception ce)
             {
@@ -365,26 +412,26 @@ namespace MiView
             AddFrm.ShowDialog();
         }
 
-        private void tbMain_SelectedIndexChanged(object sender, EventArgs e)
-        {
-            //((TabControl)sender).SuspendLayout();
+        //private void tbMain_SelectedIndexChanged(object sender, EventArgs e)
+        //{
+        //    //((TabControl)sender).SuspendLayout();
 
-            var TPages = ((TabControl)sender).TabPages;
-            foreach (TabPage TPage in TPages)
-            {
-                foreach (DataGridTimeLine DGView in TPage.Controls.Cast<Control>().ToList().FindAll(r => { return r.GetType() == typeof(DataGridTimeLine); }))
-                {
-                    DGView.Visible = true;
-                    // DGView.Visible = TPages.IndexOf(TPage) == ((TabControl)sender).SelectedIndex;
+        //    var TPages = ((TabControl)sender).TabPages;
+        //    foreach (TabPage TPage in TPages)
+        //    {
+        //        foreach (DataGridTimeLine DGView in TPage.Controls.Cast<Control>().ToList().FindAll(r => { return r.GetType() == typeof(DataGridTimeLine); }))
+        //        {
+        //            DGView.Visible = true;
+        //            // DGView.Visible = TPages.IndexOf(TPage) == ((TabControl)sender).SelectedIndex;
 
-                    //if (DGView.Visible)
-                    //{
-                    //    DGView.Refresh();
-                    //}
-                }
-            }
-            //((TabControl)sender).ResumeLayout(false);
-        }
+        //            //if (DGView.Visible)
+        //            //{
+        //            //    DGView.Refresh();
+        //            //}
+        //        }
+        //    }
+        //    //((TabControl)sender).ResumeLayout(false);
+        //}
 
         public void SetTimeLineContents(string OriginalHost, JsonNode Node)
         {
@@ -498,5 +545,54 @@ namespace MiView
             }
         }
         #endregion
+
+        private void cmdSetting_Click(object sender, EventArgs e)
+        {
+
+            List<string> tpNames = new List<string>();
+            Dictionary<string, DataGridTimeLine> Grids = new Dictionary<string, DataGridTimeLine>();
+            var MainGrid = _TLCreator.GetTimeLineObjectDirect(ref this.MainFormObj, "Main");
+            Grids.Add("Main", MainGrid);
+            foreach (TabPage tp in this.tbMain.TabPages)
+            {
+                tpNames.Add(tp.Text);
+
+                try
+                {
+                    var tpGrid = _TLCreator.GetTimeLineObjectDirect(ref this.MainFormObj, _TmpTLManager[tp.Text]);
+                    Grids.Add(_TmpTLManager[tp.Text], tpGrid);
+                }
+                catch (Exception ex)
+                {
+                }
+            }
+            _TLSettingForm.SetTPNames(tpNames);
+            _TLSettingForm.SetTLGrids(Grids);
+            _TLSettingForm.SetTLManagers(this._TLManager, this._TmpTLManager);
+            _TLSettingForm.ShowDialog();
+        }
+
+        private void SettingFormSettingChanged(object? sender, SettingChangeEventArgs e)
+        {
+            WebSocketManager? WSManager = e._WSManager;
+            string WSDefinition = e._WSDefinition;
+            DataGridTimeLine? Grid = e._GridTimeLine;
+            bool? UpdateIntg = e.UpdateIntg;
+
+            if (WSManager != null)
+            {
+                // TimeLineManager更新
+                this._TLManager[WSDefinition] = WSManager;
+            }
+            if (Grid != null)
+            {
+                // DataGridTimeLine更新
+                _TLCreator.SetTimeLineObjectDirect(ref this.MainFormObj, e._WSDefinition, Grid);
+            }
+            if (UpdateIntg != null)
+            {
+                // 統合TLへの反映をするかどうか
+            }
+        }
     }
 }

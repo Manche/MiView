@@ -1,4 +1,5 @@
-﻿using System;
+﻿using MiView.ScreenForms.DialogForm.Setting;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -15,6 +16,7 @@ namespace MiView.ScreenForms.DialogForm
         public APIStatusForm()
         {
             InitializeComponent();
+            this.dataGridView1.Rows.Clear();
         }
 
         private Dictionary<string, int> _InDispData = new Dictionary<string, int>();
@@ -53,6 +55,7 @@ namespace MiView.ScreenForms.DialogForm
 
     public struct APIStatusDispData
     {
+        public string _TabDefinition;
         public string _Host;
         public string _HostUrl;
         public bool _ConnectStatus;

@@ -18,19 +18,16 @@ using System.Threading.Tasks;
 
 namespace MiView.Common.Connection.WebSocket
 {
-    internal class WebSocketManager
+    public class WebSocketManager
     {
         public string _HostUrl { get; set; } = string.Empty;
         public string _HostDefinition { get; set; } = string.Empty;
         protected string? _APIKey { get; set; } = string.Empty;
         public string? APIKey { get { return _APIKey; } }
+        public void SetAPIKey(string APIKey) { _APIKey = APIKey; }
         public string _Host { get { return _OHost; } }
         protected string _OHost { get; set; } = string.Empty;
         public DateTime _LastDataReceived { get; set; }
-        protected TimeLineBasic.ConnectTimeLineKind _TLKind
-        {
-            set; get;
-        } = TimeLineBasic.ConnectTimeLineKind.None;
 
         private WebSocketState _State { get; set; } = WebSocketState.None;
         private WebSocketState _State_Command { get; set; } = WebSocketState.None;
@@ -39,6 +36,7 @@ namespace MiView.Common.Connection.WebSocket
 
         protected MainForm _MainForm { get; set; } = new MainForm();
         protected DataGridTimeLine[]? _TimeLineObject { get; set; } = new DataGridTimeLine[0];
+        public DataGridTimeLine[]? TimeLineObject { get { return this._TimeLineObject; } }
 
         private ClientWebSocket _WebSocket { get; set; } = new ClientWebSocket();
         public ClientWebSocket WebSocket { get { return _WebSocket; } }
@@ -72,7 +70,93 @@ namespace MiView.Common.Connection.WebSocket
         public void SetDataGridTimeLine(DataGridTimeLine timeLine)
         {
             if (this._TimeLineObject == null) this._TimeLineObject = new DataGridTimeLine[0];
+            if (this._TimeLineObject.ToList().FindAll(r => { return r._Definition == timeLine._Definition; }).Count > 0)
+            {
+                return;
+            }
             this._TimeLineObject = this._TimeLineObject.Concat(new DataGridTimeLine[] { timeLine }).ToArray();
+        }
+        public bool IncludedDataGridTimeLine(Func<DataGridTimeLine, bool>[]? Expression = null)
+        {
+            if (this._TimeLineObject == null)
+            {
+                return false;
+            }
+            var TLObj = this._TimeLineObject.ToList();
+            var index = TLObj.ToList()
+                            .FindAll(r => {
+                                if (Expression != null)
+                                {
+                                    return Expression.Length == Expression.ToList()
+                                                                            .FindAll(e => {
+                                                                                return e(r);
+                                                                            })
+                                                                            .Count;
+                                }
+                                else
+                                {
+                                    return true;
+                                }
+                            })
+                            .Select(r =>
+                            {
+                                return TLObj.IndexOf(r);
+                            })
+                            .ToList();
+            return index.Count > 0;
+        }
+        public bool DetachDataGridTimeLine(Func<DataGridTimeLine, bool>[]? Expression = null, bool DeleteAll = false)
+        {
+            List<int> RemoveIndex = new List<int>();
+            if (this._TimeLineObject == null)
+            {
+                return true;
+            }
+            var TLObj = this._TimeLineObject.ToList();
+            var index = TLObj.ToList()
+                            .FindAll(r => {
+                                if (Expression != null)
+                                {
+                                    return Expression.Length == Expression.ToList()
+                                                                            .FindAll(e => {
+                                                                                return e(r);
+                                                                            })
+                                                                            .Count;
+                                }
+                                else
+                                {
+                                    return true;
+                                }
+                            })
+                            .Select(r =>
+                            {
+                                return TLObj.IndexOf(r);
+                            })
+                            .ToList();
+            if (index.Count == 0 && (!DeleteAll ? index.Count == TLObj.Count : false))
+            {
+                return false;
+            }
+            return DetachDataGridTimeLine(index);
+        }
+        public bool DetachDataGridTimeLine(List<int> RemoveIndex)
+        {
+            var Inx = RemoveIndex.ToArray();
+            Array.Reverse(Inx);
+
+            if (this._TimeLineObject == null)
+            {
+                return false;
+            }
+            var TLObj = this._TimeLineObject.ToList();
+
+            foreach (int index in Inx)
+            {
+                TLObj.RemoveAt(index);
+            }
+            this._TimeLineObject = TLObj.ToArray();
+
+            return true;
         }
 
         public ClientWebSocket GetSocketClient() => this._WebSocket;
@@ -162,14 +246,17 @@ namespace MiView.Common.Connection.WebSocket
         /// </summary>
         public void CreateAndReOpen()
         {
-            var _ = new Action(async () => { await _CreateAndOpen(this._HostDefinition); });
+            var _ = Task.Run(async () => { await _CreateAndOpen(this._HostDefinition); });
         }
 
         private async Task _CreateAndOpen(string HostUrl)
         {
             if (_State == WebSocketState.Open &&
                 this._WebSocket.State == WebSocketState.Open)
+            {
+                this._LastDataReceived = DateTime.Now;
                 return;
+            }
 
             try
             {
@@ -271,6 +358,11 @@ namespace MiView.Common.Connection.WebSocket
         /// 接続識別子
         /// </summary>
         protected virtual ConnectMainBody? _WebSocketConnectionObj { get; }
+        protected virtual TimeLineBasic.ConnectTimeLineKind _TLKind
+        {
+            set; get;
+        } = TimeLineBasic.ConnectTimeLineKind.None;
+        public TimeLineBasic.ConnectTimeLineKind TLKind { get { return _TLKind; } }
 
         /// <summary>
         /// タイムライン展開

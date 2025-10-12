@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace MiView.Common.Notification.Http
 {
-    internal class HttpRequestController : NotificationController
+    public class HttpRequestController : NotificationController
     {
         /// <summary>
         /// リクエストメソッド
@@ -65,6 +65,10 @@ namespace MiView.Common.Notification.Http
         /// リクエストヘッダー
         /// </summary>
         public Dictionary<string, string> RequestHeader = new Dictionary<string, string>();
+        /// <summary>
+        /// ベアラートークン
+        /// </summary>
+        public string? BearerToken { get; set; } = null;
 
         /// <summary>
         /// 非同期処理かどうか
@@ -155,6 +159,12 @@ namespace MiView.Common.Notification.Http
             {
                 this._HttpRequest?.Headers.Add(Head.Key, Head.Value);
             }
+            // ベアラートークン
+            if (this.BearerToken != null)
+            {
+                this._HttpRequest.Headers.Authorization = 
+                    new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", this.BearerToken);
+            }
             try
             {
                 this._HttpResponse = await this._HttpClient.SendAsync(this._HttpRequest);
@@ -185,6 +195,12 @@ namespace MiView.Common.Notification.Http
             foreach (var Head in this.RequestHeader)
             {
                 this._HttpRequest.Content?.Headers.Add(Head.Key, Head.Value);
+            }
+            // ベアラートークン
+            if (this.BearerToken != null)
+            {
+                this._HttpRequest.Headers.Authorization =
+                    new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", this.BearerToken);
             }
             try
             {

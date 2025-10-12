@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace MiView.Common.AnalyzeData.Format
 {
-    internal class Instance
+    public class Instance
     {
         public JsonNode? Node {  get; set; }
         public JsonNode? Name { get { return this.Node?["name"]; } }

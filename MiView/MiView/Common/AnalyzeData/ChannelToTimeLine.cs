@@ -28,7 +28,7 @@ namespace MiView.Common.AnalyzeData
 
     internal class ChannelToTimeLineContainer
     {
-        private const string _RenoteSign = " RN:";
+        protected const string _RenoteSign = " RN:";
 
         public static TimeLineContainer ConvertTimeLineContainer(string OriginalHost, JsonNode? Input)
         {

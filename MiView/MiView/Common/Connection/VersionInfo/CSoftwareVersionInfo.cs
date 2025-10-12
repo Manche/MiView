@@ -52,6 +52,7 @@ namespace MiView.Common.Connection.VersionInfo
 
     public class VersionAttribute
     {
+        public string RawVersion { get; set; } = string.Empty;
         public int MajorVersion { get; set; } = 0;
         public int MinorVersion { get; set; } = 0;
         public int Revision { get; set; } = 0;

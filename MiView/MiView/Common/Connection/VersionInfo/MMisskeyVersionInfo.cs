@@ -51,6 +51,7 @@ namespace MiView.Common.Connection.VersionInfo
             MMisskeyVersionInfo VerInfo = new MMisskeyVersionInfo();
 
             VersionAttribute Attr = new VersionAttribute();
+            Attr.RawVersion = VersionPattern;
             Attr.MajorVersion = int.TryParse(res.Groups[1].Value, out _) ? int.Parse(res.Groups[1].Value) : -1;
             Attr.MinorVersion = int.TryParse(res.Groups[2].Value, out _) ? int.Parse(res.Groups[2].Value) : -1;
             Attr.Revision = int.TryParse(res.Groups[3].Value, out _) ? int.Parse(res.Groups[3].Value) : -1;

@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace MiView.Common.AnalyzeData.Format
 {
-    internal class Channel
+    public class Channel
     {
         public JsonNode? Node { get; set; }
         public JsonNode? Id { get { return this.Node?["id"]; } }

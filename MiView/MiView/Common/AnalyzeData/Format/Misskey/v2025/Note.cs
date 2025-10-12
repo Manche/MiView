@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace MiView.Common.AnalyzeData.Format.Misskey.v2025
 {
-    internal class Note
+    public class Note
     {
         public JsonNode? Node {  get; set; }
         public JsonNode? Id { get { return Node?["Id"]; } }

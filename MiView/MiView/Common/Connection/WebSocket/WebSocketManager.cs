@@ -37,6 +37,7 @@ namespace MiView.Common.Connection.WebSocket
         protected MainForm _MainForm { get; set; } = new MainForm();
         protected DataGridTimeLine[]? _TimeLineObject { get; set; } = new DataGridTimeLine[0];
         public DataGridTimeLine[]? TimeLineObject { get { return this._TimeLineObject; } }
+        public void SetTimeLineObject(DataGridTimeLine[] Grid) {  this._TimeLineObject = Grid; }
 
         private ClientWebSocket _WebSocket { get; set; } = new ClientWebSocket();
         public ClientWebSocket WebSocket { get { return _WebSocket; } }

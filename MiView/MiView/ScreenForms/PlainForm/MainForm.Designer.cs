@@ -77,7 +77,6 @@ namespace MiView
             tbMain.SelectedIndex = 0;
             tbMain.Size = new Size(784, 242);
             tbMain.TabIndex = 1;
-            // tbMain.SelectedIndexChanged += tbMain_SelectedIndexChanged;
             // 
             // tpMain
             // 
@@ -275,6 +274,7 @@ namespace MiView
             MainMenuStrip = menuStrip1;
             Name = "MainForm";
             Text = "MiView - MainForm";
+            FormClosing += MainForm_FormClosing;
             Load += MainForm_Load;
             tbMain.ResumeLayout(false);
             statusStrip1.ResumeLayout(false);

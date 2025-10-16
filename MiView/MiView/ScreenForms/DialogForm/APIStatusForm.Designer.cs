@@ -29,6 +29,7 @@
         private void InitializeComponent()
         {
             dataGridView1 = new DataGridView();
+            TLKind = new DataGridViewTextBoxColumn();
             HostUrl = new DataGridViewTextBoxColumn();
             ConnectStatus = new DataGridViewTextBoxColumn();
             LastReceived = new DataGridViewTextBoxColumn();
@@ -38,11 +39,16 @@
             // dataGridView1
             // 
             dataGridView1.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            dataGridView1.Columns.AddRange(new DataGridViewColumn[] { HostUrl, ConnectStatus, LastReceived });
+            dataGridView1.Columns.AddRange(new DataGridViewColumn[] { TLKind, HostUrl, ConnectStatus, LastReceived });
             dataGridView1.Location = new Point(12, 12);
             dataGridView1.Name = "dataGridView1";
             dataGridView1.Size = new Size(486, 334);
             dataGridView1.TabIndex = 0;
+            // 
+            // TLKind
+            // 
+            TLKind.HeaderText = "種類";
+            TLKind.Name = "TLKind";
             // 
             // HostUrl
             // 
@@ -75,6 +81,7 @@
         #endregion
 
         private DataGridView dataGridView1;
+        private DataGridViewTextBoxColumn TLKind;
         private DataGridViewTextBoxColumn HostUrl;
         private DataGridViewTextBoxColumn ConnectStatus;
         private DataGridViewTextBoxColumn LastReceived;

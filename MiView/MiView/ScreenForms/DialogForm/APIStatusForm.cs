@@ -46,9 +46,10 @@ namespace MiView.ScreenForms.DialogForm
             foreach (var DispData in DispDatas)
             {
                 int InRow = _InDispData[DispData._HostUrl];
-                this.dataGridView1.Rows[InRow].Cells[0].Value = DispData._HostUrl;
-                this.dataGridView1.Rows[InRow].Cells[1].Value = DispData._ConnectionClosed ? "NG" : DispData._ConnectStatus;
-                this.dataGridView1.Rows[InRow].Cells[2].Value = DispData._LastReceived;
+                this.dataGridView1.Rows[InRow].Cells[0].Value = DispData._TLKind;
+                this.dataGridView1.Rows[InRow].Cells[1].Value = DispData._HostUrl;
+                this.dataGridView1.Rows[InRow].Cells[2].Value = DispData._ConnectionClosed ? "NG" : DispData._ConnectStatus;
+                this.dataGridView1.Rows[InRow].Cells[3].Value = DispData._LastReceived;
             }
         }
     }
@@ -56,6 +57,7 @@ namespace MiView.ScreenForms.DialogForm
     public struct APIStatusDispData
     {
         public string _TabDefinition;
+        public string _TLKind;
         public string _Host;
         public string _HostUrl;
         public bool _ConnectStatus;

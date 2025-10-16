@@ -268,11 +268,43 @@ namespace MiView.ScreenForms.DialogForm.Setting
         }
         #endregion
 
+        private TimeLineFilterSetting TimeLineFilterSetting { get; set; }
+        /// <summary>
+        /// タイムラインフィルタ設定
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void cmdOpenFilteringSetting_Click(object sender, EventArgs e)
         {
+            if (_CurrentTabDefinition == null)
+            {
+                return;
+            }
+            var WStimeLine = this._TLManager[_CurrentTabDefinition];
+            if (WStimeLine == null)
+            {
+                return;
+            }
+
+            TimeLineFilterSetting = new TimeLineFilterSetting();
+            TimeLineFilterSetting._WSManager = WStimeLine;
+            TimeLineFilterSetting._TmpTLNames = _TmpTLManager;
+            TimeLineFilterSetting._TLGrid = _TLGrid;
+            TimeLineFilterSetting.ShowDialog();
+
+            // 設定適用
+            var EventArg = new SettingChangeEventArgs();
+            EventArg._WSManager = TimeLineFilterSetting._WSManager;
+            EventArg._WSDefinition = this._CurrentTabDefinition;
+            this.SettingChanged?.Invoke(this, EventArg);
         }
 
         private TimeLineReflexSetting TimeLineReflexSetting { get; set; }
+        /// <summary>
+        /// 反映タイムライン設定
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void cmdTimeLineReflex_Click(object sender, EventArgs e)
         {
             if (_CurrentTabDefinition == null)
@@ -286,7 +318,15 @@ namespace MiView.ScreenForms.DialogForm.Setting
             }
             TimeLineReflexSetting = new TimeLineReflexSetting();
             TimeLineReflexSetting._WSManager = WStimeLine;
+            TimeLineReflexSetting._TmpTLNames = _TmpTLManager;
+            TimeLineReflexSetting._TLGrid = _TLGrid;
             TimeLineReflexSetting.ShowDialog();
+
+            // 設定適用
+            var EventArg = new SettingChangeEventArgs();
+            EventArg._WSManager = TimeLineReflexSetting._WSManager;
+            EventArg._WSDefinition = this._CurrentTabDefinition;
+            this.SettingChanged?.Invoke(this, EventArg);
         }
     }
 }

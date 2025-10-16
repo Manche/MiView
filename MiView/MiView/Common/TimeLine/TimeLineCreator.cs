@@ -202,10 +202,10 @@ namespace MiView.Common.TimeLine
         /// メインフォームへタイムラインを追加
         /// </summary>
         /// <param name="MainForm"></param>
-        public void CreateTimeLine(ref MainForm MainForm, string Definition, string? ChildDefinition = null, bool IsFiltered = false, bool IsVisible = true)
+        public void CreateTimeLine(ref MainForm MainForm, string Definition, string? TabName = null, bool IsFiltered = false, bool IsVisible = true)
         {
             // コントロールがあるか検索
-            var tpObj = GetControlFromMainForm(ref MainForm, ChildDefinition);
+            var tpObj = GetControlFromMainForm(ref MainForm, TabName);
             if (tpObj != null)
             {
                 this._MainForm = MainForm;
@@ -215,6 +215,7 @@ namespace MiView.Common.TimeLine
                 ((System.ComponentModel.ISupportInitialize)Grid).BeginInit();
                 Grid.Visible = IsVisible;
                 Grid._Definition = Definition;
+                Grid._TabName = tpObj.Text;
                 Grid._MainForm = MainForm;
 
                 //
@@ -686,6 +687,10 @@ namespace MiView.Common.TimeLine
         /// 定義識別値
         /// </summary>
         public string _Definition;
+        /// <summary>
+        /// タブ名称
+        /// </summary>
+        public string _TabName;
         /// <summary>
         /// メインフォーム
         /// </summary>

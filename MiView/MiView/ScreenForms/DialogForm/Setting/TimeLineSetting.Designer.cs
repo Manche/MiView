@@ -32,6 +32,7 @@
             label1 = new Label();
             panel1 = new Panel();
             lbltxtLastReceivedDiff = new Label();
+            cmdTimeLineReflex = new Button();
             cmdOpenFilteringSetting = new Button();
             txtAPIKey = new TextBox();
             chkIsVisibleTL = new CheckBox();
@@ -56,7 +57,6 @@
             label4 = new Label();
             label2 = new Label();
             label3 = new Label();
-            cmdTimeLineReflex = new Button();
             panel1.SuspendLayout();
             SuspendLayout();
             // 
@@ -121,9 +121,19 @@
             lbltxtLastReceivedDiff.TabIndex = 7;
             lbltxtLastReceivedDiff.Text = ".";
             // 
+            // cmdTimeLineReflex
+            // 
+            cmdTimeLineReflex.Location = new Point(5, 269);
+            cmdTimeLineReflex.Name = "cmdTimeLineReflex";
+            cmdTimeLineReflex.Size = new Size(137, 23);
+            cmdTimeLineReflex.TabIndex = 6;
+            cmdTimeLineReflex.Text = "反映先タイムライン設定";
+            cmdTimeLineReflex.UseVisualStyleBackColor = true;
+            cmdTimeLineReflex.Click += cmdTimeLineReflex_Click;
+            // 
             // cmdOpenFilteringSetting
             // 
-            cmdOpenFilteringSetting.Location = new Point(4, 298);
+            cmdOpenFilteringSetting.Location = new Point(148, 269);
             cmdOpenFilteringSetting.Name = "cmdOpenFilteringSetting";
             cmdOpenFilteringSetting.Size = new Size(99, 23);
             cmdOpenFilteringSetting.TabIndex = 6;
@@ -352,16 +362,6 @@
             label3.Size = new Size(25, 15);
             label3.TabIndex = 1;
             label3.Text = "タブ";
-            // 
-            // cmdTimeLineReflex
-            // 
-            cmdTimeLineReflex.Location = new Point(5, 269);
-            cmdTimeLineReflex.Name = "cmdTimeLineReflex";
-            cmdTimeLineReflex.Size = new Size(137, 23);
-            cmdTimeLineReflex.TabIndex = 6;
-            cmdTimeLineReflex.Text = "反映先タイムライン設定";
-            cmdTimeLineReflex.UseVisualStyleBackColor = true;
-            cmdTimeLineReflex.Click += cmdTimeLineReflex_Click;
             // 
             // TimeLineSetting
             // 

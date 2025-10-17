@@ -34,8 +34,6 @@
             lbltxtLastReceivedDiff = new Label();
             cmdTimeLineReflex = new Button();
             txtAPIKey = new TextBox();
-            chkIsVisibleTL = new CheckBox();
-            chkIsUpdateTL = new CheckBox();
             chkSetIntg = new CheckBox();
             cmdSettingSave = new Button();
             lbltxtTimeLineKind = new Label();
@@ -44,8 +42,6 @@
             lbltxtSoftwareName = new Label();
             lbltxtLastReceivedDatetime = new Label();
             lblHostDefinition = new Label();
-            lblIsVisibleTL = new Label();
-            lblIsUpdateTL = new Label();
             lblSetIntg = new Label();
             lblTimeLineKind = new Label();
             lblSoftwareVersion = new Label();
@@ -84,8 +80,6 @@
             panel1.Controls.Add(lbltxtLastReceivedDiff);
             panel1.Controls.Add(cmdTimeLineReflex);
             panel1.Controls.Add(txtAPIKey);
-            panel1.Controls.Add(chkIsVisibleTL);
-            panel1.Controls.Add(chkIsUpdateTL);
             panel1.Controls.Add(chkSetIntg);
             panel1.Controls.Add(cmdSettingSave);
             panel1.Controls.Add(lbltxtTimeLineKind);
@@ -94,8 +88,6 @@
             panel1.Controls.Add(lbltxtSoftwareName);
             panel1.Controls.Add(lbltxtLastReceivedDatetime);
             panel1.Controls.Add(lblHostDefinition);
-            panel1.Controls.Add(lblIsVisibleTL);
-            panel1.Controls.Add(lblIsUpdateTL);
             panel1.Controls.Add(lblSetIntg);
             panel1.Controls.Add(lblTimeLineKind);
             panel1.Controls.Add(lblSoftwareVersion);
@@ -135,24 +127,6 @@
             txtAPIKey.Name = "txtAPIKey";
             txtAPIKey.Size = new Size(439, 23);
             txtAPIKey.TabIndex = 5;
-            // 
-            // chkIsVisibleTL
-            // 
-            chkIsVisibleTL.AutoSize = true;
-            chkIsVisibleTL.Location = new Point(207, 203);
-            chkIsVisibleTL.Name = "chkIsVisibleTL";
-            chkIsVisibleTL.Size = new Size(15, 14);
-            chkIsVisibleTL.TabIndex = 4;
-            chkIsVisibleTL.UseVisualStyleBackColor = true;
-            // 
-            // chkIsUpdateTL
-            // 
-            chkIsUpdateTL.AutoSize = true;
-            chkIsUpdateTL.Location = new Point(207, 183);
-            chkIsUpdateTL.Name = "chkIsUpdateTL";
-            chkIsUpdateTL.Size = new Size(15, 14);
-            chkIsUpdateTL.TabIndex = 4;
-            chkIsUpdateTL.UseVisualStyleBackColor = true;
             // 
             // chkSetIntg
             // 
@@ -232,26 +206,6 @@
             lblHostDefinition.Size = new Size(13, 20);
             lblHostDefinition.TabIndex = 2;
             lblHostDefinition.Text = ".";
-            // 
-            // lblIsVisibleTL
-            // 
-            lblIsVisibleTL.AutoSize = true;
-            lblIsVisibleTL.Font = new Font("游ゴシック", 11.25F, FontStyle.Regular, GraphicsUnit.Point, 128);
-            lblIsVisibleTL.Location = new Point(4, 200);
-            lblIsVisibleTL.Name = "lblIsVisibleTL";
-            lblIsVisibleTL.Size = new Size(84, 20);
-            lblIsVisibleTL.TabIndex = 2;
-            lblIsVisibleTL.Text = "タブの表示";
-            // 
-            // lblIsUpdateTL
-            // 
-            lblIsUpdateTL.AutoSize = true;
-            lblIsUpdateTL.Font = new Font("游ゴシック", 11.25F, FontStyle.Regular, GraphicsUnit.Point, 128);
-            lblIsUpdateTL.Location = new Point(4, 180);
-            lblIsUpdateTL.Name = "lblIsUpdateTL";
-            lblIsUpdateTL.Size = new Size(187, 20);
-            lblIsUpdateTL.TabIndex = 2;
-            lblIsUpdateTL.Text = "タイムラインの更新を反映";
             // 
             // lblSetIntg
             // 
@@ -347,9 +301,9 @@
             label3.AutoSize = true;
             label3.Location = new Point(12, 68);
             label3.Name = "label3";
-            label3.Size = new Size(25, 15);
+            label3.Size = new Size(43, 15);
             label3.TabIndex = 1;
-            label3.Text = "タブ";
+            label3.Text = "接続中";
             // 
             // TimeLineSetting
             // 
@@ -362,7 +316,7 @@
             Controls.Add(label1);
             Controls.Add(listBox1);
             Name = "TimeLineSetting";
-            Text = "タイムライン設定";
+            Text = "API設定";
             panel1.ResumeLayout(false);
             panel1.PerformLayout();
             ResumeLayout(false);
@@ -387,8 +341,6 @@
         private Button cmdSettingSave;
         private Label lblSetIntg;
         private CheckBox chkSetIntg;
-        private CheckBox chkIsUpdateTL;
-        private Label lblIsUpdateTL;
         private Label lblAPIkey;
         private TextBox txtAPIKey;
         private Label lbltxtSoftwareVersion;
@@ -396,8 +348,6 @@
         private Label lblSoftwareVersion;
         private Label lblSoftwareName;
         private Label lbltxtLastReceivedDiff;
-        private CheckBox chkIsVisibleTL;
-        private Label lblIsVisibleTL;
         private Label lbltxtTimeLineKind;
         private Label lblTimeLineKind;
         private Button cmdTimeLineReflex;

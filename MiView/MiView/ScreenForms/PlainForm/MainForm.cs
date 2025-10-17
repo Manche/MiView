@@ -456,7 +456,7 @@ namespace MiView
                 this._WSManager.Add(WSManager);
             }
         }
-        
+
         public void LoadTimeLineManually(SettingTimeLine[] WSTimeLines)
         {
             if (this.InvokeRequired)
@@ -529,7 +529,7 @@ namespace MiView
                             _TLManager.Add(TMTabDef, WSManager);
                         }
                     }
-                    catch(Exception)
+                    catch (Exception)
                     {
                     }
                     this._WSManager.Add(WSManager);
@@ -749,27 +749,12 @@ namespace MiView
         }
         #endregion
 
-        private void cmdSetting_Click(object sender, EventArgs e)
-        {
-            Dictionary<string, DataGridTimeLine> Grids = new Dictionary<string, DataGridTimeLine>();
-            var MainGrid = _TLCreator.GetTimeLineObjectDirect(ref this.MainFormObj, "Main");
-            Grids.Add("Main", MainGrid);
-            foreach (TabPage tp in this.tbMain.TabPages)
-            {
-                try
-                {
-                    var tpGrid = _TLCreator.GetTimeLineObjectDirect(ref this.MainFormObj, _TmpTLManager[tp.Text]);
-                    Grids.Add(_TmpTLManager[tp.Text], tpGrid);
-                }
-                catch (Exception ex)
-                {
-                }
-            }
-            _TLSettingForm.SetTLGrids(Grids);
-            _TLSettingForm.SetTLManagers(this._TLManager, this._TmpTLManager, this._WSManager);
-            _TLSettingForm.ShowDialog();
-        }
-
+        #region 設定イベント
+        /// <summary>
+        /// 設定変更イベント
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void SettingFormSettingChanged(object? sender, SettingChangeEventArgs e)
         {
             WebSocketManager? WSManager = e._WSManager;
@@ -792,7 +777,9 @@ namespace MiView
                 // 統合TLへの反映をするかどうか
             }
         }
+        #endregion
 
+        #region フォームイベント
         private void MainForm_FormClosing(object sender, FormClosingEventArgs e)
         {
             try
@@ -810,5 +797,43 @@ namespace MiView
             {
             }
         }
+        #endregion
+
+        #region ToolStripMenuItem
+        /// <summary>
+        /// API設定
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void tspAPISetting_Click(object sender, EventArgs e)
+        {
+            Dictionary<string, DataGridTimeLine> Grids = new Dictionary<string, DataGridTimeLine>();
+            var MainGrid = _TLCreator.GetTimeLineObjectDirect(ref this.MainFormObj, "Main");
+            Grids.Add("Main", MainGrid);
+            foreach (TabPage tp in this.tbMain.TabPages)
+            {
+                try
+                {
+                    var tpGrid = _TLCreator.GetTimeLineObjectDirect(ref this.MainFormObj, _TmpTLManager[tp.Text]);
+                    Grids.Add(_TmpTLManager[tp.Text], tpGrid);
+                }
+                catch (Exception ex)
+                {
+                }
+            }
+            _TLSettingForm.SetTLGrids(Grids);
+            _TLSettingForm.SetTLManagers(this._TLManager, this._TmpTLManager, this._WSManager);
+            _TLSettingForm.ShowDialog();
+        }
+
+        /// <summary>
+        /// タイムライン設定
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void tspTimeLineSetting_Click(object sender, EventArgs e)
+        {
+        }
+        #endregion
     }
 }

@@ -56,13 +56,13 @@ namespace MiView.ScreenForms.DialogForm.Setting
                 {
                     this.cmbTimeLineSelect.Items.Add(new TimeLineCombo(t._TabName, t._Definition));
                 }
-                foreach (TimeLineCombo Cb in _TLGrid.Values
-                                                  .ToList()
-                                                  .Select(r => { return new TimeLineCombo(r._TabName, r._Definition); })
-                                                  .ToList())
-                {
-                    this.lstTimeLine.Items.Add(Cb);
-                }
+                //foreach (TimeLineCombo Cb in _TLGrid.Values
+                //                                  .ToList()
+                //                                  .Select(r => { return new TimeLineCombo(r._TabName, r._Definition); })
+                //                                  .ToList())
+                //{
+                //    this.lstTimeLine.Items.Add(Cb);
+                //}
             }
             // this.cmbTimeLineSelect.Enabled = this.cmbTimeLineSelect.Items.Count > 0;
         }

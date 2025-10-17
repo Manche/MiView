@@ -1,6 +1,6 @@
 ﻿namespace MiView.ScreenForms.DialogForm.Setting
 {
-    partial class TimeLineReflexSetting
+    partial class APIReflexSetting
     {
         /// <summary>
         /// Required designer variable.

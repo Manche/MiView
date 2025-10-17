@@ -187,7 +187,7 @@ namespace MiView.ScreenForms.DialogForm.Setting
             this.lbltxtCurrentReceiveState.Text = APIDisp._ConnectStatus ? "受信中" : "未接続/切断中";
         }
 
-        private void LoadSettingWSManager(WebSocketManager? WSManager, DataGridTimeLine? Grid = null)
+        private void LoadSettingWSManager(WebSocketManager? WSManager)
         {
             this.cmdSettingSave.Enabled = true;
 
@@ -197,29 +197,11 @@ namespace MiView.ScreenForms.DialogForm.Setting
             if (WSManager != null) this.lbltxtSoftwareVersion.Text = $"{WSManager.SoftwareVersion.Version.RawVersion}";
             if (WSManager != null) this.lbltxtTimeLineKind.Text = WSManager.TLKind.ToString();
 
-            DataGridTimeLine? MainGrid = null;
-            if (this._TLGrid.ContainsKey("Main"))
-            {
-                MainGrid = this._TLGrid["Main"];
-            }
-
             this.chkSetIntg.Enabled = WSManager != null;
             if (WSManager != null)
             {
                 this.chkSetIntg.Checked = WSManager.IncludedDataGridTimeLine(new List<Func<DataGridTimeLine, bool>>() { new Func<DataGridTimeLine, bool>(r => { return r._Definition == "Main"; }) }.ToArray());
             }
-
-            this.chkIsUpdateTL.Enabled = Grid != null;
-            if (Grid != null) this.chkIsUpdateTL.Checked = Grid._IsUpdateTL;
-
-            // まだpending
-            //this.chkIsVisibleTL.Enabled = Grid != null;
-            //if (Grid != null && _CurrentTabDefinition != null)
-            //{
-            //    this.chkIsVisibleTL.Checked = Grid.Visible;
-            //}
-            this.chkIsVisibleTL.Enabled = false;
-            this.chkIsVisibleTL.Checked = true;
 
 #if DEBUG
             if (WSManager != null) this.txtAPIKey.Text = WSManager.APIKey;

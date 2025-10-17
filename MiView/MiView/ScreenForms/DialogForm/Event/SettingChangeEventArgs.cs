@@ -17,7 +17,7 @@ namespace MiView.ScreenForms.DialogForm.Event
         /// <summary>
         /// WebSocketManager識別値
         /// </summary>
-        public string _WSDefinition {  get; set; } = string.Empty;
+        public int? _WSDefinition {  get; set; }
         /// <summary>
         /// DataGridTimeLine
         /// </summary>

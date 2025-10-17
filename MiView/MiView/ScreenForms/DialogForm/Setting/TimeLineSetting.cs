@@ -7,6 +7,7 @@ using System.ComponentModel;
 using System.Data;
 using System.Drawing;
 using System.Linq;
+using System.Reflection.Metadata.Ecma335;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -18,6 +19,7 @@ namespace MiView.ScreenForms.DialogForm.Setting
         private Dictionary<string, WebSocketManager> _TLManager = new Dictionary<string, WebSocketManager>();
         private Dictionary<string, string> _TmpTLManager = new Dictionary<string, string>();
         private Dictionary<string, DataGridTimeLine> _TLGrid = new Dictionary<string, DataGridTimeLine>();
+        private List<WebSocketManager> _WSManager = new List<WebSocketManager>();
         private List<string> _TPName = new List<string>();
         private DateTime _CurrentDateTime = DateTime.Now;
         private DateTime? _LastUpdate = null;
@@ -84,98 +86,105 @@ namespace MiView.ScreenForms.DialogForm.Setting
             this.lbltxtLastReceivedDiff.Text = DifTxt;
         }
 
-        public void SetTLManagers(Dictionary<string, WebSocketManager> TLManager, Dictionary<string, string> TmpTLManager)
+        public void SetTLManagers(Dictionary<string, WebSocketManager> TLManager,
+                                  Dictionary<string, string> TmpTLManager,
+                                  List<WebSocketManager> WSManager)
         {
-            this._TLManager = TLManager;
-            this._TmpTLManager = TmpTLManager;
-        }
+            //this._TLManager = TLManager;
+            //this._TmpTLManager = TmpTLManager;
+            this._WSManager = WSManager;
 
-        public void SetTPNames(List<string> TabPageNames)
-        {
             this.listBox1.Items.Clear();
-
-            this._TPName = TabPageNames;
-            foreach (string t in TabPageNames)
-            {
-                this.listBox1.Items.Add($"{t}");
-            }
+            this.listBox1.Items.AddRange(WSManager.Select(r => { return new WebSocketCombo(r._HostDefinition, r.TLKind, r, this._WSManager.IndexOf(r)); }).ToArray());
         }
         public void SetTLGrids(Dictionary<string, DataGridTimeLine> TLGrid)
         {
             this._TLGrid = TLGrid;
         }
 
-        private string? _CurrentTabDefinition = null;
+        private int _CurrentWSManagerIndex = -1;
         private void listBox1_SelectedIndexChanged(object sender, EventArgs e)
         {
-            object? SelectedItem = ((ListBox)sender).SelectedItem;
-            if (SelectedItem == null)
+            var CurrentWSObj = this.listBox1.SelectedItem;
+            if (CurrentWSObj == null)
             {
                 return;
             }
-            string SelectedDefinition = SelectedItem.ToString();
-            if (SelectedDefinition == null)
+            WebSocketCombo CurrentWSCombo;
+            WebSocketManager CurrentWSManager;
+            try
+            {
+                CurrentWSCombo = (WebSocketCombo)CurrentWSObj;
+                CurrentWSManager = (WebSocketManager)CurrentWSCombo.WSManager;
+            }
+            catch (Exception ex)
             {
                 return;
             }
-
-            System.Diagnostics.Debug.WriteLine(SelectedDefinition);
-            if (this._TmpTLManager.ContainsKey(SelectedDefinition))
+            _CurrentWSManagerIndex = CurrentWSCombo.ListIndex;
+            APIStatusDispData APIDisp = new APIStatusDispData()
             {
-                _CurrentTabDefinition = this._TmpTLManager[SelectedItem.ToString()];
+                _HostUrl = CurrentWSManager._Host,
+                _Host = CurrentWSManager._HostUrl,
+                _ConnectStatus = CurrentWSManager.GetSocketState() == System.Net.WebSockets.WebSocketState.Open &&
+                                 CurrentWSManager._IsOpenTimeLine,
+                _LastReceived = CurrentWSManager._LastDataReceived,
+                _ConnectionClosed = CurrentWSManager._ConnectionClosed
+            };
+            SetStatus(new List<APIStatusDispData>() { APIDisp });
+            LoadSettingWSManager(CurrentWSManager);
 
-                WebSocketManager? WStimeLine = null;
-                if (this._TLManager.ContainsKey(this._TmpTLManager[SelectedItem.ToString()]))
-                {
-                    SetTLManagerData(this._TLManager[this._TmpTLManager[SelectedItem.ToString()]],
-                                     (this._TLGrid.ContainsKey(SelectedItem.ToString()) ? this._TLGrid[SelectedItem.ToString()] : null));
-                    WStimeLine = this._TLManager[_CurrentTabDefinition];
 
-                    APIStatusDispData APIDisp = new APIStatusDispData()
-                    {
-                        _TabDefinition = this._TmpTLManager[SelectedItem.ToString()],
-                        _HostUrl = _TLManager[this._TmpTLManager[SelectedItem.ToString()]]._Host,
-                        _Host = _TLManager[this._TmpTLManager[SelectedItem.ToString()]]._HostUrl,
-                        _ConnectStatus = _TLManager[this._TmpTLManager[SelectedItem.ToString()]].GetSocketState() == System.Net.WebSockets.WebSocketState.Open && _TLManager[this._TmpTLManager[SelectedItem.ToString()]]._IsOpenTimeLine,
-                        _LastReceived = _TLManager[this._TmpTLManager[SelectedItem.ToString()]]._LastDataReceived,
-                        _ConnectionClosed = _TLManager[this._TmpTLManager[SelectedItem.ToString()]]._ConnectionClosed
-                    };
-                    SetStatus(new List<APIStatusDispData>() { APIDisp });
+            //System.Diagnostics.Debug.WriteLine(SelectedDefinition);
+            //if (this._TmpTLManager.ContainsKey(SelectedDefinition))
+            //{
+            //    _CurrentTabDefinition = this._TmpTLManager[SelectedItem.ToString()];
 
-                }
-                DataGridTimeLine? Grid = null;
-                if (this._TLGrid.ContainsKey(_CurrentTabDefinition))
-                {
-                    Grid = this._TLGrid[_CurrentTabDefinition];
-                }
-                LoadSettingWSManager(WStimeLine, Grid);
+            //    WebSocketManager? WStimeLine = null;
+            //    if (this._TLManager.ContainsKey(this._TmpTLManager[SelectedItem.ToString()]))
+            //    {
+            //        SetTLManagerData(this._TLManager[this._TmpTLManager[SelectedItem.ToString()]],
+            //                         (this._TLGrid.ContainsKey(SelectedItem.ToString()) ? this._TLGrid[SelectedItem.ToString()] : null));
+            //        WStimeLine = this._TLManager[_CurrentTabDefinition];
 
-                System.Diagnostics.Debug.WriteLine(this._TmpTLManager[SelectedItem.ToString()]);
-            }
+            //        APIStatusDispData APIDisp = new APIStatusDispData()
+            //        {
+            //            _TabDefinition = this._TmpTLManager[SelectedItem.ToString()],
+            //            _HostUrl = _TLManager[this._TmpTLManager[SelectedItem.ToString()]]._Host,
+            //            _Host = _TLManager[this._TmpTLManager[SelectedItem.ToString()]]._HostUrl,
+            //            _ConnectStatus = _TLManager[this._TmpTLManager[SelectedItem.ToString()]].GetSocketState() == System.Net.WebSockets.WebSocketState.Open && _TLManager[this._TmpTLManager[SelectedItem.ToString()]]._IsOpenTimeLine,
+            //            _LastReceived = _TLManager[this._TmpTLManager[SelectedItem.ToString()]]._LastDataReceived,
+            //            _ConnectionClosed = _TLManager[this._TmpTLManager[SelectedItem.ToString()]]._ConnectionClosed
+            //        };
+            //        SetStatus(new List<APIStatusDispData>() { APIDisp });
+
+            //    }
+            //    DataGridTimeLine? Grid = null;
+            //    if (this._TLGrid.ContainsKey(_CurrentTabDefinition))
+            //    {
+            //        Grid = this._TLGrid[_CurrentTabDefinition];
+            //    }
+            //    LoadSettingWSManager(WStimeLine, Grid);
+
+            //    System.Diagnostics.Debug.WriteLine(this._TmpTLManager[SelectedItem.ToString()]);
+            //}
         }
 
-        public void SetStatus(List<APIStatusDispData> APIDisp)
+        public void SetStatus(List<APIStatusDispData> APIDisps)
         {
             if (InvokeRequired)
             {
-                this.Invoke(SetStatus, APIDisp);
+                this.Invoke(SetStatus, APIDisps);
             }
-            if (_CurrentTabDefinition == null)
+            if (APIDisps.Count == 0)
             {
-                this.cmdSettingSave.Enabled = false;
                 return;
             }
-            APIStatusDispData[] Disp = APIDisp.FindAll(x => x._TabDefinition == _CurrentTabDefinition).ToArray();
-            if (Disp.Length == 0)
-            {
-                _CurrentTabDefinition = null;
-                this.cmdSettingSave.Enabled = false;
-                return;
-            }
-            this._LastUpdate = Disp[0]._LastReceived;
-            this.lbltxtLastReceivedDatetime.Text = Disp[0]._LastReceived.ToString();
-            this.lbltxtCurrentReceiveState.BackColor = Disp[0]._ConnectStatus ? Color.LightGreen : Color.IndianRed;
-            this.lbltxtCurrentReceiveState.Text = Disp[0]._ConnectStatus ? "受信中" : "未接続/切断中";
+            var APIDisp = APIDisps[0];
+            this._LastUpdate = APIDisp._LastReceived;
+            this.lbltxtLastReceivedDatetime.Text = APIDisp._LastReceived.ToString();
+            this.lbltxtCurrentReceiveState.BackColor = APIDisp._ConnectStatus ? Color.LightGreen : Color.IndianRed;
+            this.lbltxtCurrentReceiveState.Text = APIDisp._ConnectStatus ? "受信中" : "未接続/切断中";
         }
 
         private void LoadSettingWSManager(WebSocketManager? WSManager, DataGridTimeLine? Grid = null)
@@ -219,12 +228,6 @@ namespace MiView.ScreenForms.DialogForm.Setting
             if (WSManager != null) this.txtAPIKey.Enabled = false;
 #endif
             this.cmdOpenFilteringSetting.Enabled = WSManager != null;
-
-            this.cmdTimeLineReflex.Enabled = WSManager != null && _CurrentTabDefinition != null;
-        }
-
-        private void SetTLManagerData(WebSocketManager WSManager, DataGridTimeLine? Grid = null)
-        {
         }
 
         #region イベント
@@ -240,30 +243,24 @@ namespace MiView.ScreenForms.DialogForm.Setting
         /// <param name="e"></param>
         private void cmdSettingSave_Click(object sender, EventArgs e)
         {
-            // 現在のタブ識別値がなければ処理しない
-            if (_CurrentTabDefinition == null)
-            {
-                return;
-            }
             // 設定値を書き込む
-            if (this.chkIsUpdateTL.Enabled) this._TLGrid[_CurrentTabDefinition]._IsUpdateTL = this.chkIsUpdateTL.Checked;
+            //if (this.chkIsUpdateTL.Enabled) this._TLGrid[_CurrentTabDefinition]._IsUpdateTL = this.chkIsUpdateTL.Checked;
             if (this.chkSetIntg.Enabled)
             {
                 if (this.chkSetIntg.Checked)
                 {
-                    this._TLManager[_CurrentTabDefinition].SetDataGridTimeLine(this._TLGrid["Main"]);
+                    this._WSManager[_CurrentWSManagerIndex].SetDataGridTimeLine(this._TLGrid["Main"]);
                 }
                 else
                 {
-                    this._TLManager[_CurrentTabDefinition].DetachDataGridTimeLine(new List<Func<DataGridTimeLine, bool>>() { new Func<DataGridTimeLine, bool>(r => { return r._Definition == "Main"; }) }.ToArray());
+                    this._WSManager[_CurrentWSManagerIndex].DetachDataGridTimeLine(new List<Func<DataGridTimeLine, bool>>() { new Func<DataGridTimeLine, bool>(r => { return r._Definition == "Main"; }) }.ToArray());
                 }
             }
 
             // 設定適用
             var EventArg = new SettingChangeEventArgs();
-            EventArg._WSManager = this._TLManager[_CurrentTabDefinition];
-            EventArg._WSDefinition = this._CurrentTabDefinition;
-            EventArg._GridTimeLine = this._TLGrid[_CurrentTabDefinition];
+            EventArg._WSManager = this._WSManager[_CurrentWSManagerIndex];
+            EventArg._WSDefinition = _CurrentWSManagerIndex;
             this.SettingChanged?.Invoke(this, EventArg);
         }
         #endregion
@@ -276,27 +273,23 @@ namespace MiView.ScreenForms.DialogForm.Setting
         /// <param name="e"></param>
         private void cmdOpenFilteringSetting_Click(object sender, EventArgs e)
         {
-            if (_CurrentTabDefinition == null)
-            {
-                return;
-            }
-            var WStimeLine = this._TLManager[_CurrentTabDefinition];
-            if (WStimeLine == null)
-            {
-                return;
-            }
+            //var WStimeLine = this._TLManager[_CurrentTabDefinition];
+            //if (WStimeLine == null)
+            //{
+            //    return;
+            //}
 
-            TimeLineFilterSetting = new TimeLineFilterSetting();
-            TimeLineFilterSetting._WSManager = WStimeLine;
-            TimeLineFilterSetting._TmpTLNames = _TmpTLManager;
-            TimeLineFilterSetting._TLGrid = _TLGrid;
-            TimeLineFilterSetting.ShowDialog();
+            //TimeLineFilterSetting = new TimeLineFilterSetting();
+            //TimeLineFilterSetting._WSManager = WStimeLine;
+            //TimeLineFilterSetting._TmpTLNames = _TmpTLManager;
+            //TimeLineFilterSetting._TLGrid = _TLGrid;
+            //TimeLineFilterSetting.ShowDialog();
 
             // 設定適用
-            var EventArg = new SettingChangeEventArgs();
-            EventArg._WSManager = TimeLineFilterSetting._WSManager;
-            EventArg._WSDefinition = this._CurrentTabDefinition;
-            this.SettingChanged?.Invoke(this, EventArg);
+            //var EventArg = new SettingChangeEventArgs();
+            //EventArg._WSManager = this._WSManager[_CurrentWSManagerIndex];
+            //EventArg._WSDefinition = _CurrentWSManagerIndex;
+            //this.SettingChanged?.Invoke(this, EventArg);
         }
 
         private TimeLineReflexSetting TimeLineReflexSetting { get; set; }
@@ -307,26 +300,37 @@ namespace MiView.ScreenForms.DialogForm.Setting
         /// <param name="e"></param>
         private void cmdTimeLineReflex_Click(object sender, EventArgs e)
         {
-            if (_CurrentTabDefinition == null)
-            {
-                return;
-            }
-            var WStimeLine = this._TLManager[_CurrentTabDefinition];
-            if (WStimeLine == null)
-            {
-                return;
-            }
             TimeLineReflexSetting = new TimeLineReflexSetting();
-            TimeLineReflexSetting._WSManager = WStimeLine;
+            TimeLineReflexSetting._WSManager = this._WSManager[_CurrentWSManagerIndex];
             TimeLineReflexSetting._TmpTLNames = _TmpTLManager;
             TimeLineReflexSetting._TLGrid = _TLGrid;
             TimeLineReflexSetting.ShowDialog();
 
             // 設定適用
             var EventArg = new SettingChangeEventArgs();
-            EventArg._WSManager = TimeLineReflexSetting._WSManager;
-            EventArg._WSDefinition = this._CurrentTabDefinition;
+            EventArg._WSManager = this._WSManager[_CurrentWSManagerIndex];
+            EventArg._WSDefinition = _CurrentWSManagerIndex;
             this.SettingChanged?.Invoke(this, EventArg);
+        }
+
+        public class WebSocketCombo
+        {
+            public string Host {  get; set; }
+            public TimeLineBasic.ConnectTimeLineKind TLKind { get; set; }
+            public WebSocketManager WSManager { get; set; }
+            public int ListIndex { get; set; }
+            public WebSocketCombo(string host, TimeLineBasic.ConnectTimeLineKind tlKind, WebSocketManager wsManager, int listIndex)
+            {
+                Host = host;
+                TLKind = tlKind;
+                WSManager = wsManager;
+                ListIndex = listIndex;
+            }
+
+            public override string ToString()
+            {
+                return Host + "/" + TLKind.ToString();
+            }
         }
     }
 }

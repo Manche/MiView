@@ -751,15 +751,11 @@ namespace MiView
 
         private void cmdSetting_Click(object sender, EventArgs e)
         {
-
-            List<string> tpNames = new List<string>();
             Dictionary<string, DataGridTimeLine> Grids = new Dictionary<string, DataGridTimeLine>();
             var MainGrid = _TLCreator.GetTimeLineObjectDirect(ref this.MainFormObj, "Main");
             Grids.Add("Main", MainGrid);
             foreach (TabPage tp in this.tbMain.TabPages)
             {
-                tpNames.Add(tp.Text);
-
                 try
                 {
                     var tpGrid = _TLCreator.GetTimeLineObjectDirect(ref this.MainFormObj, _TmpTLManager[tp.Text]);
@@ -769,28 +765,27 @@ namespace MiView
                 {
                 }
             }
-            _TLSettingForm.SetTPNames(tpNames);
             _TLSettingForm.SetTLGrids(Grids);
-            _TLSettingForm.SetTLManagers(this._TLManager, this._TmpTLManager);
+            _TLSettingForm.SetTLManagers(this._TLManager, this._TmpTLManager, this._WSManager);
             _TLSettingForm.ShowDialog();
         }
 
         private void SettingFormSettingChanged(object? sender, SettingChangeEventArgs e)
         {
             WebSocketManager? WSManager = e._WSManager;
-            string WSDefinition = e._WSDefinition;
+            int? WSDefinition = e._WSDefinition;
             DataGridTimeLine? Grid = e._GridTimeLine;
             bool? UpdateIntg = e.UpdateIntg;
 
-            if (WSManager != null)
+            if (WSManager != null & WSDefinition != null)
             {
                 // TimeLineManager更新
-                this._TLManager[WSDefinition] = WSManager;
+                this._WSManager[(int)WSDefinition] = WSManager;
             }
             if (Grid != null)
             {
                 // DataGridTimeLine更新
-                _TLCreator.SetTimeLineObjectDirect(ref this.MainFormObj, e._WSDefinition, Grid);
+                // _TLCreator.SetTimeLineObjectDirect(ref this.MainFormObj, e._WSDefinition, Grid);
             }
             if (UpdateIntg != null)
             {

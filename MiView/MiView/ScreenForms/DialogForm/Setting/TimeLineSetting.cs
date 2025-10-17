@@ -227,7 +227,6 @@ namespace MiView.ScreenForms.DialogForm.Setting
             if (WSManager != null) this.txtAPIKey.Text = "";
             if (WSManager != null) this.txtAPIKey.Enabled = false;
 #endif
-            this.cmdOpenFilteringSetting.Enabled = WSManager != null;
         }
 
         #region イベント
@@ -264,33 +263,6 @@ namespace MiView.ScreenForms.DialogForm.Setting
             this.SettingChanged?.Invoke(this, EventArg);
         }
         #endregion
-
-        private TimeLineFilterSetting TimeLineFilterSetting { get; set; }
-        /// <summary>
-        /// タイムラインフィルタ設定
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void cmdOpenFilteringSetting_Click(object sender, EventArgs e)
-        {
-            //var WStimeLine = this._TLManager[_CurrentTabDefinition];
-            //if (WStimeLine == null)
-            //{
-            //    return;
-            //}
-
-            //TimeLineFilterSetting = new TimeLineFilterSetting();
-            //TimeLineFilterSetting._WSManager = WStimeLine;
-            //TimeLineFilterSetting._TmpTLNames = _TmpTLManager;
-            //TimeLineFilterSetting._TLGrid = _TLGrid;
-            //TimeLineFilterSetting.ShowDialog();
-
-            // 設定適用
-            //var EventArg = new SettingChangeEventArgs();
-            //EventArg._WSManager = this._WSManager[_CurrentWSManagerIndex];
-            //EventArg._WSDefinition = _CurrentWSManagerIndex;
-            //this.SettingChanged?.Invoke(this, EventArg);
-        }
 
         private TimeLineReflexSetting TimeLineReflexSetting { get; set; }
         /// <summary>

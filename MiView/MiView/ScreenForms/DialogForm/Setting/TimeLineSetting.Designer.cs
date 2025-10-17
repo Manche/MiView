@@ -33,7 +33,6 @@
             panel1 = new Panel();
             lbltxtLastReceivedDiff = new Label();
             cmdTimeLineReflex = new Button();
-            cmdOpenFilteringSetting = new Button();
             txtAPIKey = new TextBox();
             chkIsVisibleTL = new CheckBox();
             chkIsUpdateTL = new CheckBox();
@@ -84,7 +83,6 @@
             // 
             panel1.Controls.Add(lbltxtLastReceivedDiff);
             panel1.Controls.Add(cmdTimeLineReflex);
-            panel1.Controls.Add(cmdOpenFilteringSetting);
             panel1.Controls.Add(txtAPIKey);
             panel1.Controls.Add(chkIsVisibleTL);
             panel1.Controls.Add(chkIsUpdateTL);
@@ -130,16 +128,6 @@
             cmdTimeLineReflex.Text = "反映先タイムライン設定";
             cmdTimeLineReflex.UseVisualStyleBackColor = true;
             cmdTimeLineReflex.Click += cmdTimeLineReflex_Click;
-            // 
-            // cmdOpenFilteringSetting
-            // 
-            cmdOpenFilteringSetting.Location = new Point(148, 269);
-            cmdOpenFilteringSetting.Name = "cmdOpenFilteringSetting";
-            cmdOpenFilteringSetting.Size = new Size(99, 23);
-            cmdOpenFilteringSetting.TabIndex = 6;
-            cmdOpenFilteringSetting.Text = "フィルタリング設定";
-            cmdOpenFilteringSetting.UseVisualStyleBackColor = true;
-            cmdOpenFilteringSetting.Click += cmdOpenFilteringSetting_Click;
             // 
             // txtAPIKey
             // 
@@ -403,7 +391,6 @@
         private Label lblIsUpdateTL;
         private Label lblAPIkey;
         private TextBox txtAPIKey;
-        private Button cmdOpenFilteringSetting;
         private Label lbltxtSoftwareVersion;
         private Label lbltxtSoftwareName;
         private Label lblSoftwareVersion;

@@ -762,7 +762,7 @@ namespace MiView
             DataGridTimeLine? Grid = e._GridTimeLine;
             bool? UpdateIntg = e.UpdateIntg;
 
-            if (WSManager != null & WSDefinition != null)
+            if (WSManager != null && WSDefinition != null)
             {
                 // TimeLineManagerçXêV
                 this._WSManager[(int)WSDefinition] = WSManager;

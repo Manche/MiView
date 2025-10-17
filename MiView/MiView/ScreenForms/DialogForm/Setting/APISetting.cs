@@ -14,7 +14,7 @@ using System.Windows.Forms;
 
 namespace MiView.ScreenForms.DialogForm.Setting
 {
-    public partial class TimeLineSetting : Form
+    public partial class APISetting : Form
     {
         private Dictionary<string, WebSocketManager> _TLManager = new Dictionary<string, WebSocketManager>();
         private Dictionary<string, string> _TmpTLManager = new Dictionary<string, string>();
@@ -25,7 +25,7 @@ namespace MiView.ScreenForms.DialogForm.Setting
         private DateTime? _LastUpdate = null;
         private TimeLineCreator _TLCreator = new TimeLineCreator();
 
-        public TimeLineSetting()
+        public APISetting()
         {
             InitializeComponent();
             var tk = new Task(() =>
@@ -246,7 +246,7 @@ namespace MiView.ScreenForms.DialogForm.Setting
         }
         #endregion
 
-        private TimeLineReflexSetting TimeLineReflexSetting { get; set; }
+        private APIReflexSetting TimeLineReflexSetting { get; set; }
         /// <summary>
         /// 反映タイムライン設定
         /// </summary>
@@ -254,7 +254,7 @@ namespace MiView.ScreenForms.DialogForm.Setting
         /// <param name="e"></param>
         private void cmdTimeLineReflex_Click(object sender, EventArgs e)
         {
-            TimeLineReflexSetting = new TimeLineReflexSetting();
+            TimeLineReflexSetting = new APIReflexSetting();
             TimeLineReflexSetting._WSManager = this._WSManager[_CurrentWSManagerIndex];
             TimeLineReflexSetting._TmpTLNames = _TmpTLManager;
             TimeLineReflexSetting._TLGrid = _TLGrid;

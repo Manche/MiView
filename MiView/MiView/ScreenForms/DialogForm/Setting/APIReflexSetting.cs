@@ -12,13 +12,13 @@ using System.Windows.Forms;
 
 namespace MiView.ScreenForms.DialogForm.Setting
 {
-    public partial class TimeLineReflexSetting : Form
+    public partial class APIReflexSetting : Form
     {
         public WebSocketManager? _WSManager { get; set; }
         public Dictionary<string, string>? _TmpTLNames = new Dictionary<string, string>();
         public Dictionary<string, DataGridTimeLine>? _TLGrid = new Dictionary<string, DataGridTimeLine>();
 
-        public TimeLineReflexSetting()
+        public APIReflexSetting()
         {
             InitializeComponent();
         }

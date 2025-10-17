@@ -56,7 +56,7 @@ namespace MiView
         public NotifyView NotifyView { get; set; }
 
         private APIStatusForm _APIStatusForm = new APIStatusForm();
-        private TimeLineSetting _TLSettingForm = new TimeLineSetting();
+        private APISetting _TLSettingForm = new APISetting();
 
         /// <summary>
         /// Ç±ÇÃÉtÉHÅ[ÉÄ

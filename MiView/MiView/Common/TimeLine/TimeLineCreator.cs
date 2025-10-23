@@ -1309,7 +1309,15 @@ namespace MiView.Common.TimeLine
         /// <summary>
         /// ユーザID
         /// </summary>
-        public List<string> _UserIds = new List<string>();
+        public List<string> _UserId = new List<string>();
+        /// <summary>
+        /// ユーザID一致方法
+        /// </summary>
+        public MATCHER_PATTERN _Pattern_UserId = MATCHER_PATTERN.NONE;
+        /// <summary>
+        /// ユーザID名称表示
+        /// </summary>
+        public const string _Match_UserId_Name = "ユーザID";
         /// <summary>
         /// ユーザ名指定
         /// </summary>
@@ -1317,7 +1325,15 @@ namespace MiView.Common.TimeLine
         /// <summary>
         /// ユーザ名
         /// </summary>
-        public List<string> _UserNames = new List<string>();
+        public List<string> _UserName = new List<string>();
+        /// <summary>
+        /// ユーザ名一致方法
+        /// </summary>
+        public MATCHER_PATTERN _Pattern_UserName = MATCHER_PATTERN.NONE;
+        /// <summary>
+        /// ユーザ名名称表示
+        /// </summary>
+        public const string _Match_UserName_Name = "ユーザ名";
         /// <summary>
         /// 詳細指定
         /// </summary>
@@ -1325,7 +1341,15 @@ namespace MiView.Common.TimeLine
         /// <summary>
         /// 詳細
         /// </summary>
-        public List<string> _Details = new List<string>();
+        public List<string> _Detail = new List<string>();
+        /// <summary>
+        /// 詳細一致方法
+        /// </summary>
+        public MATCHER_PATTERN _Pattern_Detail = MATCHER_PATTERN.NONE;
+        /// <summary>
+        /// 詳細名称表示
+        /// </summary>
+        public const string _Match_Detail_Name = "投稿内容";
         /// <summary>
         /// ソフトウェア指定
         /// </summary>
@@ -1335,13 +1359,29 @@ namespace MiView.Common.TimeLine
         /// </summary>
         public List<string> _Software = new List<string>();
         /// <summary>
+        /// ソフトウェア名一致方法
+        /// </summary>
+        public MATCHER_PATTERN _Pattern_Software = MATCHER_PATTERN.NONE;
+        /// <summary>
+        /// ソフトウェア名名称表示
+        /// </summary>
+        public const string _Match_Software_Name = "ソフトウェア名";
+        /// <summary>
         /// チャンネル指定
         /// </summary>
-        public bool _Match_Channel = false;
+        public bool _Match_ChannelName = false;
         /// <summary>
         /// チャンネル名
         /// </summary>
-        public List<string> _ChannelNames = new List<string>();
+        public List<string> _ChannelName = new List<string>();
+        /// <summary>
+        /// チャンネル名一致方法
+        /// </summary>
+        public MATCHER_PATTERN _Pattern_ChannelName = MATCHER_PATTERN.NONE;
+        /// <summary>
+        /// チャンネル名名称表示
+        /// </summary>
+        public const string _Match_ChannelName_Name = "チャンネル名";
 
         /// <summary>
         /// 一致した件数_開始
@@ -1430,7 +1470,7 @@ namespace MiView.Common.TimeLine
             {
                 return true;
             }
-            return ListMatch(_Match_UserId, _UserIds, _Container.USERID);
+            return ListMatch(_Match_UserId, _UserId, _Pattern_UserId, _Container.USERID);
         }
 
         public bool MatchUserName()
@@ -1439,7 +1479,7 @@ namespace MiView.Common.TimeLine
             {
                 return true;
             }
-            return ListMatch(_Match_UserName, _UserNames, _Container.USERNAME);
+            return ListMatch(_Match_UserName, _UserName, _Pattern_UserName, _Container.USERNAME);
         }
 
         public bool MatchDetail()
@@ -1448,7 +1488,7 @@ namespace MiView.Common.TimeLine
             {
                 return true;
             }
-            return ListMatch(_Match_Detail, _Details, _Container.DETAIL);
+            return ListMatch(_Match_Detail, _Detail, _Pattern_Detail, _Container.DETAIL);
         }
 
         public bool MatchSoftware()
@@ -1457,7 +1497,7 @@ namespace MiView.Common.TimeLine
             {
                 return true;
             }
-            return ListMatch(_Match_Software, _Software, _Container.SOFTWARE);
+            return ListMatch(_Match_Software, _Software, _Pattern_Software, _Container.SOFTWARE);
         }
         
         public bool MatchChannel()
@@ -1466,7 +1506,7 @@ namespace MiView.Common.TimeLine
             {
                 return true;
             }
-            if (_Match_Channel)
+            if (_Match_ChannelName)
             {
                 if (_Container.CHANNEL_NAME == null)
                 {
@@ -1477,7 +1517,7 @@ namespace MiView.Common.TimeLine
             {
                 return true;
             }
-            return ListMatch(_Match_Channel, _ChannelNames, _Container.CHANNEL_NAME);
+            return ListMatch(_Match_ChannelName, _ChannelName, _Pattern_ChannelName, _Container.CHANNEL_NAME);
         }
 
         public bool ContainCW()
@@ -1531,14 +1571,14 @@ namespace MiView.Common.TimeLine
             return _Container.RENOTED;
         }
 
-        public bool ListMatch(bool AppliedMatch, List<string> Patterns, string Value)
+        public bool ListMatch(bool AppliedMatch, List<string> Patterns, MATCHER_PATTERN Matcher, string Value)
         {
             if (AppliedMatch == false)
             {
                 return true;
             }
             int MatchedCount = 0;
-            switch(_PATTERN)
+            switch(Matcher)
             {
                 case MATCHER_PATTERN.NONE: // 未指定
                     return false;

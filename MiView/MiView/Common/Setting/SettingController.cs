@@ -30,7 +30,14 @@ namespace MiView.Common.Setting
                 return new SettingWebSocket[] { }; // ファイルがなければデフォルト値で作成
 
             string json = File.ReadAllText(SettingConst.WEBSOCKET_SETTINGS_FILE);
-            return JsonSerializer.Deserialize<SettingWebSocket[]>(json) ?? new SettingWebSocket[] { };
+            try
+            {
+                return JsonSerializer.Deserialize<SettingWebSocket[]>(json) ?? new SettingWebSocket[] { };
+            }
+            catch
+            {
+                return new SettingWebSocket[0];
+            }
         }
 
         public static void SaveWebSockets(SettingWebSocket[] config)
@@ -47,7 +54,14 @@ namespace MiView.Common.Setting
                 return new SettingTimeLine[] { }; // ファイルがなければデフォルト値で作成
 
             string json = File.ReadAllText(SettingConst.TIMELINE_SETTINGS_FILE);
-            return JsonSerializer.Deserialize<SettingTimeLine[]>(json) ?? new SettingTimeLine[] { };
+            try
+            {
+                return JsonSerializer.Deserialize<SettingTimeLine[]>(json) ?? new SettingTimeLine[] { };
+            }
+            catch
+            {
+                return new SettingTimeLine[0];
+            }
         }
 
         public static void SaveTimeLine(SettingTimeLine[] config)

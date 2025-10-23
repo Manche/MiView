@@ -56,7 +56,8 @@ namespace MiView
         public NotifyView NotifyView { get; set; }
 
         private APIStatusForm _APIStatusForm = new APIStatusForm();
-        private APISetting _TLSettingForm = new APISetting();
+        private APISetting _APISetting = new APISetting();
+        private TimeLineSetting _TLSetting = new TimeLineSetting();
 
         /// <summary>
         /// このフォーム
@@ -83,7 +84,8 @@ namespace MiView
             DataAccepted += OnDataAccepted;
             DataRejected += OnDataRejected;
 
-            this._TLSettingForm.SettingChanged += SettingFormSettingChanged;
+            this._APISetting.SettingChanged += SettingFormSettingChanged;
+            this._TLSetting.SettingChanged += SettingFormSettingChanged;
         }
 
         private List<DataGridTimeLine> DGrids = new List<DataGridTimeLine>();
@@ -324,7 +326,7 @@ namespace MiView
                 }
                 try
                 {
-                    this._TLSettingForm.SetStatus(APIDisp);
+                    this._APISetting.SetStatus(APIDisp);
                 }
                 catch (Exception ex)
                 {
@@ -468,6 +470,8 @@ namespace MiView
             {
                 _TLCreator.CreateTimeLineTab(ref this.MainFormObj, WSTimeLine.Definition, WSTimeLine.TabName, WSTimeLine.IsVisible);
                 _TLCreator.CreateTimeLine(ref this.MainFormObj, WSTimeLine.Definition, WSTimeLine.Definition, IsFiltered: WSTimeLine.IsFiltered);
+                _TLCreator.GetGrid(WSTimeLine.Definition)._FilteringOptions = WSTimeLine.FilteringOptions;
+                _TLCreator.GetGrid(WSTimeLine.Definition)._AlertOptions = WSTimeLine.AlertOptions;
                 _TmpTLManager.Add(WSTimeLine.TabName, WSTimeLine.Definition);
             }
         }
@@ -760,6 +764,7 @@ namespace MiView
             WebSocketManager? WSManager = e._WSManager;
             int? WSDefinition = e._WSDefinition;
             DataGridTimeLine? Grid = e._GridTimeLine;
+            Dictionary<string, DataGridTimeLine>? Grids = e._GridTimeLines;
             bool? UpdateIntg = e.UpdateIntg;
 
             if (WSManager != null && WSDefinition != null)
@@ -771,6 +776,21 @@ namespace MiView
             {
                 // DataGridTimeLine更新
                 // _TLCreator.SetTimeLineObjectDirect(ref this.MainFormObj, e._WSDefinition, Grid);
+            }
+            if (Grids != null)
+            {
+                // タイムライン全て更新
+                foreach (WebSocketManager TWSManager in this._WSManager)
+                {
+                    if (TWSManager.TimeLineObject == null)
+                    {
+                        continue;
+                    }
+                    //var WSMDeleteTarget = TWSManager.TimeLineObject
+                    //                                .ToList()
+                    //                                .FindAll(r => { return !this._TLManager.ContainsKey(r._Definition); })
+                    //                                .Select(r => { return this._TLManager.ToList().IndexOf(r); });
+                }
             }
             if (UpdateIntg != null)
             {
@@ -821,9 +841,9 @@ namespace MiView
                 {
                 }
             }
-            _TLSettingForm.SetTLGrids(Grids);
-            _TLSettingForm.SetTLManagers(this._TLManager, this._TmpTLManager, this._WSManager);
-            _TLSettingForm.ShowDialog();
+            _APISetting.SetTLGrids(Grids);
+            _APISetting.SetTLManagers(this._TLManager, this._TmpTLManager, this._WSManager);
+            _APISetting.ShowDialog();
         }
 
         /// <summary>
@@ -833,6 +853,22 @@ namespace MiView
         /// <param name="e"></param>
         private void tspTimeLineSetting_Click(object sender, EventArgs e)
         {
+            Dictionary<string, DataGridTimeLine> Grids = new Dictionary<string, DataGridTimeLine>();
+            var MainGrid = _TLCreator.GetTimeLineObjectDirect(ref this.MainFormObj, "Main");
+            Grids.Add("Main", MainGrid);
+            foreach (TabPage tp in this.tbMain.TabPages)
+            {
+                try
+                {
+                    var tpGrid = _TLCreator.GetTimeLineObjectDirect(ref this.MainFormObj, _TmpTLManager[tp.Text]);
+                    Grids.Add(_TmpTLManager[tp.Text], tpGrid);
+                }
+                catch (Exception ex)
+                {
+                }
+            }
+            _TLSetting.SetTLList(Grids, this._TmpTLManager);
+            _TLSetting.ShowDialog();
         }
         #endregion
     }

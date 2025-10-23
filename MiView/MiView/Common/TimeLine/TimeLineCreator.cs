@@ -162,6 +162,14 @@ namespace MiView.Common.TimeLine
         /// タイムライン管理オブジェクト
         /// </summary>
         private Dictionary<string, DataGridTimeLine> Grids = new Dictionary<string, DataGridTimeLine>();
+        public void SetGridManually(string Key, DataGridTimeLine TLObj)
+        {
+            this.Grids[Key] = TLObj;
+        }
+        public DataGridTimeLine GetGrid(string Key)
+        {
+            return this.Grids[Key];
+        }
 
         public TimeLineCreator()
         {
@@ -1233,11 +1241,40 @@ namespace MiView.Common.TimeLine
         }
     }
 
+    public class TimeLineFilterlingClone : ICloneable
+    {
+        private TimeLineFilterlingOption _Obj;
+        public static TimeLineFilterlingClone StartClone()
+        {
+            return new TimeLineFilterlingClone();
+        }
+        public static TimeLineFilterlingClone ExtractClone(object obj)
+        {
+            return (TimeLineFilterlingClone)obj;
+        }
+        public TimeLineFilterlingClone SetFilterObj(TimeLineFilterlingOption FilterObj)
+        {
+            _Obj = FilterObj;
+            return this;
+        }
+        public TimeLineFilterlingOption GetFilterObj()
+        {
+            return _Obj;
+        }
+        public object Clone()
+        {
+            return this.MemberwiseClone();
+        }
+    }
+
     /// <summary>
     /// タイムラインフィルタリング設定
     /// </summary>
     public class TimeLineFilterlingOption
     {
+        public string FilterDefinition { get; set; }
+        public string FilterName { get; set; }
+
         /// <summary>
         /// 一致条件
         /// </summary>
@@ -1259,6 +1296,22 @@ namespace MiView.Common.TimeLine
             /// 一部重視
             /// </summary>
             IMPORTANCE = 2,
+        }
+        public static string? DispMatchMode(MATCH_MODE? Mode, bool DispNull = false)
+        {
+            switch (Mode)
+            {
+                case MATCH_MODE.NONE:
+                    return DispNull ? "未指定" : "";
+                case MATCH_MODE.ALL:
+                    return "全て";
+                case MATCH_MODE.PARTIAL:
+                    return "いずれか";
+                case MATCH_MODE.IMPORTANCE:
+                    return "設定したもの";
+                default:
+                    return null;
+            }
         }
         public MATCH_MODE _MODE = MATCH_MODE.NONE;
 
@@ -1292,28 +1345,48 @@ namespace MiView.Common.TimeLine
             /// </summary>
             REGEXP = 5,
         }
+        public static string? DispMatcherPattern(MATCHER_PATTERN Pattern, bool DispNull = false)
+        {
+            switch (Pattern)
+            {
+                case MATCHER_PATTERN.NONE:
+                    return DispNull ? "未指定" : "";
+                case MATCHER_PATTERN.MATCH:
+                    return "完全一致";
+                case MATCHER_PATTERN.PATTERN:
+                    return "一部一致";
+                case MATCHER_PATTERN.START:
+                    return "～で始まる";
+                case MATCHER_PATTERN.END:
+                    return "～で終わる";
+                case MATCHER_PATTERN.REGEXP:
+                    return "正規表現";
+                default:
+                    return null;
+            }
+        }
         /// <summary>
         /// 一致方法
         /// </summary>
-        public MATCHER_PATTERN _PATTERN = MATCHER_PATTERN.NONE;
+        public MATCHER_PATTERN _PATTERN { get; set; } = MATCHER_PATTERN.NONE;
 
         /// <summary>
         /// 反転(not)条件
         /// </summary>
-        public bool CONSTRAINT_INVERT = false;
+        public bool CONSTRAINT_INVERT { get; set; } = false;
 
         /// <summary>
         /// ユーザID指定
         /// </summary>
-        public bool _Match_UserId = false;
+        public bool _Match_UserId { get; set; } = false;
         /// <summary>
         /// ユーザID
         /// </summary>
-        public List<string> _UserId = new List<string>();
+        public List<string> _UserId { get; set; } = new List<string>();
         /// <summary>
         /// ユーザID一致方法
         /// </summary>
-        public MATCHER_PATTERN _Pattern_UserId = MATCHER_PATTERN.NONE;
+        public MATCHER_PATTERN _Pattern_UserId { get; set; } = MATCHER_PATTERN.NONE;
         /// <summary>
         /// ユーザID名称表示
         /// </summary>
@@ -1321,15 +1394,15 @@ namespace MiView.Common.TimeLine
         /// <summary>
         /// ユーザ名指定
         /// </summary>
-        public bool _Match_UserName = false;
+        public bool _Match_UserName { get; set; } = false;
         /// <summary>
         /// ユーザ名
         /// </summary>
-        public List<string> _UserName = new List<string>();
+        public List<string> _UserName { get; set; } = new List<string>();
         /// <summary>
         /// ユーザ名一致方法
         /// </summary>
-        public MATCHER_PATTERN _Pattern_UserName = MATCHER_PATTERN.NONE;
+        public MATCHER_PATTERN _Pattern_UserName { get; set; } = MATCHER_PATTERN.NONE;
         /// <summary>
         /// ユーザ名名称表示
         /// </summary>
@@ -1337,15 +1410,15 @@ namespace MiView.Common.TimeLine
         /// <summary>
         /// 詳細指定
         /// </summary>
-        public bool _Match_Detail = false;
+        public bool _Match_Detail { get; set; } = false;
         /// <summary>
         /// 詳細
         /// </summary>
-        public List<string> _Detail = new List<string>();
+        public List<string> _Detail { get; set; } = new List<string>();
         /// <summary>
         /// 詳細一致方法
         /// </summary>
-        public MATCHER_PATTERN _Pattern_Detail = MATCHER_PATTERN.NONE;
+        public MATCHER_PATTERN _Pattern_Detail { get; set; } = MATCHER_PATTERN.NONE;
         /// <summary>
         /// 詳細名称表示
         /// </summary>
@@ -1353,15 +1426,15 @@ namespace MiView.Common.TimeLine
         /// <summary>
         /// ソフトウェア指定
         /// </summary>
-        public bool _Match_Software = false;
+        public bool _Match_Software { get; set; } = false;
         /// <summary>
         /// ソフトウェア名
         /// </summary>
-        public List<string> _Software = new List<string>();
+        public List<string> _Software { get; set; } = new List<string>();
         /// <summary>
         /// ソフトウェア名一致方法
         /// </summary>
-        public MATCHER_PATTERN _Pattern_Software = MATCHER_PATTERN.NONE;
+        public MATCHER_PATTERN _Pattern_Software { get; set; } = MATCHER_PATTERN.NONE;
         /// <summary>
         /// ソフトウェア名名称表示
         /// </summary>
@@ -1369,15 +1442,15 @@ namespace MiView.Common.TimeLine
         /// <summary>
         /// チャンネル指定
         /// </summary>
-        public bool _Match_ChannelName = false;
+        public bool _Match_ChannelName { get; set; } = false;
         /// <summary>
         /// チャンネル名
         /// </summary>
-        public List<string> _ChannelName = new List<string>();
+        public List<string> _ChannelName { get; set; } = new List<string>();
         /// <summary>
         /// チャンネル名一致方法
         /// </summary>
-        public MATCHER_PATTERN _Pattern_ChannelName = MATCHER_PATTERN.NONE;
+        public MATCHER_PATTERN _Pattern_ChannelName { get; set; } = MATCHER_PATTERN.NONE;
         /// <summary>
         /// チャンネル名名称表示
         /// </summary>
@@ -1386,36 +1459,36 @@ namespace MiView.Common.TimeLine
         /// <summary>
         /// 一致した件数_開始
         /// </summary>
-        public int _Matched_Count_Min = 0;
+        public int _Matched_Count_Min { get; set; } = 0;
         /// <summary>
         /// 一致した件数_終了
         /// </summary>
-        public int _Matched_Count_Max = 0;
+        public int _Matched_Count_Max { get; set; } = 0;
 
         /// <summary>
         /// CW指定
         /// </summary>
-        public bool _Match_CW = false;
+        public bool _Match_CW { get; set; } = false;
         /// <summary>
         /// CWを含める
         /// </summary>
-        public bool _Contain_CW = false;
+        public bool _Contain_CW { get; set; } = false;
         /// <summary>
         /// Reply指定
         /// </summary>
-        public bool _Match_Reply = false;
+        public bool _Match_Reply { get; set; } = false;
         /// <summary>
         /// Replyを含める
         /// </summary>
-        public bool _Contain_Reply = false;
+        public bool _Contain_Reply { get; set; } = false;
         /// <summary>
         /// RN指定
         /// </summary>
-        public bool _Match_RN = false;
+        public bool _Match_RN { get; set; } = false;
         /// <summary>
         /// ReNoteを含める
         /// </summary>
-        public bool _Contain_RN = false;
+        public bool _Contain_RN { get; set; } = false;
 
         private TimeLineContainer? _containerBacking;
         public TimeLineContainer? _Container
@@ -1424,8 +1497,15 @@ namespace MiView.Common.TimeLine
             set => _containerBacking = value;
         }
 
-        public TimeLineFilterlingOption()
+        public TimeLineFilterlingOption(string? FilterName = null)
         {
+            this.FilterDefinition = Guid.NewGuid().ToString();
+            this.FilterName = FilterName ?? "新しいフィルター";
+        }
+        public void SetNewDefinition()
+        {
+            this.FilterDefinition = Guid.NewGuid().ToString();
+            this.FilterName = FilterName == null ? "新しいフィルター" : FilterName + " のコピー";
         }
 
         public bool FilterResult()

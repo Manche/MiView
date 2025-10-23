@@ -20,6 +20,7 @@ namespace MiView.Common.Setting
         public required List<TimeLineAlertOption> AlertOptions { get; set; }
         public static SettingTimeLine ConvertDataGridTimeLineToSettingObj(DataGridTimeLine WSTimeLine)
         {
+            WSTimeLine._FilteringOptions.ForEach(r => { r._Container = null; });
             return new SettingTimeLine()
             {
                 Definition = WSTimeLine._Definition,

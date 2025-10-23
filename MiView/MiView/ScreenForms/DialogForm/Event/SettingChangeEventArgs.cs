@@ -23,6 +23,10 @@ namespace MiView.ScreenForms.DialogForm.Event
         /// </summary>
         public DataGridTimeLine? _GridTimeLine { get; set; }
         /// <summary>
+        /// DataGridTimeLines
+        /// </summary>
+        public Dictionary<string, DataGridTimeLine>? _GridTimeLines { get; set; }
+        /// <summary>
         /// 統合TLへの反映をするかどうか
         /// </summary>
         public bool? UpdateIntg { get; set; } = null;

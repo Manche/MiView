@@ -1,12 +1,15 @@
 ﻿using MiView.Common.Connection.WebSocket;
+using MiView.Common.Setting;
 using MiView.Common.TimeLine;
 using MiView.Common.Util;
+using MiView.ScreenForms.Controls.Combo;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Diagnostics;
+using System.DirectoryServices;
 using System.Drawing;
 using System.Linq;
 using System.Reflection;
@@ -27,12 +30,17 @@ namespace MiView.ScreenForms.DialogForm.Setting
         public DataGridTimeLine? _TimeLine = null;
         private const string CtlMatchField_Prefix = "_Match_";
         private const string CtlPatternField_Prefix = "_Pattern_";
+        private const string CtlContainField_Prefix = "_Contain_";
         private const string CtlField_Suffix = "_Name";
         private static string[] CtlName_Basics = {  "UserId",
                                                      "UserName",
                                                      "Detail",
                                                      "Software",
                                                      "ChannelName"};
+        private static string[] CtlName_Flgs = {"CW",
+                                                "Reply",
+                                                "RN"
+                                                };
 
         public TimeLineFilterSetting()
         {
@@ -89,6 +97,53 @@ namespace MiView.ScreenForms.DialogForm.Setting
             int RightPos = 0;
 
             // 入力系項目
+            // 個別設定
+            object? ctobj;
+            string scBasic;
+
+            // 公開範囲
+            scBasic = "Protected";
+            ctobj = ClassUtil.GetConstValue(typeof(TimeLineFilterlingOption), CtlMatchField_Prefix + scBasic + CtlField_Suffix);
+            if (ctobj != null)
+            {
+                // ラベル
+                System.Windows.Forms.Label TmLabel = new System.Windows.Forms.Label()
+                {
+                    Text = ctobj.ToString(),
+                    Name = "lbl" + CtlMatchField_Prefix + scBasic + CtlField_Suffix,
+                    Location = new Point(RightPos, StartYPos),
+                    AutoSize = true
+                };
+                this.pnFilter.Controls.Add(TmLabel);
+                RightPos += TmLabel.Location.X + TmLabel.Width;
+
+                // 有効にする
+                System.Windows.Forms.CheckBox TmCheck = new System.Windows.Forms.CheckBox()
+                {
+                    Text = "有効にする",
+                    Name = "chk" + CtlMatchField_Prefix + scBasic + CtlField_Suffix,
+                    Location = new Point(RightPos, StartYPos),
+                    Checked = false
+                };
+                this.pnFilter.Controls.Add(TmCheck);
+                RightPos += TmLabel.Location.X + TmCheck.Width;
+
+                // コンボボックス
+                System.Windows.Forms.ComboBox TmCombo = new System.Windows.Forms.ComboBox()
+                {
+                    Name = "cmb" + CtlMatchField_Prefix + scBasic + CtlField_Suffix,
+                    Location = new Point(RightPos, StartYPos),
+                    DropDownStyle = ComboBoxStyle.DropDownList,
+                };
+                var Enums = Enum.GetValues(typeof(TimeLineContainer.PROTECTED_STATUS)).Cast<TimeLineContainer.PROTECTED_STATUS>().ToList();
+                TmCombo.Items.AddRange(Enums.Select(r => { return new CmbGeneric(r, TimeLineContainer.Protected_Disp[r]); }).ToArray());
+                this.pnFilter.Controls.Add(TmCombo);
+                StartYPos += TmCombo.Height + 5;
+                RightPos += TmLabel.Location.X + TmCombo.Width;
+
+                RightPos = 0;
+            }
+
             // 見出しラベル
             CtlLabels = CtlName_Basics.Select(sBasic =>
             {
@@ -102,7 +157,7 @@ namespace MiView.ScreenForms.DialogForm.Setting
                     Text = ct.ToString(),
                     Name = "lbl" + sBasic,
                     Location = new Point(0, StartYPos + (CtlName_Basics.ToList().IndexOf(sBasic) * 30)),
-                    BorderStyle = BorderStyle.FixedSingle,
+                    //BorderStyle = BorderStyle.FixedSingle,
                     AutoSize = true,
                 };
             }).ToList();
@@ -150,6 +205,54 @@ namespace MiView.ScreenForms.DialogForm.Setting
             CtlCombos.ForEach(r => { this.pnFilter.Controls.Add(r); });
             RightPos = CtlCombos.Max(r => { return r.Location.X + r.Size.Width; }) + 5;
 
+            StartYPos += CtlName_Basics.Count() * 30;
+            // 見出しラベル
+            CtlLabels = CtlName_Flgs.Select(sBasic =>
+            {
+                var ct = ClassUtil.GetConstValue(typeof(TimeLineFilterlingOption), CtlMatchField_Prefix + sBasic + CtlField_Suffix);
+                if (ct == null)
+                {
+                    return null;
+                }
+                return new System.Windows.Forms.Label()
+                {
+                    Text = ct.ToString(),
+                    Name = "lbl" + sBasic,
+                    Location = new Point(0, StartYPos + (CtlName_Flgs.ToList().IndexOf(sBasic) * 30)),
+                    //BorderStyle = BorderStyle.FixedSingle,
+                    AutoSize = true,
+                };
+            }).ToList();
+            CtlLabels.ForEach(r => { this.pnFilter.Controls.Add(r); });
+            RightPos = CtlLabels.Max(r => { return r.Location.X + r.Size.Width; }) + 5;
+
+            // 有効かどうかのチェック
+            CtlChecks = CtlName_Flgs.Select(sBasic =>
+            {
+                return new System.Windows.Forms.CheckBox()
+                {
+                    Text = "有効にする",
+                    Name = "chk" + CtlMatchField_Prefix + sBasic + CtlField_Suffix,
+                    Location = new Point(RightPos, StartYPos + (CtlName_Flgs.ToList().IndexOf(sBasic) * 30)),
+                    Checked = false
+                };
+            }).ToList();
+            CtlChecks.ForEach(r => { this.pnFilter.Controls.Add(r); });
+            RightPos = CtlChecks.Max(r => { return r.Location.X + r.Size.Width; }) + 5;
+
+            // 含めるどうかのチェック
+            CtlChecks = CtlName_Flgs.Select(sBasic =>
+            {
+                return new System.Windows.Forms.CheckBox()
+                {
+                    Text = "含める",
+                    Name = "chk" + CtlContainField_Prefix + sBasic + CtlField_Suffix,
+                    Location = new Point(RightPos, StartYPos + (CtlName_Flgs.ToList().IndexOf(sBasic) * 30)),
+                    Checked = false
+                };
+            }).ToList();
+            CtlChecks.ForEach(r => { this.pnFilter.Controls.Add(r); });
+            RightPos = CtlChecks.Max(r => { return r.Location.X + r.Size.Width; }) + 5;
         }
 
         private void ttt(object? sender, EventArgs ag)
@@ -205,6 +308,52 @@ namespace MiView.ScreenForms.DialogForm.Setting
 
         private void SetFilterProperty(TimeLineFilterlingOption? FilterOption = null)
         {
+            /**
+             * 
+                // 有効にする
+                System.Windows.Forms.CheckBox TmCheck = new System.Windows.Forms.CheckBox()
+                {
+                    Text = "有効にする",
+                    Name = "chk" + CtlMatchField_Prefix + scBasic + CtlField_Suffix,
+                    Location = new Point(RightPos, StartYPos),
+                    Checked = false
+                };
+                this.pnFilter.Controls.Add(TmCheck);
+                RightPos += TmLabel.Location.X + TmCheck.Width;
+
+                // コンボボックス
+                System.Windows.Forms.ComboBox TmCombo = new System.Windows.Forms.ComboBox()
+                {
+                    Name = "cmb" + CtlMatchField_Prefix + scBasic + CtlField_Suffix,
+                    Location = new Point(RightPos, StartYPos),
+                    DropDownStyle = ComboBoxStyle.DropDownList,
+                };
+                var Enums = Enum.GetValues(typeof(TimeLineContainer.PROTECTED_STATUS)).Cast<TimeLineContainer.PROTECTED_STATUS>().ToList();
+                TmCombo.Items.AddRange(Enums.Select(r => { return new CmbGeneric(r, TimeLineContainer.Protected_Disp[r]); }).ToArray());
+             * 
+             * 
+             */
+            string scBasic = "";
+            object scValue = null;
+            string scName = null;
+
+            try
+            {
+                if (FilterOption != null)
+                {
+                    scBasic = "Protected";
+                    scValue = (TimeLineContainer.PROTECTED_STATUS)typeof(TimeLineFilterlingOption).GetProperty("_" + scBasic)?.GetValue(FilterOption);
+                    scName = TimeLineContainer.Protected_Disp[(TimeLineContainer.PROTECTED_STATUS)scValue];
+                    ((System.Windows.Forms.ComboBox)this.pnFilter.Controls.Find("cmb" + CtlMatchField_Prefix + scBasic + CtlField_Suffix, false)[0]).SelectedItem
+                        = new CmbGeneric(scValue, scName);
+                    ((System.Windows.Forms.CheckBox)this.pnFilter.Controls.Find("chk" + CtlMatchField_Prefix + scBasic + CtlField_Suffix, false)[0]).Checked
+                        = (bool?)typeof(TimeLineFilterlingOption).GetProperty(CtlMatchField_Prefix + scBasic)?.GetValue(FilterOption) ?? false;
+                }
+            }
+            catch
+            {
+            }
+
             foreach (string CtlName in CtlName_Basics)
             {
                 if (FilterOption != null)
@@ -229,6 +378,23 @@ namespace MiView.ScreenForms.DialogForm.Setting
                     ((System.Windows.Forms.CheckBox)this.pnFilter.Controls.Find("chk" + CtlMatchField_Prefix + CtlName + CtlField_Suffix, false)[0]).Checked = false;
                     ((System.Windows.Forms.TextBox)this.pnFilter.Controls.Find("txt" + CtlMatchField_Prefix + CtlName + CtlField_Suffix, false)[0]).Text = string.Empty;
                     ((System.Windows.Forms.ComboBox)this.pnFilter.Controls.Find("cmb" + CtlMatchField_Prefix + CtlName + CtlField_Suffix, false)[0]).SelectedItem = new TimeLineMatchCombo(TimeLineFilterlingOption.MATCH_MODE.NONE);
+                }
+            }
+            foreach (string CtlName in CtlName_Flgs)
+            {
+                if (FilterOption != null)
+                {
+                    // フィルタ設定がある
+                    ((System.Windows.Forms.CheckBox)this.pnFilter.Controls.Find("chk" + CtlMatchField_Prefix + CtlName + CtlField_Suffix, false)[0]).Checked
+                        = (bool?)typeof(TimeLineFilterlingOption).GetProperty(CtlMatchField_Prefix + CtlName)?.GetValue(FilterOption) ?? false;
+                    ((System.Windows.Forms.CheckBox)this.pnFilter.Controls.Find("chk" + CtlContainField_Prefix + CtlName + CtlField_Suffix, false)[0]).Checked
+                        = (bool?)typeof(TimeLineFilterlingOption).GetProperty(CtlContainField_Prefix + CtlName)?.GetValue(FilterOption) ?? false;
+                }
+                else
+                {
+                    // フィルタ設定がない
+                    ((System.Windows.Forms.CheckBox)this.pnFilter.Controls.Find("chk" + CtlMatchField_Prefix + CtlName + CtlField_Suffix, false)[0]).Checked = false;
+                    ((System.Windows.Forms.CheckBox)this.pnFilter.Controls.Find("chk" + CtlContainField_Prefix + CtlName + CtlField_Suffix, false)[0]).Checked = false;
                 }
             }
         }
@@ -269,6 +435,21 @@ namespace MiView.ScreenForms.DialogForm.Setting
 
         private void SaveFilterProperty(ref TimeLineFilterlingOption FilterOption)
         {
+            string scBasic = "";
+            object scValue = null;
+            string scName = null;
+
+            try
+            {
+                scBasic = "Protected";
+                scValue = ((TimeLineContainer.PROTECTED_STATUS)((CmbGeneric)((System.Windows.Forms.ComboBox)this.pnFilter.Controls.Find("cmb" + CtlMatchField_Prefix + scBasic + CtlField_Suffix, false)[0]).SelectedItem).Key);
+                typeof(TimeLineFilterlingOption).GetProperty("_" + scBasic).SetValue(FilterOption, scValue);
+                typeof(TimeLineFilterlingOption).GetProperty(CtlMatchField_Prefix + scBasic)?.SetValue(FilterOption, ((System.Windows.Forms.CheckBox)this.pnFilter.Controls.Find("chk" + CtlMatchField_Prefix + scBasic + CtlField_Suffix, false)[0]).Checked);
+            }
+            catch
+            {
+            }
+
             foreach (string CtlName in CtlName_Basics)
             {
                 try
@@ -277,6 +458,17 @@ namespace MiView.ScreenForms.DialogForm.Setting
                     // カンマ区切りはちょっと微妙なので対策考える
                     typeof(TimeLineFilterlingOption).GetProperty("_" + CtlName)?.SetValue(FilterOption, ((System.Windows.Forms.TextBox)this.pnFilter.Controls.Find("txt" + CtlMatchField_Prefix + CtlName + CtlField_Suffix, false)[0]).Text.Split(',').ToList());
                     typeof(TimeLineFilterlingOption).GetProperty(CtlPatternField_Prefix + CtlName)?.SetValue(FilterOption, ((TimeLinePatternCombo)((System.Windows.Forms.ComboBox)this.pnFilter.Controls.Find("cmb" + CtlMatchField_Prefix + CtlName + CtlField_Suffix, false)[0]).SelectedItem ?? new TimeLinePatternCombo(TimeLineFilterlingOption.MATCHER_PATTERN.NONE)).MATCHER_PATTERN);
+                }
+                catch
+                {
+                }
+            }
+            foreach (string CtlName in CtlName_Flgs)
+            {
+                try
+                {
+                    typeof(TimeLineFilterlingOption).GetProperty(CtlMatchField_Prefix + CtlName)?.SetValue(FilterOption, ((System.Windows.Forms.CheckBox)this.pnFilter.Controls.Find("chk" + CtlMatchField_Prefix + CtlName + CtlField_Suffix, false)[0]).Checked);
+                    typeof(TimeLineFilterlingOption).GetProperty(CtlContainField_Prefix + CtlName)?.SetValue(FilterOption, ((System.Windows.Forms.CheckBox)this.pnFilter.Controls.Find("chk" + CtlContainField_Prefix + CtlName + CtlField_Suffix, false)[0]).Checked);
                 }
                 catch
                 {

@@ -27,10 +27,14 @@ namespace MiView.ScreenForms.DialogForm.Setting
 
         private TimeLineFilterSetting _FilterForm = new TimeLineFilterSetting();
         private APIReflexSetting _ReflexForm = new APIReflexSetting();
+        private AddTimeLine _AddTLForm = new AddTimeLine();
 
         public TimeLineSetting()
         {
             InitializeComponent();
+
+            this.AddTimeLineExecuted += this.AddTimeLineExecute;
+            this._AddTLForm.AddTimeLineExecuted += this.AddTLForm_AddTimeLineExecute;
         }
         public void SetTLList(Dictionary<string, DataGridTimeLine> TLGrids,
                               Dictionary<string, string> TabSets)
@@ -88,7 +92,20 @@ namespace MiView.ScreenForms.DialogForm.Setting
         /// <summary>
         /// 設定変更イベント
         /// </summary>
-        public event EventHandler<SettingChangeEventArgs>? SettingChanged;
+        public event EventHandler<SettingChangeEventArgs> SettingChanged;
+        public event EventHandler<AddTimeLineEventArgs> AddTimeLineExecuted;
+        private void AddTimeLineExecute(object? sender, AddTimeLineEventArgs e)
+        {
+        }
+        private void AddTLForm_AddTimeLineExecute(object? sender, AddTimeLineEventArgs e)
+        {
+            this.AddTimeLineExecuted(sender, e);
+        }
         #endregion
+
+        private void cmdAddTimeLine_Click(object sender, EventArgs e)
+        {
+            this._AddTLForm.ShowDialog();
+        }
     }
 }

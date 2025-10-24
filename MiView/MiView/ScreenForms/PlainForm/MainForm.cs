@@ -86,6 +86,7 @@ namespace MiView
 
             this._APISetting.SettingChanged += SettingFormSettingChanged;
             this._TLSetting.SettingChanged += SettingFormSettingChanged;
+            this._TLSetting.AddTimeLineExecuted += AddDataGridExecuted;
         }
 
         private List<DataGridTimeLine> DGrids = new List<DataGridTimeLine>();
@@ -545,11 +546,11 @@ namespace MiView
             }
         }
 
-        public void AddStaticTimeLine(string TabName, string? AttachDef = null, string? AttachName = null, bool IsFiltered = true)
+        public void AddStaticTimeLine(string TabName, string? AttachDef = null, bool IsFiltered = true)
         {
             if (this.InvokeRequired)
             {
-                this.Invoke(AddStaticTimeLine, TabName, AttachDef, AttachName, IsFiltered);
+                this.Invoke(AddStaticTimeLine, TabName, AttachDef, IsFiltered);
                 return;
             }
 
@@ -561,10 +562,6 @@ namespace MiView
             _TLCreator.CreateTimeLine(ref this.MainFormObj, TabDef, TabName, IsFiltered: IsFiltered);
             _TmpTLManager.Add(TabName, TabDef);
 
-            if (AttachName == null)
-            {
-                return;
-            }
             _TLManager[_TmpTLManager[AttachDef]].SetDataGridTimeLine(_TLCreator.GetTimeLineObjectDirect(ref this.MainFormObj, TabDef));
         }
 
@@ -797,6 +794,19 @@ namespace MiView
                 // 統合TLへの反映をするかどうか
             }
         }
+
+        private void AddDataGridExecuted(object? sender, AddTimeLineEventArgs e)
+        {
+            if (this.InvokeRequired)
+            {
+                this.Invoke(AddDataGridExecuted, sender, e);
+                return;
+            }
+            // タブ追加
+            _TLCreator.CreateTimeLineTab(ref this.MainFormObj, e.TabDefinition, e.TabName);
+            _TLCreator.CreateTimeLine(ref this.MainFormObj, e.TabName, e.TabDefinition, IsFiltered: e.IsFiltered);
+            _TmpTLManager.Add(e.TabDefinition, e.TabName);
+        }
         #endregion
 
         #region フォームイベント
@@ -808,6 +818,10 @@ namespace MiView
                                        .Select(r => { return SettingWebSocket.ConvertWebSocketManagerToSettingObj(r); })
                                        .ToArray();
                 SettingController.SaveWebSockets(n);
+                //var j = this.DGrids.ToArray()
+                //                   .Select(r => { return SettingTimeLine.ConvertDataGridTimeLineToSettingObj(r); })
+                //                   .ToArray();
+                //var j = this.timeline
                 var j = this._TmpTLManager.ToArray()
                                           .Select(r => { return SettingTimeLine.ConvertDataGridTimeLineToSettingObj(_TLCreator.GetTimeLineObjectDirect(ref this.MainFormObj, r.Value)); })
                                           .ToArray();

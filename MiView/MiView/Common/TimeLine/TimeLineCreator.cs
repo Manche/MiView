@@ -1,5 +1,6 @@
 ﻿using MiView.Common.AnalyzeData;
 using MiView.Common.Connection.VersionInfo;
+using MiView.Common.Connection.WebSocket;
 using MiView.Common.Fonts;
 using MiView.Common.Fonts.Material;
 using MiView.Common.Notification;
@@ -640,6 +641,14 @@ namespace MiView.Common.TimeLine
             Follower,
             Direct,
         }
+        public static Dictionary<PROTECTED_STATUS, string> Protected_Disp = new Dictionary<PROTECTED_STATUS, string>()
+        {
+            {PROTECTED_STATUS.Public, "パブリック"},
+            {PROTECTED_STATUS.SemiPublic, "セミパブリック" },
+            {PROTECTED_STATUS.Follower, "フォロワー" },
+            {PROTECTED_STATUS.Direct, "ダイレクトメッセージ" },
+            {PROTECTED_STATUS.Home, "ホーム" }
+        };
 
         public string IDENTIFIED { get; set; } = string.Empty;
         public string ICON { get; set; } = string.Empty;
@@ -1470,6 +1479,10 @@ namespace MiView.Common.TimeLine
         /// </summary>
         public bool _Match_CW { get; set; } = false;
         /// <summary>
+        /// CW指定表示
+        /// </summary>
+        public const string _Match_CW_Name = "CW";
+        /// <summary>
         /// CWを含める
         /// </summary>
         public bool _Contain_CW { get; set; } = false;
@@ -1477,6 +1490,10 @@ namespace MiView.Common.TimeLine
         /// Reply指定
         /// </summary>
         public bool _Match_Reply { get; set; } = false;
+        /// <summary>
+        /// Reply指定表示
+        /// </summary>
+        public const string _Match_Reply_Name = "リプライ";
         /// <summary>
         /// Replyを含める
         /// </summary>
@@ -1486,9 +1503,25 @@ namespace MiView.Common.TimeLine
         /// </summary>
         public bool _Match_RN { get; set; } = false;
         /// <summary>
+        /// RN指定表示
+        /// </summary>
+        public const string _Match_RN_Name = "リノート";
+        /// <summary>
         /// ReNoteを含める
         /// </summary>
         public bool _Contain_RN { get; set; } = false;
+        /// <summary>
+        /// 公開範囲指定
+        /// </summary>
+        public bool _Match_Protected { get; set; } = false;
+        /// <summary>
+        /// 公開範囲表示
+        /// </summary>
+        public const string _Match_Protected_Name = "公開範囲";
+        /// <summary>
+        /// 公開範囲
+        /// </summary>
+        public TimeLineContainer.PROTECTED_STATUS _Protected { get; set; } = TimeLineContainer.PROTECTED_STATUS.Public;
 
         private TimeLineContainer? _containerBacking;
         public TimeLineContainer? _Container
@@ -1514,7 +1547,9 @@ namespace MiView.Common.TimeLine
             switch (_MODE)
             {
                 case MATCH_MODE.ALL:
-                    Result = MatchUserId() &&
+                    Result =
+                           MatchProtected() &&
+                           MatchUserId() &&
                            MatchUserName() &&
                            MatchDetail() &&
                            MatchSoftware() &&
@@ -1524,7 +1559,9 @@ namespace MiView.Common.TimeLine
                            ContainRN();
                     break;
                 case MATCH_MODE.PARTIAL:
-                    Result = MatchUserId() ||
+                    Result =
+                           MatchProtected() ||
+                           MatchUserId() ||
                            MatchUserName() ||
                            MatchDetail() ||
                            MatchSoftware() ||
@@ -1542,6 +1579,15 @@ namespace MiView.Common.TimeLine
             //System.Diagnostics.Debug.WriteLine("チェック結果：" + Result);
 
             return !CONSTRAINT_INVERT ? Result : !Result;
+        }
+
+        public bool MatchProtected()
+        {
+            if (_Container == null)
+            {
+                return true;
+            }
+            return ProtectedComboMatch(_Match_Protected, _Protected, _Container.PROTECTED);
         }
 
         public bool MatchUserId()
@@ -1649,6 +1695,15 @@ namespace MiView.Common.TimeLine
                 return true;
             }
             return _Container.RENOTED;
+        }
+
+        public bool ProtectedComboMatch(bool AppliedMatch, TimeLineContainer.PROTECTED_STATUS Protected, TimeLineContainer.PROTECTED_STATUS Value)
+        {
+            if(AppliedMatch == false)
+            {
+                return true;
+            }
+            return Protected == Value;
         }
 
         public bool ListMatch(bool AppliedMatch, List<string> Patterns, MATCHER_PATTERN Matcher, string Value)

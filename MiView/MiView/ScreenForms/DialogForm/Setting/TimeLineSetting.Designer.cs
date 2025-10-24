@@ -32,6 +32,7 @@
             cmbTimeLineSelect = new ComboBox();
             cmdOpenFilterSetting = new Button();
             cmdOpenReflexTLSetting = new Button();
+            cmdAddTimeLine = new Button();
             SuspendLayout();
             // 
             // label1
@@ -72,11 +73,22 @@
             cmdOpenReflexTLSetting.UseVisualStyleBackColor = true;
             cmdOpenReflexTLSetting.Click += cmdOpenReflexTLSetting_Click;
             // 
+            // cmdAddTimeLine
+            // 
+            cmdAddTimeLine.Location = new Point(12, 102);
+            cmdAddTimeLine.Name = "cmdAddTimeLine";
+            cmdAddTimeLine.Size = new Size(94, 23);
+            cmdAddTimeLine.TabIndex = 7;
+            cmdAddTimeLine.Text = "タイムライン追加";
+            cmdAddTimeLine.UseVisualStyleBackColor = true;
+            cmdAddTimeLine.Click += cmdAddTimeLine_Click;
+            // 
             // TimeLineSetting
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(800, 104);
+            ClientSize = new Size(800, 137);
+            Controls.Add(cmdAddTimeLine);
             Controls.Add(cmdOpenReflexTLSetting);
             Controls.Add(cmdOpenFilterSetting);
             Controls.Add(cmbTimeLineSelect);
@@ -93,5 +105,6 @@
         private ComboBox cmbTimeLineSelect;
         private Button cmdOpenFilterSetting;
         private Button cmdOpenReflexTLSetting;
+        private Button cmdAddTimeLine;
     }
 }

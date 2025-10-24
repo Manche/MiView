@@ -133,41 +133,6 @@ namespace MiView.ScreenForms.DialogForm.Setting
             };
             SetStatus(new List<APIStatusDispData>() { APIDisp });
             LoadSettingWSManager(CurrentWSManager);
-
-
-            //System.Diagnostics.Debug.WriteLine(SelectedDefinition);
-            //if (this._TmpTLManager.ContainsKey(SelectedDefinition))
-            //{
-            //    _CurrentTabDefinition = this._TmpTLManager[SelectedItem.ToString()];
-
-            //    WebSocketManager? WStimeLine = null;
-            //    if (this._TLManager.ContainsKey(this._TmpTLManager[SelectedItem.ToString()]))
-            //    {
-            //        SetTLManagerData(this._TLManager[this._TmpTLManager[SelectedItem.ToString()]],
-            //                         (this._TLGrid.ContainsKey(SelectedItem.ToString()) ? this._TLGrid[SelectedItem.ToString()] : null));
-            //        WStimeLine = this._TLManager[_CurrentTabDefinition];
-
-            //        APIStatusDispData APIDisp = new APIStatusDispData()
-            //        {
-            //            _TabDefinition = this._TmpTLManager[SelectedItem.ToString()],
-            //            _HostUrl = _TLManager[this._TmpTLManager[SelectedItem.ToString()]]._Host,
-            //            _Host = _TLManager[this._TmpTLManager[SelectedItem.ToString()]]._HostUrl,
-            //            _ConnectStatus = _TLManager[this._TmpTLManager[SelectedItem.ToString()]].GetSocketState() == System.Net.WebSockets.WebSocketState.Open && _TLManager[this._TmpTLManager[SelectedItem.ToString()]]._IsOpenTimeLine,
-            //            _LastReceived = _TLManager[this._TmpTLManager[SelectedItem.ToString()]]._LastDataReceived,
-            //            _ConnectionClosed = _TLManager[this._TmpTLManager[SelectedItem.ToString()]]._ConnectionClosed
-            //        };
-            //        SetStatus(new List<APIStatusDispData>() { APIDisp });
-
-            //    }
-            //    DataGridTimeLine? Grid = null;
-            //    if (this._TLGrid.ContainsKey(_CurrentTabDefinition))
-            //    {
-            //        Grid = this._TLGrid[_CurrentTabDefinition];
-            //    }
-            //    LoadSettingWSManager(WStimeLine, Grid);
-
-            //    System.Diagnostics.Debug.WriteLine(this._TmpTLManager[SelectedItem.ToString()]);
-            //}
         }
 
         public void SetStatus(List<APIStatusDispData> APIDisps)

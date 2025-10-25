@@ -85,11 +85,6 @@ namespace MiView
             this._TLSetting.DeleteTimeLineExecuted += DeleteDataGridExecuted;
         }
 
-        private List<DataGridTimeLine> DGrids = new List<DataGridTimeLine>();
-        private void TabUpdate()
-        {
-        }
-
         private void MainForm_Load(object sender, EventArgs e)
         {
             _TLCreator.CreateTimeLine(ref this.MainFormObj, "Main", "tpMain");

@@ -99,6 +99,7 @@ namespace MiView.ScreenForms.DialogForm.Setting
         }
         private void AddTLForm_AddTimeLineExecute(object? sender, AddTimeLineEventArgs e)
         {
+            this.cmbTimeLineSelect.Items.Add(new TimeLineCombo(e.TabName, e.TabDefinition));
             this.AddTimeLineExecuted(sender, e);
         }
         #endregion

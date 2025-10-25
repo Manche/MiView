@@ -1322,7 +1322,7 @@ namespace MiView.Common.TimeLine
                     return null;
             }
         }
-        public MATCH_MODE _MODE = MATCH_MODE.NONE;
+        public MATCH_MODE _MODE { get; set; } = MATCH_MODE.NONE;
 
         /// <summary>
         /// 一致方法指定

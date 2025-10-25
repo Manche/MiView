@@ -297,7 +297,23 @@ namespace MiView.ScreenForms.DialogForm.Setting
             }
             this.txtFilterDefinition.Text = _CurrentFilter.FilterDefinition;
             this.txtFilterName.Text = _CurrentFilter.FilterName;
-            this.cmbMatchMode.SelectedItem = new TimeLineMatchCombo(_CurrentFilter._MODE);
+            //this.cmbMatchMode.SelectedItem = new TimeLineMatchCombo(_CurrentFilter._MODE);
+            this.cmbMatchMode.SelectedItem = this.cmbMatchMode.Items
+                                                 .Cast<TimeLineMatchCombo>()
+                                                 .ToList()
+                                                 .Find(r => { return r.MatchMode == _CurrentFilter._MODE; });
+            
+            
+            //var cmKey = (MATCHER_PATTERN?)typeof(TimeLineFilterlingOption).GetProperty(CtlPatternField_Prefix + CtlName)?.GetValue(FilterOption) ?? MATCHER_PATTERN.NONE;
+            //var cmItem = ((System.Windows.Forms.ComboBox)this.pnFilter
+            //                                                 .Controls
+            //                                                 .Find("cmb" + CtlMatchField_Prefix + CtlName + CtlField_Suffix, false)[0])
+            //                                                    .Items
+            //                                                    .Cast<TimeLinePatternCombo>()
+            //                                                    .ToList()
+            //                                                    .Find(r => { return r.MATCHER_PATTERN == cmKey; });
+            //((System.Windows.Forms.ComboBox)this.pnFilter.Controls.Find("cmb" + CtlMatchField_Prefix + CtlName + CtlField_Suffix, false)[0]).SelectedItem
+            //    = cmItem;
             this.SetFilterProperty(_CurrentFilter);
             this.pnFilter.Enabled = true;
 
@@ -336,6 +352,8 @@ namespace MiView.ScreenForms.DialogForm.Setting
             string scBasic = "";
             object scValue = null;
             string scName = null;
+            System.Windows.Forms.ComboBox scCombo;
+            System.Windows.Forms.ComboBox.ObjectCollection scComboItem;
 
             try
             {
@@ -344,8 +362,12 @@ namespace MiView.ScreenForms.DialogForm.Setting
                     scBasic = "Protected";
                     scValue = (TimeLineContainer.PROTECTED_STATUS)typeof(TimeLineFilterlingOption).GetProperty("_" + scBasic)?.GetValue(FilterOption);
                     scName = TimeLineContainer.Protected_Disp[(TimeLineContainer.PROTECTED_STATUS)scValue];
-                    ((System.Windows.Forms.ComboBox)this.pnFilter.Controls.Find("cmb" + CtlMatchField_Prefix + scBasic + CtlField_Suffix, false)[0]).SelectedItem
-                        = new CmbGeneric(scValue, scName);
+                    scCombo = (System.Windows.Forms.ComboBox)this.pnFilter.Controls.Find("cmb" + CtlMatchField_Prefix + scBasic + CtlField_Suffix, false)[0];
+                    scComboItem = scCombo.Items;
+
+                    scCombo.SelectedItem = scComboItem.Cast<CmbGeneric>().ToList().Find(x => { return x.Key?.ToString() == scValue.ToString(); });
+                    //.SelectedItem
+                    //    = new CmbGeneric(scValue, scName);
                     ((System.Windows.Forms.CheckBox)this.pnFilter.Controls.Find("chk" + CtlMatchField_Prefix + scBasic + CtlField_Suffix, false)[0]).Checked
                         = (bool?)typeof(TimeLineFilterlingOption).GetProperty(CtlMatchField_Prefix + scBasic)?.GetValue(FilterOption) ?? false;
                 }
@@ -365,8 +387,16 @@ namespace MiView.ScreenForms.DialogForm.Setting
                             = (bool?)typeof(TimeLineFilterlingOption).GetProperty(CtlMatchField_Prefix + CtlName)?.GetValue(FilterOption) ?? false;
                         ((System.Windows.Forms.TextBox)this.pnFilter.Controls.Find("txt" + CtlMatchField_Prefix + CtlName + CtlField_Suffix, false)[0]).Text
                             = string.Join(',', ((List<string>?)typeof(TimeLineFilterlingOption).GetProperty("_" + CtlName)?.GetValue(FilterOption) ?? []));
+                        var cmKey = (MATCHER_PATTERN ?)typeof(TimeLineFilterlingOption).GetProperty(CtlPatternField_Prefix + CtlName)?.GetValue(FilterOption) ?? MATCHER_PATTERN.NONE;
+                        var cmItem = ((System.Windows.Forms.ComboBox)this.pnFilter
+                                                                         .Controls
+                                                                         .Find("cmb" + CtlMatchField_Prefix + CtlName + CtlField_Suffix, false)[0])
+                                                                            .Items
+                                                                            .Cast<TimeLinePatternCombo>()
+                                                                            .ToList()
+                                                                            .Find(r => { return r.MATCHER_PATTERN == cmKey; });
                         ((System.Windows.Forms.ComboBox)this.pnFilter.Controls.Find("cmb" + CtlMatchField_Prefix + CtlName + CtlField_Suffix, false)[0]).SelectedItem
-                            = new TimeLinePatternCombo((MATCHER_PATTERN?)typeof(TimeLineFilterlingOption).GetProperty(CtlPatternField_Prefix + CtlName)?.GetValue(FilterOption) ?? MATCHER_PATTERN.NONE);
+                            = cmItem;
                     }
                     catch
                     {

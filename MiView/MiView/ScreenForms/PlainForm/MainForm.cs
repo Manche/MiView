@@ -805,7 +805,23 @@ namespace MiView
             // ƒ^ƒu’Ç‰Á
             _TLCreator.CreateTimeLineTab(ref this.MainFormObj, e.TabDefinition, e.TabName);
             _TLCreator.CreateTimeLine(ref this.MainFormObj, e.TabName, e.TabDefinition, IsFiltered: e.IsFiltered);
-            _TmpTLManager.Add(e.TabDefinition, e.TabName);
+            _TmpTLManager.Add(e.TabName, e.TabName);
+
+            Dictionary<string, DataGridTimeLine> Grids = new Dictionary<string, DataGridTimeLine>();
+            var MainGrid = _TLCreator.GetTimeLineObjectDirect(ref this.MainFormObj, "Main");
+            Grids.Add("Main", MainGrid);
+            foreach (TabPage tp in this.tbMain.TabPages)
+            {
+                try
+                {
+                    var tpGrid = _TLCreator.GetTimeLineObjectDirect(ref this.MainFormObj, _TmpTLManager[tp.Text]);
+                    Grids.Add(_TmpTLManager[tp.Text], tpGrid);
+                }
+                catch (Exception ex)
+                {
+                }
+            }
+            _TLSetting.SetTLList(Grids, this._TmpTLManager);
         }
         #endregion
 

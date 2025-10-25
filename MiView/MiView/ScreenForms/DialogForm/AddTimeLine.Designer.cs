@@ -91,6 +91,7 @@
             Controls.Add(label1);
             Name = "AddTimeLine";
             Text = "タブ追加";
+            Load += AddTimeLine_Load;
             ResumeLayout(false);
             PerformLayout();
         }

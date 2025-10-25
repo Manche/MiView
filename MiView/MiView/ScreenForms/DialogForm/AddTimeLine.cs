@@ -17,10 +17,6 @@ namespace MiView.ScreenForms.DialogForm
         public AddTimeLine()
         {
             InitializeComponent();
-
-            this.txtTabDefinition.Text = Guid.NewGuid().ToString();
-            this.txtTabName.Text = string.Empty;
-
             this.AddTimeLineExecuted += AddTimeLineExecute;
         }
 
@@ -33,6 +29,12 @@ namespace MiView.ScreenForms.DialogForm
         }
         private void AddTimeLineExecute(object? sender, AddTimeLineEventArgs e)
         {
+        }
+
+        private void AddTimeLine_Load(object sender, EventArgs e)
+        {
+            this.txtTabDefinition.Text = Guid.NewGuid().ToString();
+            this.txtTabName.Text = string.Empty;
         }
     }
 }

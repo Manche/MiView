@@ -23,4 +23,15 @@ namespace MiView.ScreenForms.DialogForm.Event
             IsFiltered = isFiltered;
         }
     }
+
+    public class DeleteTimeLineEventArgs
+    {
+        public string TabDefinition;
+        public string TabName;
+        public DeleteTimeLineEventArgs(string tabDefinition, string tabName)
+        {
+            TabDefinition = tabDefinition;
+            TabName = tabName;
+        }
+    }
 }

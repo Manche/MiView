@@ -33,6 +33,7 @@
             cmdOpenFilterSetting = new Button();
             cmdOpenReflexTLSetting = new Button();
             cmdAddTimeLine = new Button();
+            cmdDeleteTimeLine = new Button();
             SuspendLayout();
             // 
             // label1
@@ -83,11 +84,22 @@
             cmdAddTimeLine.UseVisualStyleBackColor = true;
             cmdAddTimeLine.Click += cmdAddTimeLine_Click;
             // 
+            // cmdDeleteTimeLine
+            // 
+            cmdDeleteTimeLine.Location = new Point(112, 102);
+            cmdDeleteTimeLine.Name = "cmdDeleteTimeLine";
+            cmdDeleteTimeLine.Size = new Size(94, 23);
+            cmdDeleteTimeLine.TabIndex = 7;
+            cmdDeleteTimeLine.Text = "タイムライン削除";
+            cmdDeleteTimeLine.UseVisualStyleBackColor = true;
+            cmdDeleteTimeLine.Click += cmdDeleteTimeLine_Click;
+            // 
             // TimeLineSetting
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(800, 137);
+            Controls.Add(cmdDeleteTimeLine);
             Controls.Add(cmdAddTimeLine);
             Controls.Add(cmdOpenReflexTLSetting);
             Controls.Add(cmdOpenFilterSetting);
@@ -106,5 +118,6 @@
         private Button cmdOpenFilterSetting;
         private Button cmdOpenReflexTLSetting;
         private Button cmdAddTimeLine;
+        private Button cmdDeleteTimeLine;
     }
 }

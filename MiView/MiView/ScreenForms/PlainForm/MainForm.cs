@@ -87,6 +87,7 @@ namespace MiView
             this._APISetting.SettingChanged += SettingFormSettingChanged;
             this._TLSetting.SettingChanged += SettingFormSettingChanged;
             this._TLSetting.AddTimeLineExecuted += AddDataGridExecuted;
+            this._TLSetting.DeleteTimeLineExecuted += DeleteDataGridExecuted;
         }
 
         private List<DataGridTimeLine> DGrids = new List<DataGridTimeLine>();
@@ -473,7 +474,7 @@ namespace MiView
                 _TLCreator.CreateTimeLine(ref this.MainFormObj, WSTimeLine.Definition, WSTimeLine.Definition, IsFiltered: WSTimeLine.IsFiltered);
                 _TLCreator.GetGrid(WSTimeLine.Definition)._FilteringOptions = WSTimeLine.FilteringOptions;
                 _TLCreator.GetGrid(WSTimeLine.Definition)._AlertOptions = WSTimeLine.AlertOptions;
-                _TmpTLManager.Add(WSTimeLine.TabName, WSTimeLine.Definition);
+                _TmpTLManager.Add(WSTimeLine.Definition, WSTimeLine.TabName);
             }
         }
         public void LoadWebSocketManually(SettingWebSocket[] WSManagers)
@@ -804,8 +805,8 @@ namespace MiView
             }
             // ƒ^ƒu’Ç‰Á
             _TLCreator.CreateTimeLineTab(ref this.MainFormObj, e.TabDefinition, e.TabName);
-            _TLCreator.CreateTimeLine(ref this.MainFormObj, e.TabName, e.TabDefinition, IsFiltered: e.IsFiltered);
-            _TmpTLManager.Add(e.TabName, e.TabName);
+            _TLCreator.CreateTimeLine(ref this.MainFormObj, e.TabDefinition, e.TabDefinition, IsFiltered: e.IsFiltered);
+            _TmpTLManager.Add(e.TabDefinition, e.TabName);
 
             Dictionary<string, DataGridTimeLine> Grids = new Dictionary<string, DataGridTimeLine>();
             var MainGrid = _TLCreator.GetTimeLineObjectDirect(ref this.MainFormObj, "Main");
@@ -814,8 +815,46 @@ namespace MiView
             {
                 try
                 {
-                    var tpGrid = _TLCreator.GetTimeLineObjectDirect(ref this.MainFormObj, _TmpTLManager[tp.Text]);
-                    Grids.Add(_TmpTLManager[tp.Text], tpGrid);
+                    var tpGrid = _TLCreator.GetTimeLineObjectDirect(ref this.MainFormObj, tp.Name);
+                    Grids.Add(tp.Name, tpGrid);
+                }
+                catch (Exception ex)
+                {
+                }
+            }
+            _TLSetting.SetTLList(Grids, this._TmpTLManager);
+        }
+
+        private void DeleteDataGridExecuted(object? sender, DeleteTimeLineEventArgs e)
+        {
+            if (this.InvokeRequired)
+            {
+                this.Invoke(DeleteDataGridExecuted, sender, e);
+                return;
+            }
+
+            foreach (var WSM in this._TLManager)
+            {
+                if (WSM.Value.TimeLineObject == null)
+                {
+                    continue;
+                }
+                WSM.Value.SetTimeLineObject(WSM.Value.TimeLineObject.ToList().FindAll(r => { return r._Definition != e.TabDefinition; }).ToArray());
+            }
+
+            _TLCreator.DeleteTimeLine(ref this.MainFormObj, e.TabDefinition);
+            _TLCreator.RemoveTimeLineTab(ref this.MainFormObj, e.TabDefinition);
+            _TmpTLManager.Remove(e.TabName);
+
+            Dictionary<string, DataGridTimeLine> Grids = new Dictionary<string, DataGridTimeLine>();
+            var MainGrid = _TLCreator.GetTimeLineObjectDirect(ref this.MainFormObj, "Main");
+            Grids.Add("Main", MainGrid);
+            foreach (TabPage tp in this.tbMain.TabPages)
+            {
+                try
+                {
+                    var tpGrid = _TLCreator.GetTimeLineObjectDirect(ref this.MainFormObj, tp.Name);
+                    Grids.Add(tp.Name, tpGrid);
                 }
                 catch (Exception ex)
                 {
@@ -864,8 +903,8 @@ namespace MiView
             {
                 try
                 {
-                    var tpGrid = _TLCreator.GetTimeLineObjectDirect(ref this.MainFormObj, _TmpTLManager[tp.Text]);
-                    Grids.Add(_TmpTLManager[tp.Text], tpGrid);
+                    var tpGrid = _TLCreator.GetTimeLineObjectDirect(ref this.MainFormObj, tp.Name);
+                    Grids.Add(tp.Name, tpGrid);
                 }
                 catch (Exception ex)
                 {
@@ -890,8 +929,8 @@ namespace MiView
             {
                 try
                 {
-                    var tpGrid = _TLCreator.GetTimeLineObjectDirect(ref this.MainFormObj, _TmpTLManager[tp.Text]);
-                    Grids.Add(_TmpTLManager[tp.Text], tpGrid);
+                    var tpGrid = _TLCreator.GetTimeLineObjectDirect(ref this.MainFormObj, tp.Name);
+                    Grids.Add(tp.Name, tpGrid);
                 }
                 catch (Exception ex)
                 {

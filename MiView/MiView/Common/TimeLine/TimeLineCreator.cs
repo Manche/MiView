@@ -354,6 +354,28 @@ namespace MiView.Common.TimeLine
                 }
             }
         }
+        public void RemoveTimeLineTab(ref MainForm MainForm, string Definition)
+        {
+            var tpObj = GetControlFromMainForm(ref MainForm, null);
+            if (tpObj != null)
+            {
+                TabControl.TabPageCollection tpPages = ((TabControl)tpObj).TabPages;
+                TabPage? tpRemove = tpPages.Cast<TabPage>().ToList().Find(r => { return r.Name == Definition; });
+                if (tpRemove == null)
+                {
+                    return;
+                }
+                ((TabControl)tpObj).TabPages.Remove(tpRemove);
+
+                //var Cnt = tpObj.Controls.Find(Name, false);
+                //if (Cnt == null || Cnt.Length == 0)
+                //{
+                //    return;
+                //}
+                //TabPage tpRemove = (TabPage)Cnt[0];
+                //tpObj.Controls.Remove(tpRemove);
+            }
+        }
 
         private Control? GetControlFromMainForm(ref MainForm MainForm, string? ChildDefinition)
         {

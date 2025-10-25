@@ -35,6 +35,7 @@ namespace MiView.ScreenForms.DialogForm.Setting
 
             this.AddTimeLineExecuted += this.AddTimeLineExecute;
             this._AddTLForm.AddTimeLineExecuted += this.AddTLForm_AddTimeLineExecute;
+            this.DeleteTimeLineExecuted += this.DeleteTimeLineExecute;
         }
         public void SetTLList(Dictionary<string, DataGridTimeLine> TLGrids,
                               Dictionary<string, string> TabSets)
@@ -102,11 +103,38 @@ namespace MiView.ScreenForms.DialogForm.Setting
             this.cmbTimeLineSelect.Items.Add(new TimeLineCombo(e.TabName, e.TabDefinition));
             this.AddTimeLineExecuted(sender, e);
         }
+
+        public event EventHandler<DeleteTimeLineEventArgs> DeleteTimeLineExecuted;
+        private void DeleteTimeLineExecute(object? sender, DeleteTimeLineEventArgs e)
+        {
+        }
         #endregion
 
         private void cmdAddTimeLine_Click(object sender, EventArgs e)
         {
             this._AddTLForm.ShowDialog();
+        }
+
+        private void cmdDeleteTimeLine_Click(object sender, EventArgs e)
+        {
+            var SelectedObj = this.cmbTimeLineSelect.SelectedItem;
+            if (SelectedObj == null)
+            {
+                return;
+            }
+            var SelectedCombo = (TimeLineCombo)SelectedObj;
+            if (SelectedCombo == null)
+            {
+                return;
+            }
+            if (!this._TLGrid.ContainsKey(SelectedCombo.TabDefinition))
+            {
+                // 本来はない
+                MessageBox.Show("エラー！");
+                return;
+            }
+            DeleteTimeLineEventArgs ce = new DeleteTimeLineEventArgs(SelectedCombo.TabDefinition, SelectedCombo.TabName);
+            this.DeleteTimeLineExecuted(sender, ce);
         }
     }
 }

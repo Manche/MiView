@@ -86,8 +86,7 @@ namespace MiView.ScreenForms.DialogForm.Setting
             this.lbltxtLastReceivedDiff.Text = DifTxt;
         }
 
-        public void SetTLManagers(Dictionary<string, WebSocketManager> TLManager,
-                                  Dictionary<string, string> TmpTLManager,
+        public void SetTLManagers(Dictionary<string, string> TmpTLManager,
                                   List<WebSocketManager> WSManager)
         {
             //this._TLManager = TLManager;

@@ -44,12 +44,7 @@ namespace MiView
         private List<WebSocketManager> _WSManager = new List<WebSocketManager>();
 
         /// <summary>
-        /// タイムラインマネージャ
-        /// </summary>
-        private Dictionary<string, WebSocketManager> _TLManager = new Dictionary<string, WebSocketManager>();
-
-        /// <summary>
-        /// 一時タイムラインマネージャ
+        /// タイムラインタブマネージャ
         /// </summary>
         private Dictionary<string, string> _TmpTLManager = new Dictionary<string, string>();
 
@@ -438,7 +433,6 @@ namespace MiView
                 WSManager._IsOpenTimeLine = true;
                 WSManager._LastDataReceived = DateTime.Now;
 
-                _TLManager.Add(TabDef, WSManager);
                 _TmpTLManager.Add(TabName, TabDef);
 
                 //var c = MisskeyAPIController.CreateInstance(MisskeyAPIConst.API_ENDPOINT.NOTES_TIMELINE);
@@ -527,17 +521,6 @@ namespace MiView
                     WSManager._IsOpenTimeLine = true;
                     WSManager._LastDataReceived = DateTime.Now;
 
-                    try
-                    {
-                        string TMTabDef = SWSManager.TimeLineDefinition[1] ?? SWSManager.TimeLineDefinition[0] ?? "";
-                        if (TMTabDef != string.Empty)
-                        {
-                            _TLManager.Add(TMTabDef, WSManager);
-                        }
-                    }
-                    catch (Exception)
-                    {
-                    }
                     this._WSManager.Add(WSManager);
                 }
                 catch (Exception ex)
@@ -545,36 +528,6 @@ namespace MiView
                     System.Diagnostics.Debug.WriteLine(ex);
                 }
             }
-        }
-
-        public void AddStaticTimeLine(string TabName, string? AttachDef = null, bool IsFiltered = true)
-        {
-            if (this.InvokeRequired)
-            {
-                this.Invoke(AddStaticTimeLine, TabName, AttachDef, IsFiltered);
-                return;
-            }
-
-            // タブ識別
-            var TabDef = System.Guid.NewGuid().ToString();
-
-            // タブ追加
-            _TLCreator.CreateTimeLineTab(ref this.MainFormObj, TabDef, TabName);
-            _TLCreator.CreateTimeLine(ref this.MainFormObj, TabDef, TabName, IsFiltered: IsFiltered);
-            _TmpTLManager.Add(TabName, TabDef);
-
-            _TLManager[_TmpTLManager[AttachDef]].SetDataGridTimeLine(_TLCreator.GetTimeLineObjectDirect(ref this.MainFormObj, TabDef));
-        }
-
-        public void AppendStaticTimeLine(string TabName, string AttachDef, string? AttachName = null, bool IsFiltered = true)
-        {
-            if (this.InvokeRequired)
-            {
-                this.Invoke(AddStaticTimeLine, TabName, AttachDef, IsFiltered);
-                return;
-            }
-
-            _TLManager[_TmpTLManager[AttachDef]].SetDataGridTimeLine(_TLCreator.GetTimeLineObjectDirect(ref this.MainFormObj, _TmpTLManager[TabName]));
         }
 
         private void AppendTimelineFilter(string TabName, string AttachDef, TimeLineFilterlingOption FilterOption)
@@ -833,13 +786,13 @@ namespace MiView
                 return;
             }
 
-            foreach (var WSM in this._TLManager)
+            foreach (var WSM in this._WSManager)
             {
-                if (WSM.Value.TimeLineObject == null)
+                if (WSM.TimeLineObject == null)
                 {
                     continue;
                 }
-                WSM.Value.SetTimeLineObject(WSM.Value.TimeLineObject.ToList().FindAll(r => { return r._Definition != e.TabDefinition; }).ToArray());
+                WSM.SetTimeLineObject(WSM.TimeLineObject.ToList().FindAll(r => { return r._Definition != e.TabDefinition; }).ToArray());
             }
 
             _TLCreator.DeleteTimeLine(ref this.MainFormObj, e.TabDefinition);
@@ -911,7 +864,7 @@ namespace MiView
                 }
             }
             _APISetting.SetTLGrids(Grids);
-            _APISetting.SetTLManagers(this._TLManager, this._TmpTLManager, this._WSManager);
+            _APISetting.SetTLManagers(this._TmpTLManager, this._WSManager);
             _APISetting.ShowDialog();
         }
 

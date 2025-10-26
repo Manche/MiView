@@ -50,17 +50,15 @@ namespace MiView.ScreenForms.DialogForm
             if (SelectedTLKind._TLKind == Common.Connection.WebSocket.TimeLineBasic.ConnectTimeLineKind.Home)
             {
                 InputChecked = (txtAPIKey.Text == string.Empty ||
-                                txtInstanceURL.Text == string.Empty ||
-                                txtTabName.Text == string.Empty);
+                                txtInstanceURL.Text == string.Empty);
             }
             else
             {
-                InputChecked = (txtInstanceURL.Text == string.Empty ||
-                                txtTabName.Text == string.Empty);
+                InputChecked = (txtInstanceURL.Text == string.Empty);
             }
             if (InputChecked)
             {
-                MessageBox.Show("インスタンスURLもしくはAPIキー、タブ名称が入力されていません。", "", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show("インスタンスURLもしくはAPIキーが入力されていません。", "", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
 

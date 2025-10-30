@@ -972,7 +972,7 @@ namespace MiView.Common.TimeLine
             try
             {
                 _cntGlobal++;
-                System.Diagnostics.Debug.WriteLine(_cntGlobal);
+                //System.Diagnostics.Debug.WriteLine(_cntGlobal);
 
                 // TL統合
                 var Intg = this._TimeLineData.Cast<TimeLineContainer>().Where(r => r.IDENTIFIED.Equals(Container.IDENTIFIED)).ToArray();
@@ -1047,7 +1047,7 @@ namespace MiView.Common.TimeLine
             {
                 this.ResumeLayout(false);
             }
-            System.Diagnostics.Debug.WriteLine("ttt");
+            //System.Diagnostics.Debug.WriteLine("ttt");
             //this.Refresh();
         }
 
@@ -1106,49 +1106,40 @@ namespace MiView.Common.TimeLine
                     {
                         case TimeLineContainer.PROTECTED_STATUS.Public:
                             this._TimeLineData[RowIndex].PROTECTED_DISP = _Common_Public;
-                            //this.Rows[RowIndex].Cells[(int)TimeLineCreator.TIMELINE_ELEMENT.PROTECTED_DISP].Value
-                            //        = _Common_Public;
                             this.Rows[RowIndex].Cells[(int)TimeLineCreator.TIMELINE_ELEMENT.PROTECTED_DISP].ToolTipText
                                     = "パブリック";
+                            this.Rows[RowIndex].Cells[(int)TimeLineCreator.TIMELINE_ELEMENT.PROTECTED_DISP].Style.ForeColor
+                                    = Color.Black;
                             break;
                         case TimeLineContainer.PROTECTED_STATUS.SemiPublic:
                             this._TimeLineData[RowIndex].PROTECTED_DISP = _Common_Wifi;
-                            //this.Rows[RowIndex].Cells[(int)TimeLineCreator.TIMELINE_ELEMENT.PROTECTED_DISP].Value
-                            //        = _Common_Wifi;
                             this.Rows[RowIndex].Cells[(int)TimeLineCreator.TIMELINE_ELEMENT.PROTECTED_DISP].ToolTipText
                                     = "セミパブリック";
+                            this.Rows[RowIndex].Cells[(int)TimeLineCreator.TIMELINE_ELEMENT.PROTECTED_DISP].Style.ForeColor
+                                    = Color.Pink;
                             break;
                         case TimeLineContainer.PROTECTED_STATUS.Home:
                             this._TimeLineData[RowIndex].PROTECTED_DISP = _Common_Home;
-                            //this.Rows[RowIndex].Cells[(int)TimeLineCreator.TIMELINE_ELEMENT.PROTECTED_DISP].Value
-                            //        = _Common_Home;
                             this.Rows[RowIndex].Cells[(int)TimeLineCreator.TIMELINE_ELEMENT.PROTECTED_DISP].ToolTipText
                                     = "ホーム";
+                            this.Rows[RowIndex].Cells[(int)TimeLineCreator.TIMELINE_ELEMENT.PROTECTED_DISP].Style.ForeColor
+                                    = Color.Blue;
                             break;
                         case TimeLineContainer.PROTECTED_STATUS.Direct:
                             this._TimeLineData[RowIndex].PROTECTED_DISP = _Common_Direct;
-                            //this.Rows[RowIndex].Cells[(int)TimeLineCreator.TIMELINE_ELEMENT.PROTECTED_DISP].Value
-                            //        = _Common_Direct;
                             this.Rows[RowIndex].Cells[(int)TimeLineCreator.TIMELINE_ELEMENT.PROTECTED_DISP].ToolTipText
                                     = "ダイレクトメッセージ";
+                            this.Rows[RowIndex].Cells[(int)TimeLineCreator.TIMELINE_ELEMENT.PROTECTED_DISP].Style.ForeColor
+                                    = Color.Red;
                             break;
                         case TimeLineContainer.PROTECTED_STATUS.Follower:
                             this._TimeLineData[RowIndex].PROTECTED_DISP = _Common_Locked;
-                            //this.Rows[RowIndex].Cells[(int)TimeLineCreator.TIMELINE_ELEMENT.PROTECTED_DISP].Value
-                            //        = _Common_Locked;
                             this.Rows[RowIndex].Cells[(int)TimeLineCreator.TIMELINE_ELEMENT.PROTECTED_DISP].ToolTipText
                                     = "フォロワー";
+                            this.Rows[RowIndex].Cells[(int)TimeLineCreator.TIMELINE_ELEMENT.PROTECTED_DISP].Style.ForeColor
+                                    = Color.Purple;
                             break;
                     }
-                    break;
-                case (int)TimeLineCreator.TIMELINE_ELEMENT.ISLOCAL:
-                    this._TimeLineData[RowIndex].ISLOCAL_DISP
-                    //this.Rows[RowIndex].Cells[(int)TimeLineCreator.TIMELINE_ELEMENT.ISLOCAL_DISP].Value
-                            = (bool)CellValue ? _Common_Rocket : _Common_Rocket_Launch;
-                    this.Rows[RowIndex].Cells[(int)TimeLineCreator.TIMELINE_ELEMENT.ISLOCAL_DISP].ToolTipText
-                            = (bool)CellValue ? "ローカルのみ" : "連合";
-                    this.Rows[RowIndex].Cells[(int)TimeLineCreator.TIMELINE_ELEMENT.ISLOCAL_DISP].Style.ForeColor
-                            = (bool)CellValue ? Color.Red : Color.Green;
                     break;
                 case (int)TimeLineCreator.TIMELINE_ELEMENT.RENOTED:
                     this._TimeLineData[RowIndex].RENOTED_DISP
@@ -1158,6 +1149,15 @@ namespace MiView.Common.TimeLine
                             = (bool)CellValue ? "リノート" : "";
                     this.Rows[RowIndex].Cells[(int)TimeLineCreator.TIMELINE_ELEMENT.RENOTED_DISP].Style.ForeColor
                             = (bool)CellValue ? Color.Green : Color.Red;
+                    break;
+                case (int)TimeLineCreator.TIMELINE_ELEMENT.ISLOCAL:
+                    this._TimeLineData[RowIndex].ISLOCAL_DISP
+                    //this.Rows[RowIndex].Cells[(int)TimeLineCreator.TIMELINE_ELEMENT.ISLOCAL_DISP].Value
+                            = (bool)CellValue ? _Common_Rocket : _Common_Rocket_Launch;
+                    this.Rows[RowIndex].Cells[(int)TimeLineCreator.TIMELINE_ELEMENT.ISLOCAL_DISP].ToolTipText
+                            = (bool)CellValue ? "ローカルのみ" : "連合";
+                    this.Rows[RowIndex].Cells[(int)TimeLineCreator.TIMELINE_ELEMENT.ISLOCAL_DISP].Style.ForeColor
+                            = (bool)CellValue ? Color.Red : Color.Green;
                     break;
                 case (int)TimeLineCreator.TIMELINE_ELEMENT.ISCHANNEL:
                     this._TimeLineData[RowIndex].ISCHANNEL_DISP
@@ -1192,6 +1192,11 @@ namespace MiView.Common.TimeLine
                         {
                             this.Rows[RowIndex].Cells[(int)TimeLineCreator.TIMELINE_ELEMENT.UPDATEDAT].Value = "1900/01/01 00:00:00";
                         }
+                    }
+                    break;
+                case (int)TimeLineCreator.TIMELINE_ELEMENT.SOFTWARE:
+                    if (this._TimeLineData[RowIndex].SOFTWARE == string.Empty)
+                    {
                     }
                     break;
             }
@@ -1784,6 +1789,8 @@ namespace MiView.Common.TimeLine
     /// </summary>
     public class TimeLineAlertOption
     {
+        public string AlertDefinition { get; set; }
+        public string AlertName { get; set; }
         public enum ALERT_TIMING
         {
             NONE = 0,
@@ -1791,12 +1798,18 @@ namespace MiView.Common.TimeLine
             REJECT
         }
 
-        public ALERT_TIMING _Alert_Timing = ALERT_TIMING.NONE;
+        public ALERT_TIMING _Alert_Timing { get; set; } = ALERT_TIMING.NONE;
+        public static Dictionary<ALERT_TIMING, string> TimingName = new Dictionary<ALERT_TIMING, string>()
+        {
+            {ALERT_TIMING.NONE, "" },
+            {ALERT_TIMING.REJECT, "反映された時" },
+            {ALERT_TIMING.ACCEPT, "反映されなかった時" }
+        };
 
         /// <summary>
         /// タイムラインフィルタリング設定
         /// </summary>
-        public List<TimeLineFilterlingOption> _FilterOptions = new List<TimeLineFilterlingOption>();
+        public List<TimeLineFilterlingOption> _FilterOptions { get; set; } = new List<TimeLineFilterlingOption>();
 
         /// <summary>
         /// フィルタ一致モード
@@ -1832,16 +1845,31 @@ namespace MiView.Common.TimeLine
             /// </summary>
             HTTP,
         }
-
-        /// <summary>
-        /// アラート方法設定
-        /// </summary>
-        public List<ALERT_METHOD> _AlertMethods = new List<ALERT_METHOD>();
+        public static Dictionary<ALERT_METHOD, string> AlertNames = new Dictionary<ALERT_METHOD, string>()
+        {
+            {ALERT_METHOD.NONE, "" },
+            {ALERT_METHOD.SHELL, "シェル・ファイル実行" },
+            {ALERT_METHOD.EMAIL, "email" },
+            {ALERT_METHOD.TOAST, "トースト" },
+            {ALERT_METHOD.BALOON, "バルーン" },
+            {ALERT_METHOD.HTTP, "http" }
+        };
 
         /// <summary>
         /// アラート処理本体
         /// </summary>
-        public List<NotificationController> _AlertExecution = new List<NotificationController>();
+        public List<NotificationController> _AlertExecution { get; set; } = new List<NotificationController>();
+
+        public TimeLineAlertOption()
+        {
+            this.AlertDefinition = Guid.NewGuid().ToString();
+            this.AlertName = "新しいアラート";
+        }
+        public void SetNewDefinition()
+        {
+            this.AlertDefinition = Guid.NewGuid().ToString();
+            this.AlertName = AlertName == null ? "新しいアラート" : AlertName + " のコピー";
+        }
 
         /// <summary>
         /// アラート実行

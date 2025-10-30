@@ -53,7 +53,9 @@ namespace MiView.Common.AnalyzeData
                 Container.ISLOCAL = false;
             }
             Container.RENOTED = JsonConverterCommon.GetStr(ChannelToTimeLineData.Get(Input).Note.RenoteId) != string.Empty;
-            Container.REPLAYED = JsonConverterCommon.GetStr(ChannelToTimeLineData.Get(Input).Note.ReplyId) != string.Empty;
+            Container.REPLAYED = (JsonConverterCommon.GetStr(ChannelToTimeLineData.Get(Input).Note.ReplyId) != string.Empty) ||
+                                 (JsonConverterCommon.GetStr(ChannelToTimeLineData.Get(Input).Note.RenoteId) != string.Empty &&
+                                  JsonConverterCommon.GetStr(ChannelToTimeLineData.Get(Input).Note.Text) != string.Empty);
             // Container.CW = JsonConverterCommon.GetStr(ChannelToTimeLineData.Note(Input).CW) != string.Empty;
             Container.ISCHANNEL = JsonConverterCommon.GetStr(ChannelToTimeLineData.Get(Input).Note.ChannelId) != string.Empty;
             Container.CHANNEL_NAME = JsonConverterCommon.GetStr(ChannelToTimeLineData.Get(Input).Note.Channel.Name);

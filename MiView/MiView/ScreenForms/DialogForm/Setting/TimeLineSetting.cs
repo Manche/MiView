@@ -26,6 +26,7 @@ namespace MiView.ScreenForms.DialogForm.Setting
         private TimeLineCreator _TLCreator = new TimeLineCreator();
 
         private TimeLineFilterSetting _FilterForm = new TimeLineFilterSetting();
+        private TimeLineAlertSetting _AlertForm = new TimeLineAlertSetting();
         private APIReflexSetting _ReflexForm = new APIReflexSetting();
         private AddTimeLine _AddTLForm = new AddTimeLine();
 
@@ -67,6 +68,28 @@ namespace MiView.ScreenForms.DialogForm.Setting
             }
             this._FilterForm.SetTimeLineData(this._TLGrid[SelectedCombo.TabDefinition]);
             this._FilterForm.ShowDialog();
+        }
+
+        private void cmdOpenAlertSetting_Click(object sender, EventArgs e)
+        {
+            var SelectedObj = this.cmbTimeLineSelect.SelectedItem;
+            if (SelectedObj == null)
+            {
+                return;
+            }
+            var SelectedCombo = (TimeLineCombo)SelectedObj;
+            if (SelectedCombo == null)
+            {
+                return;
+            }
+            if (!this._TLGrid.ContainsKey(SelectedCombo.TabDefinition))
+            {
+                // 本来はない
+                MessageBox.Show("エラー！");
+                return;
+            }
+            this._AlertForm.SetAlertData(this._TLGrid[SelectedCombo.TabDefinition]);
+            this._AlertForm.ShowDialog();
         }
 
         private void cmdOpenReflexTLSetting_Click(object sender, EventArgs e)

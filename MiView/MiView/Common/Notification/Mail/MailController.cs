@@ -1,4 +1,5 @@
-﻿using System;
+﻿using MiView.Common.Notification.Baloon;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -11,13 +12,29 @@ namespace MiView.Common.Notification.Mail
     /// </summary>
     internal class MailController : NotificationController
     {
+        public const string ControllerName = "メール";
         /// <summary>
         /// 通知処理本体
         /// </summary>
         /// <exception cref="NotImplementedException"></exception>
         public override void ExecuteMethod()
         {
-            throw new NotImplementedException();
+            return;
+        }
+
+        public override Control GetControllerForm()
+        {
+            return new BaloonControlForm();
+        }
+
+        /// <summary>
+        /// ToString()
+        /// </summary>
+        /// <returns></returns>
+        /// <exception cref="NotImplementedException"></exception>
+        public override string ToString()
+        {
+            return $"通知方法：メール, {"未実装"}";
         }
     }
 }

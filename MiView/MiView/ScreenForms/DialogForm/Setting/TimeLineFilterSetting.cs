@@ -297,23 +297,10 @@ namespace MiView.ScreenForms.DialogForm.Setting
             }
             this.txtFilterDefinition.Text = _CurrentFilter.FilterDefinition;
             this.txtFilterName.Text = _CurrentFilter.FilterName;
-            //this.cmbMatchMode.SelectedItem = new TimeLineMatchCombo(_CurrentFilter._MODE);
             this.cmbMatchMode.SelectedItem = this.cmbMatchMode.Items
                                                  .Cast<TimeLineMatchCombo>()
                                                  .ToList()
                                                  .Find(r => { return r.MatchMode == _CurrentFilter._MODE; });
-            
-            
-            //var cmKey = (MATCHER_PATTERN?)typeof(TimeLineFilterlingOption).GetProperty(CtlPatternField_Prefix + CtlName)?.GetValue(FilterOption) ?? MATCHER_PATTERN.NONE;
-            //var cmItem = ((System.Windows.Forms.ComboBox)this.pnFilter
-            //                                                 .Controls
-            //                                                 .Find("cmb" + CtlMatchField_Prefix + CtlName + CtlField_Suffix, false)[0])
-            //                                                    .Items
-            //                                                    .Cast<TimeLinePatternCombo>()
-            //                                                    .ToList()
-            //                                                    .Find(r => { return r.MATCHER_PATTERN == cmKey; });
-            //((System.Windows.Forms.ComboBox)this.pnFilter.Controls.Find("cmb" + CtlMatchField_Prefix + CtlName + CtlField_Suffix, false)[0]).SelectedItem
-            //    = cmItem;
             this.SetFilterProperty(_CurrentFilter);
             this.pnFilter.Enabled = true;
 
@@ -324,31 +311,6 @@ namespace MiView.ScreenForms.DialogForm.Setting
 
         private void SetFilterProperty(TimeLineFilterlingOption? FilterOption = null)
         {
-            /**
-             * 
-                // 有効にする
-                System.Windows.Forms.CheckBox TmCheck = new System.Windows.Forms.CheckBox()
-                {
-                    Text = "有効にする",
-                    Name = "chk" + CtlMatchField_Prefix + scBasic + CtlField_Suffix,
-                    Location = new Point(RightPos, StartYPos),
-                    Checked = false
-                };
-                this.pnFilter.Controls.Add(TmCheck);
-                RightPos += TmLabel.Location.X + TmCheck.Width;
-
-                // コンボボックス
-                System.Windows.Forms.ComboBox TmCombo = new System.Windows.Forms.ComboBox()
-                {
-                    Name = "cmb" + CtlMatchField_Prefix + scBasic + CtlField_Suffix,
-                    Location = new Point(RightPos, StartYPos),
-                    DropDownStyle = ComboBoxStyle.DropDownList,
-                };
-                var Enums = Enum.GetValues(typeof(TimeLineContainer.PROTECTED_STATUS)).Cast<TimeLineContainer.PROTECTED_STATUS>().ToList();
-                TmCombo.Items.AddRange(Enums.Select(r => { return new CmbGeneric(r, TimeLineContainer.Protected_Disp[r]); }).ToArray());
-             * 
-             * 
-             */
             string scBasic = "";
             object scValue = null;
             string scName = null;

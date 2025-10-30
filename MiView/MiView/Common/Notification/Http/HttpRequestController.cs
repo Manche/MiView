@@ -1,13 +1,16 @@
-﻿using System;
+﻿using MiView.Common.Notification.Baloon;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement.ToolTip;
 
 namespace MiView.Common.Notification.Http
 {
     public class HttpRequestController : NotificationController
     {
+        public const string ControllerName = "Httpリクエスト";
         /// <summary>
         /// リクエストメソッド
         /// </summary>
@@ -210,6 +213,22 @@ namespace MiView.Common.Notification.Http
             catch (Exception ex)
             {
             }
+        }
+
+
+        public override Control GetControllerForm()
+        {
+            return new BaloonControlForm();
+        }
+
+        /// <summary>
+        /// ToString()
+        /// </summary>
+        /// <returns></returns>
+        /// <exception cref="NotImplementedException"></exception>
+        public override string ToString()
+        {
+            return $"通知方法：http, メソッド：{HttpMethod}, 送信先：{ReqeustUrl}";
         }
     }
 }

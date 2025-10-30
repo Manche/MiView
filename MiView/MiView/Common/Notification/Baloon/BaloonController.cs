@@ -12,6 +12,10 @@ namespace MiView.Common.Notification.Baloon
     internal class BaloonController : NotificationController
     {
         /// <summary>
+        /// 名称
+        /// </summary>
+        public const string ControllerName = "バルーン";
+        /// <summary>
         /// バルーンタイトル
         /// </summary>
         public string BaloonTitle { get; set; } = string.Empty;
@@ -33,6 +37,21 @@ namespace MiView.Common.Notification.Baloon
 
                 Icn.ShowBalloonTip(3000, GetFormattedStr(BaloonTitle), GetFormattedStr(BaloonContent), ToolTipIcon.Info);
             }
+        }
+
+        public override Control GetControllerForm()
+        {
+            return new BaloonControlForm();
+        }
+
+        /// <summary>
+        /// ToString()
+        /// </summary>
+        /// <returns></returns>
+        /// <exception cref="NotImplementedException"></exception>
+        public override string ToString()
+        {
+            return $"通知方法：バルーン, タイトル：{BaloonTitle}, 本文：{BaloonContent}";
         }
     }
 }

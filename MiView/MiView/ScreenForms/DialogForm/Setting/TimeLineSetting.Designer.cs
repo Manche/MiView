@@ -34,6 +34,7 @@
             cmdOpenReflexTLSetting = new Button();
             cmdAddTimeLine = new Button();
             cmdDeleteTimeLine = new Button();
+            cmdOpenAlertSetting = new Button();
             SuspendLayout();
             // 
             // label1
@@ -66,7 +67,7 @@
             // 
             // cmdOpenReflexTLSetting
             // 
-            cmdOpenReflexTLSetting.Location = new Point(93, 62);
+            cmdOpenReflexTLSetting.Location = new Point(286, 62);
             cmdOpenReflexTLSetting.Name = "cmdOpenReflexTLSetting";
             cmdOpenReflexTLSetting.Size = new Size(75, 23);
             cmdOpenReflexTLSetting.TabIndex = 6;
@@ -94,6 +95,16 @@
             cmdDeleteTimeLine.UseVisualStyleBackColor = true;
             cmdDeleteTimeLine.Click += cmdDeleteTimeLine_Click;
             // 
+            // cmdOpenAlertSetting
+            // 
+            cmdOpenAlertSetting.Location = new Point(93, 62);
+            cmdOpenAlertSetting.Name = "cmdOpenAlertSetting";
+            cmdOpenAlertSetting.Size = new Size(75, 23);
+            cmdOpenAlertSetting.TabIndex = 6;
+            cmdOpenAlertSetting.Text = "アラート設定";
+            cmdOpenAlertSetting.UseVisualStyleBackColor = true;
+            cmdOpenAlertSetting.Click += cmdOpenAlertSetting_Click;
+            // 
             // TimeLineSetting
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
@@ -102,6 +113,7 @@
             Controls.Add(cmdDeleteTimeLine);
             Controls.Add(cmdAddTimeLine);
             Controls.Add(cmdOpenReflexTLSetting);
+            Controls.Add(cmdOpenAlertSetting);
             Controls.Add(cmdOpenFilterSetting);
             Controls.Add(cmbTimeLineSelect);
             Controls.Add(label1);
@@ -119,5 +131,6 @@
         private Button cmdOpenReflexTLSetting;
         private Button cmdAddTimeLine;
         private Button cmdDeleteTimeLine;
+        private Button cmdOpenAlertSetting;
     }
 }

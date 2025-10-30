@@ -1,4 +1,9 @@
-﻿using MiView.Common.TimeLine;
+﻿using MiView.Common.Notification.Baloon;
+using MiView.Common.Notification.Http;
+using MiView.Common.Notification.Mail;
+using MiView.Common.Notification.Shell;
+using MiView.Common.Notification.Toast;
+using MiView.Common.TimeLine;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -32,10 +37,62 @@ namespace MiView.Common.Notification
             }
         }
 
+        public enum CONTROLLER_KIND
+        {
+            None = 0,
+            Baloon,
+            HttpRequest,
+            Mail,
+            Shell,
+            Toast
+        }
+        public static Dictionary<CONTROLLER_KIND, string> ControllerKindName = new Dictionary<CONTROLLER_KIND, string>()
+        {
+            {CONTROLLER_KIND.Baloon, BaloonController.ControllerName},
+            {CONTROLLER_KIND.Mail, MailController.ControllerName},
+            {CONTROLLER_KIND.Shell, ShellController.ControllerName},
+            {CONTROLLER_KIND.HttpRequest, HttpRequestController.ControllerName},
+            {CONTROLLER_KIND.Toast, ToastController.ControllerName},
+        };
+
+        private CONTROLLER_KIND _ControllerKind { get; set; } = CONTROLLER_KIND.None;
+        public string ControllerKindToString { get { return ControllerKindName[_ControllerKind]; } }
+        public abstract Control GetControllerForm();
+
+        /// <summary>
+        /// インスタンス作成
+        /// </summary>
+        /// <param name="Kind"></param>
+        /// <returns></returns>
+        /// <exception cref="NotImplementedException"></exception>
+        public static NotificationController Create(CONTROLLER_KIND Kind)
+        {
+            switch (Kind)
+            {
+                case CONTROLLER_KIND.Baloon:
+                    return new BaloonController() { _ControllerKind = CONTROLLER_KIND.Baloon};
+                case CONTROLLER_KIND.HttpRequest:
+                    return new HttpRequestController() { _ControllerKind = CONTROLLER_KIND.HttpRequest };
+                case CONTROLLER_KIND.Mail:
+                    return new MailController() { _ControllerKind = CONTROLLER_KIND.Mail };
+                case CONTROLLER_KIND.Shell:
+                    return new ShellController() { _ControllerKind = CONTROLLER_KIND.Shell };
+                case CONTROLLER_KIND.Toast:
+                    return new ToastController() { _ControllerKind = CONTROLLER_KIND.Toast };
+            }
+
+            throw new NotImplementedException();
+        }
+
         /// <summary>
         /// 通知処理本体
         /// </summary>
         public abstract void ExecuteMethod();
+        /// <summary>
+        /// ToString
+        /// </summary>
+        /// <returns></returns>
+        public abstract override string ToString();
     }
 
     /// <summary>

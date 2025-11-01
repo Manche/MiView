@@ -15,7 +15,7 @@ namespace MiView.ScreenForms.DialogForm.Setting
 {
     public partial class TimeLineAlertSetting : Form
     {
-        private TimeLineAlertNotificationSetting _NotificationForm = new TimeLineAlertNotificationSetting();
+        private TimeLineAlertNotificationSetting _NotificationForm = TimeLineAlertNotificationSetting.Instance;
         public DataGridTimeLine? _TimeLine = null;
 
         public TimeLineAlertSetting()
@@ -245,6 +245,10 @@ namespace MiView.ScreenForms.DialogForm.Setting
         /// <param name="e"></param>
         private void cmdAddAlertNotification_Click(object sender, EventArgs e)
         {
+            if (_CurrentAlert == null)
+            {
+                return;
+            }
             TimeLineAlertNotificationCreateForm dlg = new TimeLineAlertNotificationCreateForm();
             dlg.ShowDialog();
             if (dlg.NotificationControl == null)
@@ -253,6 +257,17 @@ namespace MiView.ScreenForms.DialogForm.Setting
             }
             this._NotificationForm.SetNotificationData(dlg.NotificationControl);
             this._NotificationForm.ShowDialog();
+            if (this._NotificationForm.CurrentController == null)
+            {
+                return;
+            }
+            if (this._NotificationForm.DialogResult != DialogResult.OK)
+            {
+                return;
+            }
+            // 追加
+            _CurrentAlert._AlertExecution.Add(this._NotificationForm.CurrentController);
+            this.lstNotification.Items.Add(new TimeLineAlertNotificationList(this._NotificationForm.CurrentController));
         }
 
         /// <summary>
@@ -262,6 +277,25 @@ namespace MiView.ScreenForms.DialogForm.Setting
         /// <param name="e"></param>
         private void cmdDeleteAlertNotification_Click(object sender, EventArgs e)
         {
+            if (_CurrentAlert == null)
+            {
+                return;
+            }
+            this._NotificationForm.ShowDialog();
+            if (this._NotificationForm.CurrentController == null)
+            {
+                return;
+            }
+            if (_CurrentAlert._AlertExecution.IndexOf(this._NotificationForm.CurrentController) == -1)
+            {
+                return;
+            }
+            if (this._NotificationForm.DialogResult != DialogResult.OK)
+            {
+                return;
+            }
+            // 上書き
+            // _CurrentAlert._AlertExecution[_CurrentAlert._AlertExecution.IndexOf(this._NotificationForm.CurrentController)] = this._NotificationForm.CurrentController;
         }
 
         /// <summary>
@@ -271,6 +305,36 @@ namespace MiView.ScreenForms.DialogForm.Setting
         /// <param name="e"></param>
         private void cmdEditAlertNotification_Click(object sender, EventArgs e)
         {
+            if (_CurrentAlert == null)
+            {
+                return;
+            }
+            TimeLineAlertNotificationList? NotificationControl = (TimeLineAlertNotificationList)this.lstNotification.SelectedItem;
+            if (NotificationControl == null)
+            {
+                return;
+            }
+            this._NotificationForm.SetNotificationData(NotificationControl.Controller);
+            this._NotificationForm.ShowDialog();
+            if (this._NotificationForm.CurrentController == null)
+            {
+                return;
+            }
+            if (this._NotificationForm.DialogResult != DialogResult.OK)
+            {
+                return;
+            }
+            // 上書き
+            NotificationControl.Controller = this._NotificationForm.CurrentController;
+            try
+            {
+                _CurrentAlert._AlertExecution[_CurrentAlert._AlertExecution.IndexOf(this._NotificationForm.CurrentController)] = this._NotificationForm.CurrentController;
+                this.lstNotification.Items[this.lstNotification.Items.IndexOf(NotificationControl)] = NotificationControl;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine(ex.ToString());
+            }
         }
     }
 

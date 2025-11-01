@@ -23,9 +23,9 @@ namespace MiView.Common.Notification.Shell
         }
 
 
-        public override Control GetControllerForm()
+        public override NotificationControlForm GetControllerForm()
         {
-            return new BaloonControlForm();
+            return new ShellControlForm();
         }
 
         /// <summary>

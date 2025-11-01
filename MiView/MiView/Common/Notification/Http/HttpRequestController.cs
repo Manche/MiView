@@ -216,9 +216,9 @@ namespace MiView.Common.Notification.Http
         }
 
 
-        public override Control GetControllerForm()
+        public override NotificationControlForm GetControllerForm()
         {
-            return new BaloonControlForm();
+            return new HttpRequestControlForm();
         }
 
         /// <summary>

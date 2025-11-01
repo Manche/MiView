@@ -57,7 +57,7 @@ namespace MiView.Common.Notification
 
         private CONTROLLER_KIND _ControllerKind { get; set; } = CONTROLLER_KIND.None;
         public string ControllerKindToString { get { return ControllerKindName[_ControllerKind]; } }
-        public abstract Control GetControllerForm();
+        public abstract NotificationControlForm GetControllerForm();
 
         /// <summary>
         /// インスタンス作成

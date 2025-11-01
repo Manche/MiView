@@ -39,7 +39,7 @@ namespace MiView.Common.Notification.Baloon
             }
         }
 
-        public override Control GetControllerForm()
+        public override NotificationControlForm GetControllerForm()
         {
             return new BaloonControlForm();
         }

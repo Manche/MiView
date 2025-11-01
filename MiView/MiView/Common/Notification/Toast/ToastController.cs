@@ -23,9 +23,9 @@ namespace MiView.Common.Notification.Toast
         }
 
 
-        public override Control GetControllerForm()
+        public override NotificationControlForm GetControllerForm()
         {
-            return new BaloonControlForm();
+            return new ToastControlForm();
         }
 
         /// <summary>

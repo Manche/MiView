@@ -22,9 +22,9 @@ namespace MiView.Common.Notification.Mail
             return;
         }
 
-        public override Control GetControllerForm()
+        public override NotificationControlForm GetControllerForm()
         {
-            return new BaloonControlForm();
+            return new MailControlForm();
         }
 
         /// <summary>

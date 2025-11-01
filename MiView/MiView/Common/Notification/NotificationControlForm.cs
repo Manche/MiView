@@ -74,5 +74,10 @@ namespace MiView.Common.Notification
             txt.Multiline = Height != 1;
             txt.Size = new Size(txt.Size.Width, (int)txt.Font.Size * Height);
         }
+
+        public virtual NotificationController SaveDataToControl(NotificationController Controller)
+        {
+            throw new Exception();
+        }
     }
 }

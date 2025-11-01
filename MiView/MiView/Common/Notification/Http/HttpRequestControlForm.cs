@@ -1,4 +1,5 @@
-﻿using System;
+﻿using MiView.Common.Notification.Baloon;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -11,6 +12,11 @@ namespace MiView.Common.Notification.Http
         public HttpRequestControlForm()
         {
             base.Initialize();
+        }
+
+        public override NotificationController SaveDataToControl(NotificationController Controller)
+        {
+            return Controller;
         }
     }
 }

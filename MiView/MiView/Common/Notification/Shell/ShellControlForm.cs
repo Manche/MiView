@@ -12,5 +12,10 @@ namespace MiView.Common.Notification.Shell
         {
             base.Initialize();
         }
+
+        public override NotificationController SaveDataToControl(NotificationController Controller)
+        {
+            return Controller;
+        }
     }
 }

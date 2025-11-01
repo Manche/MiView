@@ -321,6 +321,18 @@ namespace MiView.Common.Connection.WebSocket
                             await _WebSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, string.Empty, token);
                             _IsOpenTimeLine = false;
                             CallConnectionLost();
+
+                            // 即座に再接続
+                            Debug.WriteLine("WebSocket closed. Attempting immediate reconnect...");
+                            try
+                            {
+                                CreateAndReOpen();
+                            }
+                            catch (Exception rex)
+                            {
+                                CallError(rex);
+                            }
+
                             return;
                         }
 

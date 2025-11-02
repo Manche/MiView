@@ -1,8 +1,14 @@
-﻿using System;
+﻿using MiView.Common.Notification;
+using MiView.Common.Notification.Baloon;
+using MiView.Common.TimeLine;
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
+using System.Security.AccessControl;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using System.Threading.Tasks;
 
 namespace MiView.Common.Setting
@@ -56,6 +62,7 @@ namespace MiView.Common.Setting
             string json = File.ReadAllText(SettingConst.TIMELINE_SETTINGS_FILE);
             try
             {
+                //var Tm = JsonSerializer.Deserialize<SettingTimeLine[]>(json, new JsonSerializerOptions() { MaxDepth = 1 });
                 return JsonSerializer.Deserialize<SettingTimeLine[]>(json) ?? new SettingTimeLine[] { };
             }
             catch
@@ -71,6 +78,80 @@ namespace MiView.Common.Setting
             File.WriteAllText(SettingConst.TIMELINE_SETTINGS_FILE, json);
         }
         #endregion
+        #region Alert
+
+        public static void SaveAlertNotification(string Definition, List<NotificationController> config)
+        {
+            var options = new JsonSerializerOptions { WriteIndented = true };
+            string json = JsonSerializer.Serialize(config.Select(r => { return (object)r; }), options);
+            SettingConst.SettingDirCheck();
+            File.WriteAllText(SettingConst.ALERT_NOTIFICATION_SETTINGS_FILE_NAME(Definition), json);
+        }
+
+        public static List<NotificationController> LoadAlertNotification(string Definition)
+        {
+            if (!File.Exists(SettingConst.ALERT_NOTIFICATION_SETTINGS_FILE_NAME(Definition)))
+                return new List<NotificationController>();
+
+            string json = File.ReadAllText(SettingConst.ALERT_NOTIFICATION_SETTINGS_FILE_NAME(Definition));
+            try
+            {
+                List<NotificationController> Notifications = new List<NotificationController>();
+                JsonArray? JoDatas = JsonSerializer.Deserialize<JsonArray>(json);
+                if (JoDatas == null)
+                {
+                    return new List<NotificationController>();
+                }
+                foreach (var JoData in JoDatas)
+                {
+                    JsonNode? TypeNameRaw = JoData["TypeName"];
+                    if (TypeNameRaw == null)
+                    {
+                        continue;
+                    }
+                    string TypeName = TypeNameRaw.ToString();
+                    if (TypeName == string.Empty)
+                    {
+                        continue;
+                    }
+                    try
+                    {
+                        var TmpObj = Type.GetType(TypeName);
+                        if (TmpObj == null)
+                        {
+                            continue;
+                        }
+                        var TmpCls = System.Activator.CreateInstance(TmpObj);
+                        if (TmpCls == null ||
+                            TmpCls.GetType().BaseType != typeof(NotificationController))
+                        {
+                            continue;
+                        }
+                        foreach (PropertyInfo PropInfo in TmpCls.GetType().GetProperties())
+                        {
+                            try
+                            {
+                                PropInfo.SetValue(TmpCls, JoData[PropInfo.Name].ToString());
+                            }
+                            catch
+                            {
+                            }
+                        }
+                        Notifications.Add((NotificationController)TmpCls);
+                    }
+                    catch
+                    {
+                    }
+                }
+                System.Diagnostics.Debug.WriteLine(JsonSerializer.Deserialize<object>(json));
+                return Notifications;
+            }
+            catch
+            {
+                return new List<NotificationController>();
+            }
+        }
+        #endregion
     }
 
     /// <summary>
@@ -82,6 +163,8 @@ namespace MiView.Common.Setting
         /// 設定ディレクトリ
         /// </summary>
         public static readonly string SETTINGS_DIR = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "MiView");
+        public static readonly string ALERT_DIR = "\\ALERT";
+        public static readonly string NOTIFICATION_DIR = "\\ALERT";
         /// <summary>
         /// websocket
         /// </summary>
@@ -97,8 +180,24 @@ namespace MiView.Common.Setting
         /// <summary>
         /// アラート
         /// </summary>
-        public static readonly string ALERT_SETTINGS_FILE = Path.Combine(SETTINGS_DIR, "settings_alert.json");
+        public static readonly string ALERT_SETTINGS_FILE_FRONT = Path.Combine(SETTINGS_DIR, "settings_alert_");
+        public static readonly string ALERT_SETTINGS_EXTENSION = ".json";
+        public static string ALERT_SETTINGS_FILE_NAME(string Name) { return Path.Combine(ALERT_SETTINGS_FILE_FRONT + Name + ALERT_SETTINGS_EXTENSION); }
+
+        public static readonly string ALERT_NOTIFICATION_SETTINGS_FILE_FRONT = Path.Combine(SETTINGS_DIR + NOTIFICATION_DIR, "settings_alert_notification_");
+        public static readonly string ALERT_NOTIFICATION_SETTINGS_EXTENSION = ".json";
+        public static string ALERT_NOTIFICATION_SETTINGS_FILE_NAME(string Name)
+        {
+            return Path.Combine(ALERT_NOTIFICATION_SETTINGS_FILE_FRONT + Name + ALERT_NOTIFICATION_SETTINGS_EXTENSION);
+        }
 
         // 以下逐一更新
+        public static void SettingDirCheck()
+        {
+            if (!Directory.Exists(SETTINGS_DIR + NOTIFICATION_DIR))
+            {
+                Directory.CreateDirectory(SETTINGS_DIR + NOTIFICATION_DIR);
+            }
+        }
     }
 }

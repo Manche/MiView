@@ -10,6 +10,7 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text;
+using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
@@ -23,6 +24,8 @@ namespace MiView.Common.Notification
     /// </remarks>
     public abstract class NotificationController : NotificationControllerCommon
     {
+        public string TypeName { get { return this.GetType().ToString(); } }
+
         /// <summary>
         /// 通知実行
         /// </summary>
@@ -55,9 +58,13 @@ namespace MiView.Common.Notification
             {CONTROLLER_KIND.Toast, ToastController.ControllerName},
         };
 
-        private CONTROLLER_KIND _ControllerKind { get; set; } = CONTROLLER_KIND.None;
-        public string ControllerKindToString { get { return ControllerKindName[_ControllerKind]; } }
+        protected CONTROLLER_KIND _ControllerKind { get; set; } = CONTROLLER_KIND.None;
+        public string ControllerKindToString() { return ControllerKindName[_ControllerKind]; }
         public abstract NotificationControlForm GetControllerForm();
+
+        public NotificationController()
+        {
+        }
 
         /// <summary>
         /// インスタンス作成

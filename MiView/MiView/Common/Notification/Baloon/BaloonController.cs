@@ -24,6 +24,11 @@ namespace MiView.Common.Notification.Baloon
         /// </summary>
         public string BaloonContent { get; set; } = string.Empty;
 
+        public BaloonController()
+        {
+            this._ControllerKind = CONTROLLER_KIND.Baloon;
+        }
+
         /// <summary>
         /// 通知処理本体
         /// </summary>

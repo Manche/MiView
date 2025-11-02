@@ -94,6 +94,11 @@ namespace MiView.Common.Notification.Http
         }
         public EXECUTE_PROCESS ExecuteProcess { get; set; } = EXECUTE_PROCESS.GET;
 
+        public HttpRequestController()
+        {
+            this._ControllerKind = CONTROLLER_KIND.HttpRequest;
+        }
+
         /// <summary>
         /// 通知処理本体
         /// </summary>

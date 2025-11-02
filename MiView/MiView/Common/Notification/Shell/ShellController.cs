@@ -13,6 +13,11 @@ namespace MiView.Common.Notification.Shell
     internal class ShellController : NotificationController
     {
         public const string ControllerName = "シェル";
+        public ShellController()
+        {
+            this._ControllerKind = CONTROLLER_KIND.Shell;
+        }
+
         /// <summary>
         /// 通知処理本体
         /// </summary>

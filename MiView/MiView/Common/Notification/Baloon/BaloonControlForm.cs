@@ -30,6 +30,12 @@ namespace MiView.Common.Notification.Baloon
             this.SetTextBoxHeight((TextBox)this._CreatedControls["txtContent"], 10);
         }
 
+        public override void LoadDataToControl(NotificationController Controller)
+        {
+            ((TextBox)this._CreatedControls["txtTitle"]).Text = ((BaloonController)Controller).BaloonTitle;
+            ((TextBox)this._CreatedControls["txtContent"]).Text = ((BaloonController)Controller).BaloonContent;
+        }
+
         public override NotificationController SaveDataToControl(NotificationController Controller)
         {
             ((BaloonController)Controller).BaloonTitle = ((TextBox)this._CreatedControls["txtTitle"]).Text;

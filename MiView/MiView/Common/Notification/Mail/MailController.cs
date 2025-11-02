@@ -13,6 +13,12 @@ namespace MiView.Common.Notification.Mail
     internal class MailController : NotificationController
     {
         public const string ControllerName = "メール";
+
+        public MailController()
+        {
+            this._ControllerKind = CONTROLLER_KIND.Mail;
+        }
+
         /// <summary>
         /// 通知処理本体
         /// </summary>

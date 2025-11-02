@@ -13,6 +13,11 @@ namespace MiView.Common.Notification.Toast
     internal class ToastController : NotificationController
     {
         public const string ControllerName = "トースト";
+        public ToastController()
+        {
+            this._ControllerKind = CONTROLLER_KIND.Toast;
+        }
+
         /// <summary>
         /// 通知処理本体
         /// </summary>

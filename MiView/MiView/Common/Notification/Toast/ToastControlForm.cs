@@ -13,6 +13,10 @@ namespace MiView.Common.Notification.Toast
             base.Initialize();
         }
 
+        public override void LoadDataToControl(NotificationController Controller)
+        {
+        }
+
         public override NotificationController SaveDataToControl(NotificationController Controller)
         {
             return Controller;

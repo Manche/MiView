@@ -79,5 +79,10 @@ namespace MiView.Common.Notification
         {
             throw new Exception();
         }
+
+        public virtual void LoadDataToControl(NotificationController Controller)
+        {
+            throw new Exception();
+        }
     }
 }

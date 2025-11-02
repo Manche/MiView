@@ -14,6 +14,10 @@ namespace MiView.Common.Notification.Http
             base.Initialize();
         }
 
+        public override void LoadDataToControl(NotificationController Controller)
+        {
+        }
+
         public override NotificationController SaveDataToControl(NotificationController Controller)
         {
             return Controller;

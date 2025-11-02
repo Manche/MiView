@@ -159,64 +159,71 @@ namespace MiView.Common.Connection.WebSocket.Misskey.v2025
             {
                 _ = Task.Run(async () =>
                 {
-                    while (WSTimeLine.GetSocketState() == WebSocketState.Open)
+                    while (true)
                     {
-                        // 受信本体
                         try
                         {
-                            // 受信可能になるまで待機
+                            // 接続確認
                             if (WSTimeLine.GetSocketClient().State != WebSocketState.Open)
                             {
-                                System.Diagnostics.Debug.WriteLine(WSTimeLine.GetSocketClient().State);
+                                Debug.WriteLine($"[WebSocket] State={WSTimeLine.GetSocketClient().State}, reconnecting...");
+                                WSTimeLine.CreateAndReOpen();
+                                await Task.Delay(1000);
+                                continue;
                             }
-                            if (WSTimeLine.GetSocketClient().State != WebSocketState.Open && WSTimeLine._HostUrl != null)
-                            {
-                                // 再接続
-                                await WSTimeLine.GetSocketClient().ConnectAsync(new Uri(WSTimeLine._HostUrl), CancellationToken.None);
-                            }
-                            while (WSTimeLine.GetSocketState() == WebSocketState.Closed)
-                            {
-                                // 接続スタンバイ
-                                Thread.Sleep(1000);
-                            }
-                            var Response = await WSTimeLine.GetSocketClient().ReceiveAsync(new ArraySegment<byte>(ResponseBuffer), CancellationToken.None);
+
+                            // 受信処理
+                            var Response = await WSTimeLine.GetSocketClient().ReceiveAsync(
+                                new ArraySegment<byte>(ResponseBuffer),
+                                CancellationToken.None);
+
                             if (Response.MessageType == WebSocketMessageType.Close)
                             {
-                                WSTimeLine.ConnectionAbort();
-                                WSTimeLine._IsOpenTimeLine = false;
-                                return;
+                                Debug.WriteLine("WebSocket closed by server — reconnecting...");
+                                WSTimeLine.CreateAndReOpen();
+                                await Task.Delay(1000);
+                                continue;
                             }
-                            else
-                            {
-                                var ResponseMessage = Encoding.UTF8.GetString(ResponseBuffer, 0, Response.Count);
-                                DbgOutputSocketReceived(ResponseMessage);
 
-                                WSTimeLine.CallDataReceived(ResponseMessage);
-                                WSTimeLine._IsOpenTimeLine = true;
-                            }
+                            // 正常受信
+                            var ResponseMessage = Encoding.UTF8.GetString(ResponseBuffer, 0, Response.Count);
+                            DbgOutputSocketReceived(ResponseMessage);
+                            WSTimeLine.CallDataReceived(ResponseMessage);
+                            WSTimeLine._IsOpenTimeLine = true;
+                        }
+                        catch (WebSocketException ex)
+                        {
+                            Debug.WriteLine($"WebSocketException: {ex.Message} — reconnecting...");
+                            WSTimeLine.CreateAndReOpen();
+                            await Task.Delay(1000);
+                            continue;
+                        }
+                        catch (OperationCanceledException)
+                        {
+                            Debug.WriteLine("WebSocket receive aborted — reconnecting...");
+                            WSTimeLine.CreateAndReOpen();
+                            await Task.Delay(1000);
+                            continue;
                         }
                         catch (Exception ce)
                         {
-                            System.Diagnostics.Debug.WriteLine("receive failed");
-                            System.Diagnostics.Debug.WriteLine(WSTimeLine._HostUrl);
-                            System.Diagnostics.Debug.WriteLine(ce);
-
-                            if (WSTimeLine.GetSocketClient() != null && WSTimeLine.GetSocketClient().State != WebSocketState.Open)
-                            {
-                                Thread.Sleep(1000);
-
-                                this.ReadTimeLineContinuous(WSTimeLine);
-                            }
+                            Debug.WriteLine("receive failed");
+                            Debug.WriteLine(WSTimeLine._HostUrl);
+                            Debug.WriteLine(ce);
 
                             WSTimeLine._IsOpenTimeLine = false;
                             WSTimeLine.CallConnectionLost();
                             WSTimeLine.SetSocketState(WebSocketState.Closed);
+
+                            WSTimeLine.CreateAndReOpen();
+                            await Task.Delay(1000);
                         }
-                        Thread.Sleep(1000);
+
+                        await Task.Delay(1000);
                     }
                 });
             }
-            catch(OperationCanceledException oce)
+            catch (OperationCanceledException)
             {
                 WSTimeLine._IsOpenTimeLine = false;
             }

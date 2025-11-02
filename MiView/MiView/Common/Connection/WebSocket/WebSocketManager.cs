@@ -213,6 +213,14 @@ namespace MiView.Common.Connection.WebSocket
             {
                 try
                 {
+                    if (_WebSocket == null ||
+                        _WebSocket.State == WebSocketState.Closed ||
+                        _WebSocket.State == WebSocketState.Aborted)
+                    {
+                        // 古いソケットを破棄して新規作成
+                        _WebSocket?.Dispose();
+                        _WebSocket = new ClientWebSocket();
+                    }
                     if (_WebSocket.State != WebSocketState.Open)
                     {
                         await CreateAndOpen(_HostUrl);
@@ -247,7 +255,19 @@ namespace MiView.Common.Connection.WebSocket
         /// </summary>
         public void CreateAndReOpen()
         {
-            var _ = Task.Run(async () => { await _CreateAndOpen(this._HostDefinition); });
+            var _ = Task.Run(async () =>
+            {
+                try
+                {
+                    _WebSocket?.Dispose();
+                    _WebSocket = new ClientWebSocket();
+                    await _CreateAndOpen(_HostDefinition);
+                }
+                catch (Exception ex)
+                {
+                    CallError(ex);
+                }
+            });
         }
 
         private async Task _CreateAndOpen(string HostUrl)

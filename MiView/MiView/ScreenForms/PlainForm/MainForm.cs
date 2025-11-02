@@ -137,106 +137,111 @@ namespace MiView
             Task Tj = new Task(async () =>
             {
                 List<APIStatusDispData> APIDisp = new List<APIStatusDispData>();
-
-                while (true)
+                try
                 {
-                    foreach (var TLCon in _WSManager)
+                    while (true)
                     {
-                        APIDisp.Add(new APIStatusDispData()
+                        foreach (var TLCon in _WSManager)
                         {
-                            _TLKind = TLCon.TLKind.ToString(),
-                            _HostUrl = TLCon._Host,
-                            _Host = TLCon._HostUrl,
-                            _ConnectStatus = TLCon.GetSocketState() == System.Net.WebSockets.WebSocketState.Open && TLCon._IsOpenTimeLine,
-                            _LastReceived = TLCon._LastDataReceived,
-                            _ConnectionClosed = TLCon._ConnectionClosed
-                        });
-                        try
-                        {
-                            if (TLCon.GetSocketState() != System.Net.WebSockets.WebSocketState.Open ||
-                                TLCon._IsOpenTimeLine == false)
+                            APIDisp.Add(new APIStatusDispData()
                             {
-                                TLCon.SetSocketState(System.Net.WebSockets.WebSocketState.Aborted);
-
-                                int Wait = 0;
-                                while (Wait < 10)
+                                _TLKind = TLCon.TLKind.ToString(),
+                                _HostUrl = TLCon._Host,
+                                _Host = TLCon._HostUrl,
+                                _ConnectStatus = TLCon.GetSocketState() == System.Net.WebSockets.WebSocketState.Open && TLCon._IsOpenTimeLine,
+                                _LastReceived = TLCon._LastDataReceived,
+                                _ConnectionClosed = TLCon._ConnectionClosed
+                            });
+                            try
+                            {
+                                if (TLCon.GetSocketState() != System.Net.WebSockets.WebSocketState.Open ||
+                                    TLCon._IsOpenTimeLine == false)
                                 {
-                                    // Å‰‚Ìsock
-                                    TLCon.CreateAndReOpen();
-                                    int Wait2 = 0;
-                                    while (Wait2 < 10)
+                                    TLCon.SetSocketState(System.Net.WebSockets.WebSocketState.Aborted);
+
+                                    int Wait = 0;
+                                    while (Wait < 10)
                                     {
+                                        // Å‰‚Ìsock
+                                        TLCon.CreateAndReOpen();
+                                        int Wait2 = 0;
+                                        while (Wait2 < 10)
+                                        {
+                                            if (TLCon.GetSocketState() == System.Net.WebSockets.WebSocketState.Open)
+                                            {
+                                                break;
+                                            }
+                                            await Task.Delay(1000);
+                                            Wait2++;
+                                        }
+                                        if (Wait2 == 10)
+                                        {
+                                            break;
+                                        }
+
+                                        TLCon.ReadTimeLineContinuous(TLCon);
+                                        if (TLCon.APIKey != string.Empty)
+                                        {
+                                            var WTManager = WebSocketMainController.CreateWSTLManager(TLCon.SoftwareVersion.SoftwareType, TLCon.SoftwareVersion.Version);
+                                            if (WTManager == null)
+                                            {
+                                                Thread.Sleep(1000);
+                                                continue;
+                                            }
+
+                                            WTManager.OpenMain(TLCon._HostDefinition, TLCon.APIKey);
+                                            WebSocketMain.ReadMainContinuous(WTManager);
+                                            int Wt = 0;
+                                            while (Wt < 10)
+                                            {
+                                                if (WTManager.GetSocketState() == System.Net.WebSockets.WebSocketState.Open)
+                                                {
+                                                    break;
+                                                }
+                                                else
+                                                {
+                                                    TLCon.SetSocketState(System.Net.WebSockets.WebSocketState.Closed);
+                                                }
+                                                Wt++;
+                                                Thread.Sleep(1000);
+                                            }
+                                        }
+
+                                        Wait++;
+                                        System.Diagnostics.Debug.WriteLine(TLCon._HostDefinition);
+                                        System.Diagnostics.Debug.WriteLine($"{Wait}•b‘Ò‹@’†");
                                         if (TLCon.GetSocketState() == System.Net.WebSockets.WebSocketState.Open)
                                         {
                                             break;
                                         }
-                                        await Task.Delay(1000);
-                                        Wait2++;
+                                        Thread.Sleep(1000);
                                     }
-                                    if (Wait2 == 10)
-                                    {
-                                        break;
-                                    }
-
-                                    TLCon.ReadTimeLineContinuous(TLCon);
-                                    if (TLCon.APIKey != string.Empty)
-                                    {
-                                        var WTManager = WebSocketMainController.CreateWSTLManager(TLCon.SoftwareVersion.SoftwareType, TLCon.SoftwareVersion.Version);
-                                        if (WTManager == null)
-                                        {
-                                            Thread.Sleep(1000);
-                                            continue;
-                                        }
-
-                                        WTManager.OpenMain(TLCon._HostDefinition, TLCon.APIKey);
-                                        WebSocketMain.ReadMainContinuous(WTManager);
-                                        int Wt = 0;
-                                        while (Wt < 10)
-                                        {
-                                            if (WTManager.GetSocketState() == System.Net.WebSockets.WebSocketState.Open)
-                                            {
-                                                break;
-                                            }
-                                            else
-                                            {
-                                                TLCon.SetSocketState(System.Net.WebSockets.WebSocketState.Closed);
-                                            }
-                                            Wt++;
-                                            Thread.Sleep(1000);
-                                        }
-                                    }
-
-                                    Wait++;
-                                    System.Diagnostics.Debug.WriteLine(TLCon._HostDefinition);
-                                    System.Diagnostics.Debug.WriteLine($"{Wait}•b‘Ò‹@’†");
-                                    if (TLCon.GetSocketState() == System.Net.WebSockets.WebSocketState.Open)
-                                    {
-                                        break;
-                                    }
-                                    Thread.Sleep(1000);
                                 }
                             }
+                            catch
+                            {
+                                TLCon.SetSocketState(System.Net.WebSockets.WebSocketState.Closed);
+                            }
                         }
-                        catch
+                        try
                         {
-                            TLCon.SetSocketState(System.Net.WebSockets.WebSocketState.Closed);
+                            this._APIStatusForm.SetStatus(APIDisp);
                         }
+                        catch (Exception ex)
+                        {
+                        }
+                        try
+                        {
+                            this._APISetting.SetStatus(APIDisp);
+                        }
+                        catch (Exception ex)
+                        {
+                        }
+                        await Task.Delay(6000);
                     }
-                    try
-                    {
-                        this._APIStatusForm.SetStatus(APIDisp);
-                    }
-                    catch (Exception ex)
-                    {
-                    }
-                    try
-                    {
-                        this._APISetting.SetStatus(APIDisp);
-                    }
-                    catch (Exception ex)
-                    {
-                    }
-                    await Task.Delay(6000);
+                }
+                catch (Exception ex)
+                {
                 }
             });
             Tj.Start();

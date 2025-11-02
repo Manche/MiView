@@ -28,5 +28,8 @@ namespace MiView.Common.AnalyzeData.Format.Misskey.v2025
         public Note Renote { get { return new Note() { Node = Node?["renote"] }; } }
         public JsonNode? ChannelId { get { return Node?["channelId"]; } }
         public Channel Channel { get { return new Channel() { Node = Node?["channel"] }; } }
+
+        #region インスタンス個別
+        #endregion
     }
 }

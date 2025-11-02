@@ -233,7 +233,7 @@ namespace MiView.ScreenForms.DialogForm.Setting
 
         public class WebSocketCombo
         {
-            public string Host {  get; set; }
+            public string Host { get; set; }
             public TimeLineBasic.ConnectTimeLineKind TLKind { get; set; }
             public WebSocketManager WSManager { get; set; }
             public int ListIndex { get; set; }
@@ -248,6 +248,17 @@ namespace MiView.ScreenForms.DialogForm.Setting
             public override string ToString()
             {
                 return Host + "/" + TLKind.ToString();
+            }
+        }
+
+        private void cmdReConnect_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                this._WSManager[_CurrentWSManagerIndex].CreateAndReOpen();
+            }
+            catch
+            {
             }
         }
     }

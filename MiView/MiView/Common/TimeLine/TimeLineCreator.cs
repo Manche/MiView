@@ -8,10 +8,12 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.DirectoryServices.ActiveDirectory;
+using System.Drawing;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.Json.Nodes;
+using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -824,6 +826,13 @@ namespace MiView.Common.TimeLine
                 return _AlertOptions.FindAll(r => { return r._Alert_Timing == TimeLineAlertOption.ALERT_TIMING.REJECT; });
             }
         }
+        public List<TimeLineAlertOption> _AlertTimeLine
+        {
+            get
+            {
+                return _AlertOptions.FindAll(r => { return r._Alert_Timing == TimeLineAlertOption.ALERT_TIMING.ON_TIMELINE; });
+            }
+        }
 
         /// <summary>
         /// タイムライン更新描画をするかどうか
@@ -1038,6 +1047,28 @@ namespace MiView.Common.TimeLine
                 //    // 色変更
                 //    // this.ChangeDispColor(ref Row, Container);
                 //}
+                int Found = 0;
+                int Filted = 0;
+                bool CountRet = false; ;
+                foreach (TimeLineAlertOption Opt in this._AlertTimeLine)
+                {
+                    Found = Opt._FilterOptions.FindAll(r => { return r.FilterResult(); }).Count();
+                    Filted = Opt._FilterOptions.Count();
+
+                    CountRet = false;
+                    if (Opt._FilterMode)
+                    {
+                        CountRet = Found == Filted;
+                    }
+                    else
+                    {
+                        CountRet = Found > 0;
+                    }
+                    if (CountRet)
+                    {
+                        Opt.ExecuteAlert(Container);
+                    }
+                }
             }
             catch(Exception ce)
             {
@@ -1795,15 +1826,17 @@ namespace MiView.Common.TimeLine
         {
             NONE = 0,
             ACCEPT,
-            REJECT
+            REJECT,
+            ON_TIMELINE
         }
 
         public ALERT_TIMING _Alert_Timing { get; set; } = ALERT_TIMING.NONE;
         public static Dictionary<ALERT_TIMING, string> TimingName = new Dictionary<ALERT_TIMING, string>()
         {
             {ALERT_TIMING.NONE, "" },
-            {ALERT_TIMING.REJECT, "反映された時" },
-            {ALERT_TIMING.ACCEPT, "反映されなかった時" }
+            {ALERT_TIMING.ACCEPT, "取得条件に合致した時" },
+            {ALERT_TIMING.REJECT, "取得条件に合致しなかった時" },
+            {ALERT_TIMING.ON_TIMELINE, "タイムラインに表示された時" }
         };
 
         /// <summary>
@@ -1858,6 +1891,7 @@ namespace MiView.Common.TimeLine
         /// <summary>
         /// アラート処理本体
         /// </summary>
+        [JsonIgnore]
         public List<NotificationController> _AlertExecution { get; set; } = new List<NotificationController>();
 
         public TimeLineAlertOption()

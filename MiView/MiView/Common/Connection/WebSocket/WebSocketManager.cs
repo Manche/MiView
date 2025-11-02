@@ -253,7 +253,8 @@ namespace MiView.Common.Connection.WebSocket
         private async Task _CreateAndOpen(string HostUrl)
         {
             if (_State == WebSocketState.Open &&
-                this._WebSocket.State == WebSocketState.Open)
+                this._WebSocket.State == WebSocketState.Open &&
+                this._IsOpenTimeLine == true)
             {
                 this._LastDataReceived = DateTime.Now;
                 return;
@@ -316,24 +317,38 @@ namespace MiView.Common.Connection.WebSocket
                     {
                         result = await _WebSocket.ReceiveAsync(new ArraySegment<byte>(buffer), token);
 
-                        if (result.MessageType == WebSocketMessageType.Close)
+                        if (result.MessageType == WebSocketMessageType.Close ||
+                            _WebSocket.State != WebSocketState.Open)
                         {
-                            await _WebSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, string.Empty, token);
-                            _IsOpenTimeLine = false;
-                            CallConnectionLost();
-
-                            // 即座に再接続
-                            Debug.WriteLine("WebSocket closed. Attempting immediate reconnect...");
                             try
                             {
-                                CreateAndReOpen();
-                            }
-                            catch (Exception rex)
-                            {
-                                CallError(rex);
-                            }
+                                try
+                                {
+                                    await _WebSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, string.Empty, token);
+                                }
+                                catch
+                                {
+                                    // 解放済み
+                                }
+                                _IsOpenTimeLine = false;
+                                CallConnectionLost();
 
-                            return;
+                                // 即座に再接続
+                                Debug.WriteLine("WebSocket closed. Attempting immediate reconnect...");
+                                try
+                                {
+                                    CreateAndReOpen();
+                                }
+                                catch (Exception rex)
+                                {
+                                    CallError(rex);
+                                }
+
+                                return;
+                            }
+                            catch
+                            {
+                            }
                         }
 
                         sb.Append(Encoding.UTF8.GetString(buffer, 0, result.Count));

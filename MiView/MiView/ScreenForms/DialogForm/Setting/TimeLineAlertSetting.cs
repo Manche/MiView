@@ -29,6 +29,7 @@ namespace MiView.ScreenForms.DialogForm.Setting
             // タイミング
             this.cmbAlertTiming.Items.Clear();
             this.cmbAlertTiming.Items.Add(new TimeLineAlertTimingCombo(TimeLineAlertOption.ALERT_TIMING.NONE));
+            this.cmbAlertTiming.Items.Add(new TimeLineAlertTimingCombo(TimeLineAlertOption.ALERT_TIMING.ON_TIMELINE));
             this.cmbAlertTiming.Items.Add(new TimeLineAlertTimingCombo(TimeLineAlertOption.ALERT_TIMING.REJECT));
             this.cmbAlertTiming.Items.Add(new TimeLineAlertTimingCombo(TimeLineAlertOption.ALERT_TIMING.ACCEPT));
 

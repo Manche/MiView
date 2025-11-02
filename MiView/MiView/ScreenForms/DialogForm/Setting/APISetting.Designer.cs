@@ -52,6 +52,7 @@
             label4 = new Label();
             label2 = new Label();
             label3 = new Label();
+            cmdReConnect = new Button();
             panel1.SuspendLayout();
             SuspendLayout();
             // 
@@ -77,6 +78,7 @@
             // 
             // panel1
             // 
+            panel1.Controls.Add(cmdReConnect);
             panel1.Controls.Add(lbltxtLastReceivedDiff);
             panel1.Controls.Add(cmdTimeLineReflex);
             panel1.Controls.Add(txtAPIKey);
@@ -131,7 +133,7 @@
             // chkSetIntg
             // 
             chkSetIntg.AutoSize = true;
-            chkSetIntg.Location = new Point(207, 161);
+            chkSetIntg.Location = new Point(207, 186);
             chkSetIntg.Name = "chkSetIntg";
             chkSetIntg.Size = new Size(15, 14);
             chkSetIntg.TabIndex = 4;
@@ -211,7 +213,7 @@
             // 
             lblSetIntg.AutoSize = true;
             lblSetIntg.Font = new Font("游ゴシック", 11.25F, FontStyle.Regular, GraphicsUnit.Point, 128);
-            lblSetIntg.Location = new Point(4, 160);
+            lblSetIntg.Location = new Point(4, 185);
             lblSetIntg.Name = "lblSetIntg";
             lblSetIntg.Size = new Size(102, 20);
             lblSetIntg.TabIndex = 2;
@@ -305,7 +307,17 @@
             label3.TabIndex = 1;
             label3.Text = "接続中";
             // 
-            // TimeLineSetting
+            // cmdReConnect
+            // 
+            cmdReConnect.Location = new Point(169, 149);
+            cmdReConnect.Name = "cmdReConnect";
+            cmdReConnect.Size = new Size(75, 23);
+            cmdReConnect.TabIndex = 8;
+            cmdReConnect.Text = "再接続";
+            cmdReConnect.UseVisualStyleBackColor = true;
+            cmdReConnect.Click += cmdReConnect_Click;
+            // 
+            // APISetting
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
@@ -315,7 +327,7 @@
             Controls.Add(label3);
             Controls.Add(label1);
             Controls.Add(listBox1);
-            Name = "TimeLineSetting";
+            Name = "APISetting";
             Text = "API設定";
             panel1.ResumeLayout(false);
             panel1.PerformLayout();
@@ -351,5 +363,6 @@
         private Label lbltxtTimeLineKind;
         private Label lblTimeLineKind;
         private Button cmdTimeLineReflex;
+        private Button cmdReConnect;
     }
 }

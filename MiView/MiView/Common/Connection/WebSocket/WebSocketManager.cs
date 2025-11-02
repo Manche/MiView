@@ -41,6 +41,7 @@ namespace MiView.Common.Connection.WebSocket
 
         private ClientWebSocket _WebSocket { get; set; } = new ClientWebSocket();
         public ClientWebSocket WebSocket { get { return _WebSocket; } }
+        public void SetWebSocket(ClientWebSocket value) {  this._WebSocket = value; }
         private CancellationTokenSource _Cancellation = new CancellationTokenSource();
 
         public CSoftwareVersionInfo SoftwareVersion { get; set; }

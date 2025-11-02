@@ -194,14 +194,24 @@ namespace MiView.Common.Connection.WebSocket.Misskey.v2025
                         catch (WebSocketException ex)
                         {
                             Debug.WriteLine($"WebSocketException: {ex.Message} — reconnecting...");
-                            WSTimeLine.CreateAndReOpen();
+
+                            WSTimeLine._IsOpenTimeLine = false;
+                            WSTimeLine.CallConnectionLost();
+                            WSTimeLine.SetSocketState(WebSocketState.Closed);
+
+                            await SafeReOpen(WSTimeLine);
                             await Task.Delay(1000);
                             continue;
                         }
                         catch (OperationCanceledException)
                         {
                             Debug.WriteLine("WebSocket receive aborted — reconnecting...");
-                            WSTimeLine.CreateAndReOpen();
+
+                            WSTimeLine._IsOpenTimeLine = false;
+                            WSTimeLine.CallConnectionLost();
+                            WSTimeLine.SetSocketState(WebSocketState.Closed);
+
+                            await SafeReOpen(WSTimeLine);
                             await Task.Delay(1000);
                             continue;
                         }
@@ -215,7 +225,7 @@ namespace MiView.Common.Connection.WebSocket.Misskey.v2025
                             WSTimeLine.CallConnectionLost();
                             WSTimeLine.SetSocketState(WebSocketState.Closed);
 
-                            WSTimeLine.CreateAndReOpen();
+                            await SafeReOpen(WSTimeLine);
                             await Task.Delay(1000);
                         }
 
@@ -226,6 +236,45 @@ namespace MiView.Common.Connection.WebSocket.Misskey.v2025
             catch (OperationCanceledException)
             {
                 WSTimeLine._IsOpenTimeLine = false;
+            }
+        }
+
+        /// <summary>
+        /// 再接続処理re
+        /// </summary>
+        private static async Task SafeReOpen(WebSocketManager ws)
+        {
+            try
+            {
+                var client = ws.GetSocketClient();
+                if (client != null && (client.State == WebSocketState.Open || client.State == WebSocketState.CloseSent))
+                {
+                    try
+                    {
+                        await client.CloseAsync(WebSocketCloseStatus.NormalClosure, "reconnect", CancellationToken.None);
+                    }
+                    catch { /* ignore */ }
+                }
+
+                client?.Dispose(); // ★ここが重要：古いSocketを完全破棄
+                var newClient = new ClientWebSocket();
+                ws.SetSocketState(WebSocketState.Connecting);
+
+                await newClient.ConnectAsync(new Uri(ws._HostUrl), CancellationToken.None);
+
+                // 新しいインスタンスをWebSocketManagerに反映
+                //typeof(WebSocketManager)
+                //    .GetProperty("WebSocket", System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance)
+                //    ?.SetValue(ws, newClient);
+                ws.SetWebSocket(newClient);
+
+                ws.SetSocketState(WebSocketState.Open);
+                ws._IsOpenTimeLine = true;
+                Debug.WriteLine("Reconnected successfully.");
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Reconnect failed: {ex.Message}");
             }
         }
 

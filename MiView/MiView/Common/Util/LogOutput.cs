@@ -34,7 +34,7 @@ namespace MiView.Common.Util
             {
                 string OutputLogFile = Path.Combine(LogConst.LOG_DIR, $"{DateTime.Now:yyyyMMdd}.log");
 
-                File.AppendAllText( OutputLogFile, $"{DateTime.Now:yyyyMMdd}\t[{Level}] {Message}\r\n" );
+                File.AppendAllText( OutputLogFile, $"{DateTime.Now:yyyyMMddHHmmss}\t[{Level}] {Message}\r\n" );
             }
             catch (Exception e)
             {

@@ -17,7 +17,7 @@ namespace MiView.ScreenForms.Controls.Notify
         public NotifyView()
         {
             this._Notify = new NotifyIcon();
-            this._Notify.Icon = new Icon(@"C:\Users\manch\Downloads\favicon.ico");
+            // this._Notify.Icon = new Icon(@"C:\Users\manch\Downloads\favicon.ico");
             this._Notify.Visible = true;
 
             this._Notify.ContextMenuStrip = new NotifyContextStrip();

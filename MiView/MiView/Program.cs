@@ -20,6 +20,7 @@ namespace MiView
             }
             catch (Exception ex)
             {
+                System.Console.WriteLine(ex.ToString());
                 System.Diagnostics.Debug.WriteLine(ex.ToString());
                 System.Diagnostics.Debug.WriteLine(ex.StackTrace);
             }

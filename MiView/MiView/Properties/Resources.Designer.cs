@@ -59,5 +59,15 @@ namespace MiView.Properties {
                 resourceCulture = value;
             }
         }
+        
+        /// <summary>
+        ///   型 System.Drawing.Bitmap のローカライズされたリソースを検索します。
+        /// </summary>
+        internal static System.Drawing.Bitmap misskey_icon_dev {
+            get {
+                object obj = ResourceManager.GetObject("misskey_icon_dev", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
     }
 }

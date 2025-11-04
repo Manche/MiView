@@ -1,9 +1,11 @@
 ﻿using MiView.Common.AnalyzeData;
+using MiView.Common.Connection.REST.Misskey.v2025.API.Notes;
 using MiView.Common.Connection.VersionInfo;
 using MiView.Common.Connection.WebSocket.Event;
 using MiView.Common.Connection.WebSocket.Misskey.v2025;
 using MiView.Common.Connection.WebSocket.Structures;
 using MiView.Common.TimeLine;
+using MiView.Common.Util;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -252,21 +254,144 @@ namespace MiView.Common.Connection.WebSocket
         }
 
         /// <summary>
+        /// ソケットロックオブジェクト
+        /// </summary>
+        private readonly object _socketLock = new object();
+
+        /// <summary>
+        /// 再接続本体
+        /// </summary>
+        /// <returns></returns>
+        public async Task ReconnectAsync()
+        {
+            lock (_socketLock)
+            {
+                if (_isReconnecting) return;
+                _isReconnecting = true;
+            }
+
+            Debug.WriteLine("[Reconnect] Begin");
+
+            try
+            {
+                try { _Cancellation?.Cancel(); } catch { }
+                Debug.WriteLine("[Reconnect] Cancelled old token");
+
+                try
+                {
+                    if (_WebSocket != null && (_WebSocket.State == WebSocketState.Open ||
+                        _WebSocket.State == WebSocketState.CloseReceived ||
+                        _WebSocket.State == WebSocketState.CloseSent))
+                    {
+                        await _WebSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, "reconnect", CancellationToken.None);
+                        Debug.WriteLine("[Reconnect] Closed old websocket gracefully");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine("[Reconnect] graceful close failed: " + ex.Message);
+                }
+
+                try { _WebSocket?.Dispose(); } catch { }
+                _WebSocket = null!;
+
+                _Cancellation = new CancellationTokenSource();
+                var newSocket = new ClientWebSocket();
+                newSocket.Options.KeepAliveInterval = TimeSpan.FromSeconds(30);
+
+                Debug.WriteLine("[Reconnect] Connecting to " + _HostUrl);
+                await newSocket.ConnectAsync(new Uri(_HostUrl), CancellationToken.None);
+                Debug.WriteLine("[Reconnect] Connected");
+
+                lock (_socketLock)
+                {
+                    _WebSocket = newSocket;
+                    _State = newSocket.State;
+                }
+
+                Debug.WriteLine("[Reconnect] New socket assigned. State=" + _WebSocket.State);
+
+                // ← ここが肝
+                Debug.WriteLine("[Reconnect] Launching new ReceiveLoop...");
+                _ = Task.Run(() => ReceiveLoop(_Cancellation.Token));
+
+                Debug.WriteLine("[Reconnect] ReceiveLoop Task started");
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine("[Reconnect] Exception: " + ex);
+                CallError(ex);
+            }
+            finally
+            {
+                lock (_socketLock) { _isReconnecting = false; }
+                Debug.WriteLine("[Reconnect] End");
+            }
+            _Cancellation = new CancellationTokenSource();
+        }
+
+
+
+        private bool _isReconnecting = false;
+
+        /// <summary>
         /// 再接続
         /// </summary>
         public void CreateAndReOpen()
         {
-            var _ = Task.Run(async () =>
+            if (_isReconnecting)
             {
+                Debug.WriteLine($"[WebSocketManager] Reconnect already in progress — skipping. {_HostUrl}");
+                return;
+            }
+
+            _ = Task.Run(async () =>
+            {
+                _isReconnecting = true;
                 try
                 {
-                    _WebSocket?.Dispose();
-                    _WebSocket = new ClientWebSocket();
-                    await _CreateAndOpen(_HostDefinition);
+                    await ReconnectAsync();
+
+                    if (_WebSocket != null && _WebSocket.State == WebSocketState.Open)
+                    {
+                        Debug.WriteLine($"[WebSocketManager] Reconnected successfully. Restarting ReceiveLoop... {_HostUrl}");
+                        _ = Task.Run(() => ReceiveLoop(_Cancellation.Token));
+
+                        // Misskey "main" チャンネルは再購読不要
+                        if (_HostUrl.Contains("channel=main") || _HostUrl.EndsWith("/main"))
+                        {
+                            Debug.WriteLine("[WebSocketManager] Skipped reconnect message for 'main' channel (already subscribed).");
+                            return;
+                        }
+
+                        // 再購読メッセージ送信（他チャンネル用）
+                        var reconnectMsg = new
+                        {
+                            type = "connect",
+                            body = new
+                            {
+                                channel = "homeTimeline", // 固定でOK、必要に応じて変更
+                                id = Guid.NewGuid().ToString()
+                            }
+                        };
+
+                        var json = JsonSerializer.Serialize(reconnectMsg);
+                        var bytes = Encoding.UTF8.GetBytes(json);
+                        await _WebSocket.SendAsync(new ArraySegment<byte>(bytes), WebSocketMessageType.Text, true, CancellationToken.None);
+                        Debug.WriteLine($"[WebSocketManager] Sent reconnect channel message: {json}");
+                    }
+                    else
+                    {
+                        Debug.WriteLine($"[WebSocketManager] Reconnect failed — socket not open. {_HostUrl}");
+                    }
                 }
                 catch (Exception ex)
                 {
-                    CallError(ex);
+                    Debug.WriteLine($"[WebSocketManager] Reconnect error: {ex.Message}");
+                }
+                finally
+                {
+                    _isReconnecting = false;
                 }
             });
         }
@@ -284,7 +409,7 @@ namespace MiView.Common.Connection.WebSocket
             try
             {
                 var WS = new ClientWebSocket();
-                WS.Options.KeepAliveInterval = TimeSpan.Zero;
+                WS.Options.KeepAliveInterval = TimeSpan.FromSeconds(30);
                 await WS.ConnectAsync(new Uri(_HostUrl), CancellationToken.None);
 
                 _WebSocket = WS;
@@ -334,55 +459,63 @@ namespace MiView.Common.Connection.WebSocket
                     sb.Clear();
                     WebSocketReceiveResult result;
 
-                    do
+                    try
                     {
-                        result = await _WebSocket.ReceiveAsync(new ArraySegment<byte>(buffer), token);
-
-                        if (result.MessageType == WebSocketMessageType.Close ||
-                            _WebSocket.State != WebSocketState.Open)
+                        do
                         {
-                            try
+                            result = await _WebSocket.ReceiveAsync(new ArraySegment<byte>(buffer), token);
+
+                            if (result.MessageType == WebSocketMessageType.Close ||
+                                _WebSocket.State != WebSocketState.Open)
                             {
                                 try
                                 {
-                                    await _WebSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, string.Empty, token);
+                                    try
+                                    {
+                                        await _WebSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, string.Empty, token);
+                                    }
+                                    catch
+                                    {
+                                        // 解放済み
+                                    }
+                                    _IsOpenTimeLine = false;
+                                    CallConnectionLost();
+
+                                    // 即座に再接続
+                                    Debug.WriteLine("WebSocket closed. Attempting immediate reconnect...");
+                                    LogOutput.Write(LogOutput.LOG_LEVEL.ERROR, $"[ReadLoop] General receive error2:{this._HostDefinition}");
+                                    try
+                                    {
+                                        CreateAndReOpen();
+                                    }
+                                    catch (Exception rex)
+                                    {
+                                        CallError(rex);
+                                    }
+
+                                    return;
                                 }
                                 catch
                                 {
-                                    // 解放済み
                                 }
-                                _IsOpenTimeLine = false;
-                                CallConnectionLost();
-
-                                // 即座に再接続
-                                Debug.WriteLine("WebSocket closed. Attempting immediate reconnect...");
-                                try
-                                {
-                                    CreateAndReOpen();
-                                }
-                                catch (Exception rex)
-                                {
-                                    CallError(rex);
-                                }
-
-                                return;
                             }
-                            catch
-                            {
-                            }
-                        }
 
-                        sb.Append(Encoding.UTF8.GetString(buffer, 0, result.Count));
-                        Thread.Sleep(1000);
+                            sb.Append(Encoding.UTF8.GetString(buffer, 0, result.Count));
+                            await Task.Delay(1000);
 
-                    } while (!result.EndOfMessage);
+                        } while (!result.EndOfMessage);
+                    }
+                    catch
+                    {
+                        continue;
+                    }
 
                     var message = sb.ToString();
                     var totalLength = Encoding.UTF8.GetByteCount(message);
 
-                    Debug.WriteLine($"受信完了: {totalLength} bytes"); // 内部バイト長確認
+                    //Debug.WriteLine($"受信完了: {totalLength} bytes"); // 内部バイト長確認
                     CallDataReceived(message);
-                    Thread.Sleep(1000);
+                    await Task.Delay(1000);
                     _IsOpenTimeLine = true;
                 }
             }

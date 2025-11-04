@@ -1,9 +1,11 @@
-﻿using MiView.Common.AnalyzeData;
+﻿using Microsoft.VisualBasic.Logging;
+using MiView.Common.AnalyzeData;
 using MiView.Common.Connection.VersionInfo;
 using MiView.Common.Connection.WebSocket.Controller;
 using MiView.Common.Connection.WebSocket.Event;
 using MiView.Common.Connection.WebSocket.Structures;
 using MiView.Common.TimeLine;
+using MiView.Common.Util;
 using System.Diagnostics;
 using System.Net.WebSockets;
 using System.Reflection.Metadata.Ecma335;
@@ -153,8 +155,8 @@ namespace MiView.Common.Connection.WebSocket.Misskey.v2025
         /// <param name="WSTimeLine"></param>
         public override void ReadTimeLineContinuous(WebSocketManager WSTimeLine)
         {
-            // バッファは多めに取っておく(どうせあとでカットする)
-            var ResponseBuffer = new byte[4096 * 4];
+            var ResponseBuffer = new byte[10240 * 16];
+
             try
             {
                 _ = Task.Run(async () =>
@@ -163,81 +165,86 @@ namespace MiView.Common.Connection.WebSocket.Misskey.v2025
                     {
                         try
                         {
-                            // 接続確認
-                            if (WSTimeLine.GetSocketClient().State != WebSocketState.Open)
+                            var client = WSTimeLine.GetSocketClient();
+                            if (client == null || client.State != WebSocketState.Open)
                             {
-                                Debug.WriteLine($"[WebSocket] State={WSTimeLine.GetSocketClient().State}, reconnecting...");
+                                Debug.WriteLine($"[ReadLoop] socket not open ({client?.State}), requesting reconnect");
+                                LogOutput.Write(LogOutput.LOG_LEVEL.INFO, $"[ReadLoop] socket not open ({client?.State}), requesting reconnect {WSTimeLine._HostDefinition}");
                                 WSTimeLine.CreateAndReOpen();
                                 await Task.Delay(1000);
                                 continue;
                             }
 
-                            // 受信処理
-                            var Response = await WSTimeLine.GetSocketClient().ReceiveAsync(
-                                new ArraySegment<byte>(ResponseBuffer),
-                                CancellationToken.None);
+                            WebSocketReceiveResult result = await client.ReceiveAsync(new ArraySegment<byte>(ResponseBuffer), CancellationToken.None);
 
-                            if (Response.MessageType == WebSocketMessageType.Close)
+                            if (result.MessageType == WebSocketMessageType.Close)
                             {
-                                Debug.WriteLine("WebSocket closed by server — reconnecting...");
+                                Debug.WriteLine("[ReadLoop] server requested close -> reconnect");
+                                LogOutput.Write(LogOutput.LOG_LEVEL.INFO, "[ReadLoop] server requested close -> reconnect" + $" {WSTimeLine._HostDefinition}");
+                                // Close gracefully if possible
+                                try { await client.CloseAsync(WebSocketCloseStatus.NormalClosure, "server requested", CancellationToken.None); } catch { }
                                 WSTimeLine.CreateAndReOpen();
                                 await Task.Delay(1000);
                                 continue;
                             }
 
-                            // 正常受信
-                            var ResponseMessage = Encoding.UTF8.GetString(ResponseBuffer, 0, Response.Count);
-                            DbgOutputSocketReceived(ResponseMessage);
-                            WSTimeLine.CallDataReceived(ResponseMessage);
+                            var message = Encoding.UTF8.GetString(ResponseBuffer, 0, result.Count);
+                            DbgOutputSocketReceived(message);
+                            WSTimeLine.CallDataReceived(message);
                             WSTimeLine._IsOpenTimeLine = true;
                         }
                         catch (WebSocketException ex)
                         {
-                            Debug.WriteLine($"WebSocketException: {ex.Message} — reconnecting...");
-
+                            Debug.WriteLine($"[ReadLoop] WebSocketException: {ex.Message} {WSTimeLine._HostUrl}");
+                            LogOutput.Write(LogOutput.LOG_LEVEL.ERROR, $"[ReadLoop] WebSocketException: {ex.Message} {WSTimeLine._HostUrl}" + $" {WSTimeLine._HostDefinition}");
                             WSTimeLine._IsOpenTimeLine = false;
-                            WSTimeLine.CallConnectionLost();
-                            WSTimeLine.SetSocketState(WebSocketState.Closed);
 
-                            await SafeReOpen(WSTimeLine);
-                            await Task.Delay(1000);
-                            continue;
+                            // Misskey は close 後すぐの再接続が弾かれることがあるため少し待つ
+                            await Task.Delay(2000);
+
+                            // 一度だけ再接続してループ再起動
+                            if (WSTimeLine.GetSocketClient().State != WebSocketState.Open)
+                            {
+                                Debug.WriteLine($"[ReadLoop] Trying reconnect... {WSTimeLine._HostUrl}");
+                                LogOutput.Write(LogOutput.LOG_LEVEL.ERROR, $"[ReadLoop] Trying reconnect... {WSTimeLine._HostUrl}" + $" {WSTimeLine._HostDefinition}");
+                                WSTimeLine.CreateAndReOpen();
+                            }
+
+                            return;
                         }
                         catch (OperationCanceledException)
                         {
-                            Debug.WriteLine("WebSocket receive aborted — reconnecting...");
-
+                            Debug.WriteLine($"[ReadLoop] OperationCanceledException -> reconnect {WSTimeLine._HostUrl}");
+                            LogOutput.Write(LogOutput.LOG_LEVEL.ERROR, $"[ReadLoop] OperationCanceledException -> reconnect {WSTimeLine._HostUrl}" + $" {WSTimeLine._HostDefinition}");
                             WSTimeLine._IsOpenTimeLine = false;
-                            WSTimeLine.CallConnectionLost();
-                            WSTimeLine.SetSocketState(WebSocketState.Closed);
 
-                            await SafeReOpen(WSTimeLine);
-                            await Task.Delay(1000);
-                            continue;
+                            await Task.Delay(2000);
+                            if (WSTimeLine.GetSocketClient().State != WebSocketState.Open)
+                            {
+                                Debug.WriteLine($"[ReadLoop] Trying reconnect... {WSTimeLine._HostUrl}");
+                                LogOutput.Write(LogOutput.LOG_LEVEL.ERROR, $"[ReadLoop] Trying reconnect... {WSTimeLine._HostUrl}" + $" {WSTimeLine._HostDefinition}");
+                                WSTimeLine.CreateAndReOpen();
+                            }
+
+                            return;
                         }
-                        catch (Exception ce)
+                        catch (Exception ex)
                         {
-                            Debug.WriteLine("receive failed");
-                            Debug.WriteLine(WSTimeLine._HostUrl);
-                            Debug.WriteLine(ce);
-
-                            WSTimeLine._IsOpenTimeLine = false;
-                            WSTimeLine.CallConnectionLost();
-                            WSTimeLine.SetSocketState(WebSocketState.Closed);
-
-                            await SafeReOpen(WSTimeLine);
+                            Debug.WriteLine("[ReadLoop] General receive error: " + ex.ToString());
+                            LogOutput.Write(LogOutput.LOG_LEVEL.ERROR, "[ReadLoop] General receive error: " + ex.ToString() + $" {WSTimeLine._HostDefinition}");
+                            WSTimeLine.CreateAndReOpen();
                             await Task.Delay(1000);
                         }
-
-                        await Task.Delay(1000);
                     }
                 });
             }
             catch (OperationCanceledException)
             {
                 WSTimeLine._IsOpenTimeLine = false;
+                LogOutput.Write(LogOutput.LOG_LEVEL.ERROR, $"[ReadLoop] General receive error2:{WSTimeLine._HostDefinition}");
             }
         }
+
 
         /// <summary>
         /// 再接続処理re
@@ -280,7 +287,7 @@ namespace MiView.Common.Connection.WebSocket.Misskey.v2025
 
         private static void DbgOutputSocketReceived(string Response)
         {
-            System.Diagnostics.Debug.WriteLine(Response);
+            // System.Diagnostics.Debug.WriteLine(Response);
         }
 
         /// <summary>

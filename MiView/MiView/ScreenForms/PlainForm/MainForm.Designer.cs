@@ -30,7 +30,6 @@ namespace MiView
         /// </summary>
         private void InitializeComponent()
         {
-            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainForm));
             menuStrip1 = new MenuStrip();
             設定ToolStripMenuItem = new ToolStripMenuItem();
             tspAPISetting = new ToolStripMenuItem();
@@ -80,14 +79,14 @@ namespace MiView
             // tspAPISetting
             // 
             tspAPISetting.Name = "tspAPISetting";
-            tspAPISetting.Size = new Size(180, 22);
+            tspAPISetting.Size = new Size(151, 22);
             tspAPISetting.Text = "API設定";
             tspAPISetting.Click += tspAPISetting_Click;
             // 
             // tspTimeLineSetting
             // 
             tspTimeLineSetting.Name = "tspTimeLineSetting";
-            tspTimeLineSetting.Size = new Size(180, 22);
+            tspTimeLineSetting.Size = new Size(151, 22);
             tspTimeLineSetting.Text = "タイムライン設定";
             tspTimeLineSetting.Click += tspTimeLineSetting_Click;
             // 
@@ -283,7 +282,6 @@ namespace MiView
             Controls.Add(statusStrip1);
             Controls.Add(tbMain);
             Controls.Add(menuStrip1);
-            Icon = (Icon)resources.GetObject("$this.Icon");
             MainMenuStrip = menuStrip1;
             Name = "MainForm";
             Text = "MiView - MainForm";

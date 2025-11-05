@@ -92,7 +92,7 @@ namespace MiView
             {
             }
 
-            var Ac = new Task( () => {  ConnectWatcher(); });
+            var Ac = new Task(() => { ConnectWatcher(); });
             Ac.Start();
 
             var sts = SettingController.LoadWebSockets();
@@ -904,6 +904,33 @@ namespace MiView
             }
             _TLSetting.SetTLList(Grids, this._TmpTLManager);
             _TLSetting.ShowDialog();
+        }
+
+        /// <summary>
+        /// イベントビューア
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void tspWindowEvent_Click(object sender, EventArgs e)
+        {
+        }
+
+        /// <summary>
+        /// APIビューア
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void tspWindowAPI_Click(object sender, EventArgs e)
+        {
+        }
+
+        /// <summary>
+        /// タイムライン統計
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void tspWindowStasticTimeLine_Click(object sender, EventArgs e)
+        {
         }
         #endregion
     }

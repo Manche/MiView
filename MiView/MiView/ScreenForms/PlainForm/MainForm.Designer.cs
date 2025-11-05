@@ -52,6 +52,10 @@ namespace MiView
             tabControl1 = new TabControl();
             tpNotification = new TabPage();
             tpDebug = new TabPage();
+            ウィンドウToolStripMenuItem = new ToolStripMenuItem();
+            tspWindowEvent = new ToolStripMenuItem();
+            tspWindowAPI = new ToolStripMenuItem();
+            tspWindowStasticTimeLine = new ToolStripMenuItem();
             menuStrip1.SuspendLayout();
             tbMain.SuspendLayout();
             statusStrip1.SuspendLayout();
@@ -62,7 +66,7 @@ namespace MiView
             // 
             // menuStrip1
             // 
-            menuStrip1.Items.AddRange(new ToolStripItem[] { 設定ToolStripMenuItem });
+            menuStrip1.Items.AddRange(new ToolStripItem[] { 設定ToolStripMenuItem, ウィンドウToolStripMenuItem });
             menuStrip1.Location = new Point(0, 0);
             menuStrip1.Name = "menuStrip1";
             menuStrip1.Size = new Size(784, 24);
@@ -79,14 +83,14 @@ namespace MiView
             // tspAPISetting
             // 
             tspAPISetting.Name = "tspAPISetting";
-            tspAPISetting.Size = new Size(151, 22);
+            tspAPISetting.Size = new Size(180, 22);
             tspAPISetting.Text = "API設定";
             tspAPISetting.Click += tspAPISetting_Click;
             // 
             // tspTimeLineSetting
             // 
             tspTimeLineSetting.Name = "tspTimeLineSetting";
-            tspTimeLineSetting.Size = new Size(151, 22);
+            tspTimeLineSetting.Size = new Size(180, 22);
             tspTimeLineSetting.Text = "タイムライン設定";
             tspTimeLineSetting.Click += tspTimeLineSetting_Click;
             // 
@@ -269,6 +273,34 @@ namespace MiView
             tpDebug.Text = "デバッグ";
             tpDebug.UseVisualStyleBackColor = true;
             // 
+            // ウィンドウToolStripMenuItem
+            // 
+            ウィンドウToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { tspWindowEvent, tspWindowAPI, tspWindowStasticTimeLine });
+            ウィンドウToolStripMenuItem.Name = "ウィンドウToolStripMenuItem";
+            ウィンドウToolStripMenuItem.Size = new Size(61, 20);
+            ウィンドウToolStripMenuItem.Text = "ウィンドウ";
+            // 
+            // tspWindowEvent
+            // 
+            tspWindowEvent.Name = "tspWindowEvent";
+            tspWindowEvent.Size = new Size(180, 22);
+            tspWindowEvent.Text = "イベントビューア";
+            tspWindowEvent.Click += tspWindowEvent_Click;
+            // 
+            // tspWindowAPI
+            // 
+            tspWindowAPI.Name = "tspWindowAPI";
+            tspWindowAPI.Size = new Size(180, 22);
+            tspWindowAPI.Text = "APIビューア";
+            tspWindowAPI.Click += tspWindowAPI_Click;
+            // 
+            // tspWindowStasticTimeLine
+            // 
+            tspWindowStasticTimeLine.Name = "tspWindowStasticTimeLine";
+            tspWindowStasticTimeLine.Size = new Size(180, 22);
+            tspWindowStasticTimeLine.Text = "タイムライン統計";
+            tspWindowStasticTimeLine.Click += tspWindowStasticTimeLine_Click;
+            // 
             // MainForm
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
@@ -324,5 +356,9 @@ namespace MiView
         private ToolStripMenuItem 設定ToolStripMenuItem;
         private ToolStripMenuItem tspAPISetting;
         private ToolStripMenuItem tspTimeLineSetting;
+        private ToolStripMenuItem ウィンドウToolStripMenuItem;
+        private ToolStripMenuItem tspWindowEvent;
+        private ToolStripMenuItem tspWindowAPI;
+        private ToolStripMenuItem tspWindowStasticTimeLine;
     }
 }

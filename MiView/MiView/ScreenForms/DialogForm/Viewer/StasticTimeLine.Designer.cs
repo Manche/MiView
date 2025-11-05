@@ -30,7 +30,7 @@
         {
             label1 = new Label();
             cmbTimeLine = new ComboBox();
-            cmdSelectTimeLine = new Button();
+            panel1 = new Panel();
             SuspendLayout();
             // 
             // label1
@@ -50,23 +50,22 @@
             cmbTimeLine.Name = "cmbTimeLine";
             cmbTimeLine.Size = new Size(383, 23);
             cmbTimeLine.TabIndex = 1;
+            cmbTimeLine.SelectedIndexChanged += cmbTimeLine_SelectedIndexChanged;
             // 
-            // cmdSelectTimeLine
+            // panel1
             // 
-            cmdSelectTimeLine.Location = new Point(410, 35);
-            cmdSelectTimeLine.Name = "cmdSelectTimeLine";
-            cmdSelectTimeLine.Size = new Size(75, 23);
-            cmdSelectTimeLine.TabIndex = 2;
-            cmdSelectTimeLine.Text = "選択";
-            cmdSelectTimeLine.UseVisualStyleBackColor = true;
-            cmdSelectTimeLine.Click += cmdSelectTimeLine_Click;
+            panel1.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            panel1.Location = new Point(2, 35);
+            panel1.Name = "panel1";
+            panel1.Size = new Size(492, 413);
+            panel1.TabIndex = 2;
             // 
             // StasticTimeLine
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(495, 450);
-            Controls.Add(cmdSelectTimeLine);
+            Controls.Add(panel1);
             Controls.Add(cmbTimeLine);
             Controls.Add(label1);
             Name = "StasticTimeLine";
@@ -80,6 +79,6 @@
 
         private Label label1;
         private ComboBox cmbTimeLine;
-        private Button cmdSelectTimeLine;
+        private Panel panel1;
     }
 }

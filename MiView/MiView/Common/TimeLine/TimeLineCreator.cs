@@ -724,6 +724,8 @@ namespace MiView.Common.TimeLine
     {
         private List<TimeLineContainer> _TimeLineData = new List<TimeLineContainer>();
 
+        public TimeLineStastics Stastics { get; set; } = new TimeLineStastics();
+
         /// <summary>
         /// 定義識別値
         /// </summary>
@@ -931,6 +933,23 @@ namespace MiView.Common.TimeLine
                 }
                 this.Columns.Add(Col);
             }
+            ContinuousStasticsUpdate();
+        }
+
+        /// <summary>
+        /// 統計情報の更新
+        /// </summary>
+        private void ContinuousStasticsUpdate()
+        { 
+            Task tk = new Task(async () => {
+                while (true)
+                {
+                    await Task.Delay(1000);
+
+                    DateTime? LatestUpdate = _TimeLineData.Select(d => { return d.UPDATEDAT; }).Max();
+                }
+            });
+            tk.Start();
         }
 
         private void OnCellValueNeeded(object? sender, DataGridViewCellValueEventArgs e)

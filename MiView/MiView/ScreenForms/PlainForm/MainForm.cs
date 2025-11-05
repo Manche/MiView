@@ -18,6 +18,7 @@ using MiView.ScreenForms.Controls.Notify;
 using MiView.ScreenForms.DialogForm;
 using MiView.ScreenForms.DialogForm.Event;
 using MiView.ScreenForms.DialogForm.Setting;
+using MiView.ScreenForms.DialogForm.Viewer;
 using System;
 using System.ComponentModel;
 using System.Drawing;
@@ -931,6 +932,22 @@ namespace MiView
         /// <param name="e"></param>
         private void tspWindowStasticTimeLine_Click(object sender, EventArgs e)
         {
+            Dictionary<string, DataGridTimeLine> Grids = new Dictionary<string, DataGridTimeLine>();
+            var MainGrid = _TLCreator.GetTimeLineObjectDirect(ref this.MainFormObj, "Main");
+            Grids.Add("Main", MainGrid);
+            foreach (TabPage tp in this.tbMain.TabPages)
+            {
+                try
+                {
+                    var tpGrid = _TLCreator.GetTimeLineObjectDirect(ref this.MainFormObj, tp.Name);
+                    Grids.Add(tp.Name, tpGrid);
+                }
+                catch (Exception ex)
+                {
+                }
+            }
+            StasticTimeLine.Instance.SetDataGrids(Grids);
+            StasticTimeLine.Instance.ShowDialog();
         }
         #endregion
     }

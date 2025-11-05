@@ -11,6 +11,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Net.WebSockets;
+using System.Reflection.Metadata;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
@@ -256,70 +257,89 @@ namespace MiView.Common.Connection.WebSocket
         /// <summary>
         /// ソケットロックオブジェクト
         /// </summary>
-        private readonly object _ReconnectLock = new();
+        private readonly object _socketLock = new();
+        private bool _isReconnecting = false;
+        private readonly object _reconnectLock = new();
 
         /// <summary>
         /// WebSocketを安全に再接続
         /// </summary>
-        public async Task ReconnectAsync()
+        private async Task ReconnectAsync()
         {
-            lock (_ReconnectLock)
+            lock (_reconnectLock)
             {
-                // 複数スレッドからの重複再接続防止
-                if (_WebSocket != null && _WebSocket.State == WebSocketState.Open)
+                if (_isReconnecting)
+                {
+                    LogOutput.Write(LogOutput.LOG_LEVEL.INFO,
+                        $"[{DateTime.Now:yyyyMMddHHmmss}] [INFO] [WebSocketManager] Reconnect already in progress — skipping {_HostDefinition}");
                     return;
+                }
+                _isReconnecting = true;
             }
 
             try
             {
-                if (string.IsNullOrEmpty(_HostUrl))
-                {
-                    Debug.WriteLine("[WebSocketManager] No host URL defined — cannot reconnect.");
-                    return;
-                }
+                LogOutput.Write(LogOutput.LOG_LEVEL.INFO,
+                    $"[{DateTime.Now:yyyyMMddHHmmss}] [INFO] [WebSocketManager] Reconnect start {_HostDefinition}");
 
-                // URLからホスト部分を抽出
-                try
-                {
-                    var uri = new Uri(_HostUrl);
-                    _HostDefinition = uri.Host;
-                }
-                catch
-                {
-                    // 念のため: 失敗したらURL全体ではなく末尾だけ取る
-                    _HostDefinition = _HostUrl.Replace("wss://", "").Split('/')[0];
-                }
-
-                Debug.WriteLine($"[{DateTime.Now:yyyyMMddHHmmss}] [INFO] [WebSocketManager] Reconnect start {_HostDefinition}");
-                LogOutput.Write(LogOutput.LOG_LEVEL.INFO, $"[{DateTime.Now:yyyyMMddHHmmss}] [INFO] [WebSocketManager] Reconnect start {_HostDefinition}");
-
-                _Cancellation?.Cancel();
-                _WebSocket?.Abort();
                 _WebSocket?.Dispose();
                 _WebSocket = new ClientWebSocket();
-                _Cancellation = new CancellationTokenSource();
+                _WebSocket.Options.KeepAliveInterval = TimeSpan.FromSeconds(20);
 
-                await Task.Delay(500); // 少し待ってから再接続
+                await _WebSocket.ConnectAsync(new Uri(_HostUrl), CancellationToken.None);
 
-                if (_HostUrl == null)
-                {
-                    Debug.WriteLine($"[{DateTime.Now:yyyyMMddHHmmss}] [ERROR] [WebSocketManager] Host URL is null");
-                    LogOutput.Write(LogOutput.LOG_LEVEL.INFO, $"[{DateTime.Now:yyyyMMddHHmmss}] [ERROR] [WebSocketManager] Host URL is null");
-                    return;
-                }
+                LogOutput.Write(LogOutput.LOG_LEVEL.INFO,
+                    $"[{DateTime.Now:yyyyMMddHHmmss}] [INFO] [WebSocketManager] Reconnected successfully. Restarting ReceiveLoop... {_HostDefinition}");
 
-                await _WebSocket.ConnectAsync(new Uri(_HostUrl), _Cancellation.Token);
-                Debug.WriteLine($"[{DateTime.Now:yyyyMMddHHmmss}] [INFO] [WebSocketManager] Reconnected successfully. Restarting ReceiveLoop... {_HostDefinition}");
-                LogOutput.Write(LogOutput.LOG_LEVEL.INFO, $"[{DateTime.Now:yyyyMMddHHmmss}] [INFO] [WebSocketManager] Reconnected successfully. Restarting ReceiveLoop... {_HostDefinition}");
+                await Task.Delay(1000); // Misskey側の再購読安定化用ディレイ
 
-                _IsOpenTimeLine = true;
-                _ = Task.Run(() => StartKeepAliveLoop());
-                _ = Task.Run(() => StartReceiveLoop());
+                await ResubscribeChannelAsync();
+
+                // 新しいキャンセルトークンでループを再開
+                var tokenSource = new CancellationTokenSource();
+                _ = Task.Run(() => ReceiveLoop(tokenSource.Token));
+                _ = Task.Run(() => PingLoop(tokenSource.Token));
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"[{DateTime.Now:yyyyMMddHHmmss}] [ERROR] [WebSocketManager] Reconnect failed — {ex.Message} {_HostDefinition}");
-                LogOutput.Write(LogOutput.LOG_LEVEL.INFO, $"[{DateTime.Now:yyyyMMddHHmmss}] [ERROR] [WebSocketManager] Reconnect failed — {ex.Message} {_HostDefinition}");
+                LogOutput.Write(LogOutput.LOG_LEVEL.ERROR,
+                    $"[{DateTime.Now:yyyyMMddHHmmss}] [ERROR] [WebSocketManager] Reconnect failed — {ex.Message} {_HostDefinition}");
+            }
+            finally
+            {
+                lock (_reconnectLock)
+                {
+                    _isReconnecting = false;
+                }
+            }
+        }
+
+
+        private async Task ResubscribeChannelAsync()
+        {
+            try
+            {
+                var body = new
+                {
+                    type = "connect",
+                    body = new { channel = "main", id = Guid.NewGuid().ToString() }
+                };
+                var json = JsonSerializer.Serialize(body);
+                var bytes = Encoding.UTF8.GetBytes(json);
+
+                await _WebSocket.SendAsync(
+                    new ArraySegment<byte>(bytes),
+                    WebSocketMessageType.Text,
+                    true,
+                    CancellationToken.None);
+
+                LogOutput.Write(LogOutput.LOG_LEVEL.INFO,
+                    $"[{DateTime.Now:yyyyMMddHHmmss}] [INFO] [WebSocketManager] Sent reconnect channel message: {json} {_HostDefinition}");
+            }
+            catch (Exception ex)
+            {
+                LogOutput.Write(LogOutput.LOG_LEVEL.ERROR,
+                    $"[{DateTime.Now:yyyyMMddHHmmss}] [ERROR] [WebSocketManager] ResubscribeChannelAsync failed: {ex.Message} {_HostDefinition}");
             }
         }
 
@@ -449,79 +469,67 @@ namespace MiView.Common.Connection.WebSocket
 
             try
             {
-                while (!token.IsCancellationRequested && _WebSocket.State == WebSocketState.Open)
+                while (!token.IsCancellationRequested)
                 {
+                    if (_WebSocket == null || _WebSocket.State != WebSocketState.Open)
+                    {
+                        LogOutput.Write(LogOutput.LOG_LEVEL.INFO,
+                            $"[{DateTime.Now:yyyyMMddHHmmss}] [INFO] [ReadLoop] socket not open ({_WebSocket?.State}), requesting reconnect {_HostDefinition}");
+                        await ReconnectAsync();
+                        await Task.Delay(2000);
+                        continue;
+                    }
+
                     sb.Clear();
                     WebSocketReceiveResult result;
 
                     try
                     {
-                        do
+                        result = await _WebSocket.ReceiveAsync(new ArraySegment<byte>(buffer), token);
+
+                        // サーバ側からclose指示
+                        if (result.MessageType == WebSocketMessageType.Close)
                         {
-                            result = await _WebSocket.ReceiveAsync(new ArraySegment<byte>(buffer), token);
+                            LogOutput.Write(LogOutput.LOG_LEVEL.INFO,
+                                $"[{DateTime.Now:yyyyMMddHHmmss}] [INFO] [ReadLoop] server requested close -> reconnect {_HostDefinition}");
+                            await ReconnectAsync();
+                            continue;
+                        }
 
-                            if (result.MessageType == WebSocketMessageType.Close ||
-                                _WebSocket.State != WebSocketState.Open)
-                            {
-                                try
-                                {
-                                    try
-                                    {
-                                        await _WebSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, string.Empty, token);
-                                    }
-                                    catch
-                                    {
-                                        // 解放済み
-                                    }
-                                    _IsOpenTimeLine = false;
-                                    CallConnectionLost();
-
-                                    // 即座に再接続
-                                    Debug.WriteLine("WebSocket closed. Attempting immediate reconnect...");
-                                    LogOutput.Write(LogOutput.LOG_LEVEL.ERROR, $"[ReadLoop] General receive error2:{this._HostDefinition}");
-                                    try
-                                    {
-                                        CreateAndReOpen();
-                                    }
-                                    catch (Exception rex)
-                                    {
-                                        CallError(rex);
-                                    }
-
-                                    return;
-                                }
-                                catch
-                                {
-                                }
-                            }
-
-                            sb.Append(Encoding.UTF8.GetString(buffer, 0, result.Count));
-                            await Task.Delay(1000);
-
-                        } while (!result.EndOfMessage);
+                        // メッセージ受信処理
+                        sb.Append(Encoding.UTF8.GetString(buffer, 0, result.Count));
+                        if (result.EndOfMessage)
+                        {
+                            var msg = sb.ToString();
+                            if (!string.IsNullOrEmpty(msg))
+                                CallDataReceived(msg);
+                        }
                     }
-                    catch
+                    catch (OperationCanceledException)
                     {
-                        continue;
+                        LogOutput.Write(LogOutput.LOG_LEVEL.ERROR,
+                            $"[{DateTime.Now:yyyyMMddHHmmss}] [ERROR] [ReadLoop] OperationCanceledException -> reconnect {_HostDefinition}");
+                        await ReconnectAsync();
+                    }
+                    catch (WebSocketException ex)
+                    {
+                        LogOutput.Write(LogOutput.LOG_LEVEL.ERROR,
+                            $"[{DateTime.Now:yyyyMMddHHmmss}] [ERROR] [ReadLoop] WebSocketException: {ex.Message} {_HostDefinition}");
+                        await ReconnectAsync();
+                    }
+                    catch (Exception ex)
+                    {
+                        LogOutput.Write(LogOutput.LOG_LEVEL.ERROR,
+                            $"[{DateTime.Now:yyyyMMddHHmmss}] [ERROR] [ReadLoop] General receive error: {ex.Message} {_HostDefinition}");
+                        await Task.Delay(1000);
                     }
 
-                    var message = sb.ToString();
-                    var totalLength = Encoding.UTF8.GetByteCount(message);
-
-                    //Debug.WriteLine($"受信完了: {totalLength} bytes"); // 内部バイト長確認
-                    CallDataReceived(message);
-                    await Task.Delay(1000);
-                    _IsOpenTimeLine = true;
+                    await Task.Delay(500);
                 }
-            }
-            catch (Exception ex)
-            {
-                CallError(ex);
             }
             finally
             {
-                // CPU暴走防止用に少し待ってから再接続
-                await Task.Delay(1000, token);
+                await Task.Delay(1000);
             }
         }
 
@@ -530,36 +538,31 @@ namespace MiView.Common.Connection.WebSocket
             Debug.WriteLine($"WebSocketManager Error: {ex}");
         }
 
-        /// <summary>
-        /// サーバー維持用のPing送信ループ
-        /// </summary>
-        private async Task StartKeepAliveLoop()
+        private async Task PingLoop(CancellationToken token)
         {
-            while (true)
+            while (!token.IsCancellationRequested)
             {
                 try
                 {
                     if (_WebSocket != null && _WebSocket.State == WebSocketState.Open)
                     {
-                        var pingMsg = Encoding.UTF8.GetBytes("{\"type\":\"ping\"}");
-                        await _WebSocket.SendAsync(
-                            new ArraySegment<byte>(pingMsg),
-                            WebSocketMessageType.Text,
-                            true,
-                            CancellationToken.None);
+                        var pingJson = JsonSerializer.Serialize(new { type = "ping" });
+                        var pingBytes = Encoding.UTF8.GetBytes(pingJson);
 
-                        Debug.WriteLine($"[{DateTime.Now:yyyyMMddHHmmss}] [DEBUG] [Ping] sent to {_HostDefinition}");
-                        LogOutput.Write(LogOutput.LOG_LEVEL.INFO, $"[{DateTime.Now:yyyyMMddHHmmss}] [DEBUG] [Ping] sent to {_HostDefinition}");
+                        await _WebSocket.SendAsync(new ArraySegment<byte>(pingBytes),
+                            WebSocketMessageType.Text, true, token);
+
+                        LogOutput.Write(LogOutput.LOG_LEVEL.INFO,
+                            $"[{DateTime.Now:yyyyMMddHHmmss}] [INFO] [PingLoop] Sent ping {_HostDefinition}");
                     }
                 }
                 catch (Exception ex)
                 {
-                    Debug.WriteLine($"[{DateTime.Now:yyyyMMddHHmmss}] [ERROR] [Ping] failed: {ex.Message} {_HostDefinition}");
-                    LogOutput.Write(LogOutput.LOG_LEVEL.INFO, $"[{DateTime.Now:yyyyMMddHHmmss}] [ERROR] [Ping] failed: {ex.Message} {_HostDefinition}");
+                    LogOutput.Write(LogOutput.LOG_LEVEL.ERROR,
+                        $"[{DateTime.Now:yyyyMMddHHmmss}] [ERROR] [PingLoop] Error sending ping: {ex.Message} {_HostDefinition}");
                 }
 
-                // Misskey標準では30〜60秒が安定
-                await Task.Delay(15000);
+                await Task.Delay(30000, token);
             }
         }
 

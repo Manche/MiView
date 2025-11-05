@@ -34,11 +34,20 @@ namespace MiView.Common.Util
             {
                 string OutputLogFile = Path.Combine(LogConst.LOG_DIR, $"{DateTime.Now:yyyyMMdd}.log");
 
-                File.AppendAllText( OutputLogFile, $"{DateTime.Now:yyyyMMddHHmmss}\t[{Level}] {Message}\r\n" );
+                lock (OutputLogFile)
+                {
+                    try
+                    {
+                        File.AppendAllText(OutputLogFile, $"{DateTime.Now:yyyyMMddHHmmss}\t[{Level}] {Message}\r\n");
+                    }
+                    catch
+                    {
+                    }
+                }
             }
             catch (Exception e)
             {
-                WriteEventLog(System.Diagnostics.EventLogEntryType.Error, $"ログファイルの書き込みに失敗しました。{e.ToString()} {e.StackTrace}");
+                // WriteEventLog(System.Diagnostics.EventLogEntryType.Error, $"ログファイルの書き込みに失敗しました。{e.ToString()} {e.StackTrace}");
             }
         }
 

@@ -195,8 +195,8 @@ namespace MiView.Common.Connection.WebSocket.Misskey.v2025
                         }
                         catch (WebSocketException ex)
                         {
-                            Debug.WriteLine($"[ReadLoop] WebSocketException: {ex.Message} {WSTimeLine._HostUrl}");
-                            LogOutput.Write(LogOutput.LOG_LEVEL.ERROR, $"[ReadLoop] WebSocketException: {ex.Message} {WSTimeLine._HostUrl}" + $" {WSTimeLine._HostDefinition}");
+                            Debug.WriteLine($"[ReadLoop] WebSocketException: {ex.Message} {WSTimeLine._HostDefinition}");
+                            LogOutput.Write(LogOutput.LOG_LEVEL.ERROR, $"[ReadLoop] WebSocketException: {ex.Message} {WSTimeLine._HostDefinition}" + $" {WSTimeLine._HostDefinition}");
                             WSTimeLine._IsOpenTimeLine = false;
 
                             // Misskey は close 後すぐの再接続が弾かれることがあるため少し待つ
@@ -205,8 +205,8 @@ namespace MiView.Common.Connection.WebSocket.Misskey.v2025
                             // 一度だけ再接続してループ再起動
                             if (WSTimeLine.GetSocketClient().State != WebSocketState.Open)
                             {
-                                Debug.WriteLine($"[ReadLoop] Trying reconnect... {WSTimeLine._HostUrl}");
-                                LogOutput.Write(LogOutput.LOG_LEVEL.ERROR, $"[ReadLoop] Trying reconnect... {WSTimeLine._HostUrl}" + $" {WSTimeLine._HostDefinition}");
+                                Debug.WriteLine($"[ReadLoop] Trying reconnect... {WSTimeLine._HostDefinition}");
+                                LogOutput.Write(LogOutput.LOG_LEVEL.ERROR, $"[ReadLoop] Trying reconnect... {WSTimeLine._HostDefinition}" + $" {WSTimeLine._HostDefinition}");
                                 WSTimeLine.CreateAndReOpen();
                             }
 
@@ -214,15 +214,15 @@ namespace MiView.Common.Connection.WebSocket.Misskey.v2025
                         }
                         catch (OperationCanceledException)
                         {
-                            Debug.WriteLine($"[ReadLoop] OperationCanceledException -> reconnect {WSTimeLine._HostUrl}");
-                            LogOutput.Write(LogOutput.LOG_LEVEL.ERROR, $"[ReadLoop] OperationCanceledException -> reconnect {WSTimeLine._HostUrl}" + $" {WSTimeLine._HostDefinition}");
+                            Debug.WriteLine($"[ReadLoop] OperationCanceledException -> reconnect {WSTimeLine._HostDefinition}");
+                            LogOutput.Write(LogOutput.LOG_LEVEL.ERROR, $"[ReadLoop] OperationCanceledException -> reconnect {WSTimeLine._HostDefinition}" + $" {WSTimeLine._HostDefinition}");
                             WSTimeLine._IsOpenTimeLine = false;
 
                             await Task.Delay(2000);
                             if (WSTimeLine.GetSocketClient().State != WebSocketState.Open)
                             {
-                                Debug.WriteLine($"[ReadLoop] Trying reconnect... {WSTimeLine._HostUrl}");
-                                LogOutput.Write(LogOutput.LOG_LEVEL.ERROR, $"[ReadLoop] Trying reconnect... {WSTimeLine._HostUrl}" + $" {WSTimeLine._HostDefinition}");
+                                Debug.WriteLine($"[ReadLoop] Trying reconnect... {WSTimeLine._HostDefinition}");
+                                LogOutput.Write(LogOutput.LOG_LEVEL.ERROR, $"[ReadLoop] Trying reconnect... {WSTimeLine._HostDefinition}" + $" {WSTimeLine._HostDefinition}");
                                 WSTimeLine.CreateAndReOpen();
                             }
 
@@ -235,6 +235,7 @@ namespace MiView.Common.Connection.WebSocket.Misskey.v2025
                             WSTimeLine.CreateAndReOpen();
                             await Task.Delay(1000);
                         }
+                        await Task.Delay(1000);
                     }
                 });
             }

@@ -22,7 +22,7 @@ namespace MiView.Common.AnalyzeData.Format.Misskey.v2025
             Container.IDENTIFIED = JsonConverterCommon.GetStr(Note.User.UserName) +
                                    JsonConverterCommon.GetStr(Note.User.Name) +
                                    JsonConverterCommon.GetStr(Note.CreatedAt);
-            Container.PROTECTED = StringToProtectedStatus(Protected);
+            Container.PROTECTED = StringToProtectedStatus(Protected, Note);
             try
             {
                 Container.ISLOCAL = bool.Parse(JsonConverterCommon.GetStr(Note.LocalOnly));

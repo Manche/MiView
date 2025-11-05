@@ -30,6 +30,16 @@ namespace MiView.Common.AnalyzeData.Format.Misskey.v2025
         public Channel Channel { get { return new Channel() { Node = Node?["channel"] }; } }
 
         #region インスタンス個別
+        public JsonNode? NonLTL { get { return _NonLTL(Node); } }
+        /// <summary>
+        /// セミパブリック(LTLなし)
+        /// </summary>
+        /// <param name="Node"></param>
+        /// <returns></returns>
+        private JsonNode? _NonLTL(JsonNode? Node)
+        {
+            return Node?["dontShowOnLtl"];
+        }
         #endregion
     }
 }

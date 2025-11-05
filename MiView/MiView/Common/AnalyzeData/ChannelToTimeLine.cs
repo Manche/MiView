@@ -42,7 +42,7 @@ namespace MiView.Common.AnalyzeData
             Container.IDENTIFIED = JsonConverterCommon.GetStr(ChannelToTimeLineData.Get(Input).Note.User.UserName) +
                                    JsonConverterCommon.GetStr(ChannelToTimeLineData.Get(Input).Note.User.Name) +
                                    JsonConverterCommon.GetStr(ChannelToTimeLineData.Get(Input).Note.CreatedAt);
-            Container.PROTECTED = StringToProtectedStatus(Protected);
+            Container.PROTECTED = StringToProtectedStatus(Protected, ChannelToTimeLineData.Get(Input).Note);
             try
             {
                 Container.ISLOCAL = bool.Parse(JsonConverterCommon.GetStr(ChannelToTimeLineData.Get(Input).Note.LocalOnly));
@@ -135,9 +135,21 @@ namespace MiView.Common.AnalyzeData
             }
         }
 
-        public static TimeLineContainer.PROTECTED_STATUS StringToProtectedStatus(string Str)
+        public static TimeLineContainer.PROTECTED_STATUS StringToProtectedStatus(string Str, Note? Note)
         {
             TimeLineContainer.PROTECTED_STATUS Status = TimeLineContainer.PROTECTED_STATUS.Public;
+            try
+            {
+                if (JsonConverterCommon.GetBool(Note.NonLTL))
+                {
+                    // なですきーfork用
+                    Status = TimeLineContainer.PROTECTED_STATUS.SemiPublic;
+                    return Status;
+                }
+            }
+            catch (Exception ex)
+            {
+            }
             switch (Str)
             {
                 case "public":

@@ -1166,7 +1166,7 @@ namespace MiView.Common.TimeLine
                             this.Rows[RowIndex].Cells[(int)TimeLineCreator.TIMELINE_ELEMENT.PROTECTED_DISP].ToolTipText
                                     = "セミパブリック";
                             this.Rows[RowIndex].Cells[(int)TimeLineCreator.TIMELINE_ELEMENT.PROTECTED_DISP].Style.ForeColor
-                                    = Color.Pink;
+                                    = Color.DeepPink;
                             break;
                         case TimeLineContainer.PROTECTED_STATUS.Home:
                             this._TimeLineData[RowIndex].PROTECTED_DISP = _Common_Home;

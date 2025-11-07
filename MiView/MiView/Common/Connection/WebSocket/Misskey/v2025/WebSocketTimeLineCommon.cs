@@ -170,7 +170,7 @@ namespace MiView.Common.Connection.WebSocket.Misskey.v2025
                             {
                                 Debug.WriteLine($"[ReadLoop] socket not open ({client?.State}), requesting reconnect");
                                 LogOutput.Write(LogOutput.LOG_LEVEL.INFO, $"[ReadLoop] socket not open ({client?.State}), requesting reconnect {WSTimeLine._HostDefinition}");
-                                WSTimeLine.CreateAndReOpen();
+                                //WSTimeLine.CreateAndReOpen();
                                 await Task.Delay(1000);
                                 continue;
                             }
@@ -183,7 +183,7 @@ namespace MiView.Common.Connection.WebSocket.Misskey.v2025
                                 LogOutput.Write(LogOutput.LOG_LEVEL.INFO, "[ReadLoop] server requested close -> reconnect" + $" {WSTimeLine._HostDefinition}");
                                 // Close gracefully if possible
                                 try { await client.CloseAsync(WebSocketCloseStatus.NormalClosure, "server requested", CancellationToken.None); } catch { }
-                                WSTimeLine.CreateAndReOpen();
+                                //WSTimeLine.CreateAndReOpen();
                                 await Task.Delay(1000);
                                 continue;
                             }
@@ -207,7 +207,7 @@ namespace MiView.Common.Connection.WebSocket.Misskey.v2025
                             {
                                 Debug.WriteLine($"[ReadLoop] Trying reconnect... {WSTimeLine._HostDefinition}");
                                 LogOutput.Write(LogOutput.LOG_LEVEL.ERROR, $"[ReadLoop] Trying reconnect... {WSTimeLine._HostDefinition}" + $" {WSTimeLine._HostDefinition}");
-                                WSTimeLine.CreateAndReOpen();
+                                //WSTimeLine.CreateAndReOpen();
                             }
 
                             return;
@@ -223,7 +223,7 @@ namespace MiView.Common.Connection.WebSocket.Misskey.v2025
                             {
                                 Debug.WriteLine($"[ReadLoop] Trying reconnect... {WSTimeLine._HostDefinition}");
                                 LogOutput.Write(LogOutput.LOG_LEVEL.ERROR, $"[ReadLoop] Trying reconnect... {WSTimeLine._HostDefinition}" + $" {WSTimeLine._HostDefinition}");
-                                WSTimeLine.CreateAndReOpen();
+                                //WSTimeLine.CreateAndReOpen();
                             }
 
                             return;
@@ -232,7 +232,7 @@ namespace MiView.Common.Connection.WebSocket.Misskey.v2025
                         {
                             Debug.WriteLine("[ReadLoop] General receive error: " + ex.ToString());
                             LogOutput.Write(LogOutput.LOG_LEVEL.ERROR, "[ReadLoop] General receive error: " + ex.ToString() + $" {WSTimeLine._HostDefinition}");
-                            WSTimeLine.CreateAndReOpen();
+                            //WSTimeLine.CreateAndReOpen();
                             await Task.Delay(1000);
                         }
                         await Task.Delay(1000);
@@ -533,5 +533,58 @@ namespace MiView.Common.Connection.WebSocket.Misskey.v2025
                 System.Diagnostics.Debug.WriteLine(e.MessageRaw);
             }
         }
+        // WebSocketTimeLineCommon クラス内に追加
+        protected override void OnReconnected(string host)
+        {
+            try
+            {
+                // _WebSocketConnectionObj を用意している想定（派生クラスが設定）
+                if (this._WebSocketConnectionObj == null)
+                {
+                    // もしくは動的に作る:
+                    // this._WebSocketConnectionObj = new ConnectMainBody { channel = "main", id = Guid.NewGuid().ToString() };
+                    LogOutput.Write(LogOutput.LOG_LEVEL.ERROR, $"[{DateTime.Now:yyyyMMddHHmmss}] [ERROR] OnReconnected: _WebSocketConnectionObj is null for {host}");
+                    return;
+                }
+
+                // 例: main チャンネルを送る（note イベントを受けたいなら main を送る）
+                var connectMain = new
+                {
+                    type = "connect",
+                    body = new { channel = this._WebSocketConnectionObj.channel ?? "main", id = this._WebSocketConnectionObj.id ?? Guid.NewGuid().ToString() }
+                };
+
+                var json = JsonSerializer.Serialize(connectMain);
+                var bytes = Encoding.UTF8.GetBytes(json);
+                var seg = new ArraySegment<byte>(bytes);
+
+                // 送信は同期化されたコピーを使って投げる（例: ここは await を使っても良い）
+                _ = Task.Run(async () =>
+                {
+                    try
+                    {
+                        if (this.GetSocketClient() != null && this.GetSocketClient().State == WebSocketState.Open)
+                        {
+                            await this.GetSocketClient().SendAsync(seg, WebSocketMessageType.Text, true, CancellationToken.None);
+                            LogOutput.Write(LogOutput.LOG_LEVEL.INFO,
+                                $"[{DateTime.Now:yyyyMMddHHmmss}] [INFO] [WebSocketTimeLineCommon] Sent reconnect channel message: {json} {host}");
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        LogOutput.Write(LogOutput.LOG_LEVEL.ERROR,
+                            $"[{DateTime.Now:yyyyMMddHHmmss}] [ERROR] [WebSocketTimeLineCommon] Send connect failed: {ex.Message} {host}");
+                    }
+                });
+
+                // 必要なら homeTimeline など別チャンネルも派生で送る（ただし重複はしない）
+                // 例: homeTimeline を使う場合は別の ConnectMainBody を用意して送る
+            }
+            catch (Exception ex)
+            {
+                LogOutput.Write(LogOutput.LOG_LEVEL.ERROR, $"[{DateTime.Now:yyyyMMddHHmmss}] [ERROR] OnReconnected unexpected: {ex.Message} {host}");
+            }
+        }
+
     }
 }

@@ -16,7 +16,22 @@ namespace MiView.Common.AnalyzeData
 
         public static bool GetBool(JsonNode? Input)
         {
-            return Input == null && bool.TryParse(Input?.ToString() ?? string.Empty, out _) ? false : bool.Parse(Input?.ToString() ?? string.Empty);
+            if (Input == null)
+            {
+                return false;
+            }
+            if (bool.TryParse(Input.ToString(), out _))
+            {
+                return false;
+            }
+            try
+            {
+                return bool.Parse(Input.ToString());
+            }
+            catch
+            {
+                return false;
+            }
         }
     }
 }

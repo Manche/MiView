@@ -23,6 +23,7 @@ namespace MiView.ScreenForms.DialogForm.Setting
             this.cmbNotificationKind.Items.Add(new NotificationControllerCombo(NotificationController.CONTROLLER_KIND.Mail));
             this.cmbNotificationKind.Items.Add(new NotificationControllerCombo(NotificationController.CONTROLLER_KIND.Shell));
             this.cmbNotificationKind.Items.Add(new NotificationControllerCombo(NotificationController.CONTROLLER_KIND.Toast));
+            this.cmbNotificationKind.Items.Add(new NotificationControllerCombo(NotificationController.CONTROLLER_KIND.NotificationSound));
         }
 
         private NotificationController _n { get; set; }

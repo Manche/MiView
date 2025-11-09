@@ -131,7 +131,26 @@ namespace MiView.Common.Setting
                         {
                             try
                             {
-                                PropInfo.SetValue(TmpCls, JoData[PropInfo.Name].ToString());
+                                if (PropInfo.PropertyType == typeof(string))
+                                {
+                                    PropInfo.SetValue(TmpCls, JoData[PropInfo.Name].ToString());
+                                    //continue;
+                                }
+                                if (PropInfo.PropertyType == typeof(int))
+                                {
+                                    PropInfo.SetValue(TmpCls, int.Parse(JoData[PropInfo.Name].ToString()));
+                                    //continue;
+                                }
+                                if (PropInfo.PropertyType == typeof(float))
+                                {
+                                    PropInfo.SetValue(TmpCls, float.Parse(JoData[PropInfo.Name].ToString()));
+                                    //continue;
+                                }
+                                if (PropInfo.PropertyType == typeof(bool))
+                                {
+                                    PropInfo.SetValue(TmpCls, bool.Parse(JoData[PropInfo.Name].ToString()));
+                                    //continue;
+                                }
                             }
                             catch
                             {

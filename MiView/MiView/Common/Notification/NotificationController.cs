@@ -2,6 +2,7 @@
 using MiView.Common.Notification.Http;
 using MiView.Common.Notification.Mail;
 using MiView.Common.Notification.Shell;
+using MiView.Common.Notification.Sound;
 using MiView.Common.Notification.Toast;
 using MiView.Common.TimeLine;
 using System;
@@ -47,7 +48,8 @@ namespace MiView.Common.Notification
             HttpRequest,
             Mail,
             Shell,
-            Toast
+            Toast,
+            NotificationSound,
         }
         public static Dictionary<CONTROLLER_KIND, string> ControllerKindName = new Dictionary<CONTROLLER_KIND, string>()
         {
@@ -56,6 +58,7 @@ namespace MiView.Common.Notification
             {CONTROLLER_KIND.Shell, ShellController.ControllerName},
             {CONTROLLER_KIND.HttpRequest, HttpRequestController.ControllerName},
             {CONTROLLER_KIND.Toast, ToastController.ControllerName},
+            {CONTROLLER_KIND.NotificationSound, NotificationSoundController.ControllerName}
         };
 
         protected CONTROLLER_KIND _ControllerKind { get; set; } = CONTROLLER_KIND.None;
@@ -86,6 +89,8 @@ namespace MiView.Common.Notification
                     return new ShellController() { _ControllerKind = CONTROLLER_KIND.Shell };
                 case CONTROLLER_KIND.Toast:
                     return new ToastController() { _ControllerKind = CONTROLLER_KIND.Toast };
+                case CONTROLLER_KIND.NotificationSound:
+                    return new NotificationSoundController() { _ControllerKind = CONTROLLER_KIND.NotificationSound };
             }
 
             throw new NotImplementedException();

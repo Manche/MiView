@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace MiView.Common.Notification
 {
@@ -65,7 +66,80 @@ namespace MiView.Common.Notification
             this._CreatedControls.Add(Name, txt);
             return txt;
         }
+
+        protected NumericUpDown CreateNumberBox(string Name,
+                                        int Value,
+                                        ref int PosY,
+                                        ref int PosX,
+                                        int Min = 0,
+                                        int Max = 100)
+        {
+            NumericUpDown num = new NumericUpDown();
+            num.Name = Name;
+            num.Value = Value;
+            num.Size = new Size((int)(num.Font.Size * Text.Length + 7), num.Size.Height);
+            num.Location = new Point(PosX, PosY);
+            num.Minimum = Min;
+            num.Maximum = Max;
+
+            PosY += num.Size.Height;
+            if (num.Size.Width + num.Location.X > _MarginX)
+            {
+                _MarginX = num.Size.Width + num.Location.X;
+            }
+
+            this._CreatedControls.Add(Name, num);
+            return num;
+        }
+
+        protected Button CreateButton(string Name,
+                                      string Text,
+                                      ref int PosY,
+                                      ref int PosX)
+        {
+            Button btn = new Button();
+            btn.Name = Name;
+            btn.Text = Text;
+            btn.Size = new Size((int)(btn.Font.Size * Text.Length + 7), btn.Size.Height);
+            btn.Location = new Point(PosX, PosY);
+
+            PosY += btn.Size.Height;
+            if (btn.Size.Width + btn.Location.X > _MarginX)
+            {
+                _MarginX = btn.Size.Width + btn.Location.X;
+            }
+
+            this._CreatedControls.Add(Name, btn);
+            return btn;
+        }
+
+        protected ComboBox CreateComboBox(string Name,
+                                         string Text,
+                                         object[] Items,
+                                         ref int PosY,
+                                         ref int PosX)
+        {
+            ComboBox cmb = new ComboBox();
+            cmb.Name = Name;
+            cmb.Text = Text;
+            cmb.Items.AddRange(Items);
+            cmb.Size = new Size((Items.Select(r => { return r.ToString()?.Length; }).Max() * (int)cmb.Font.Size + 7) ?? cmb.Size.Width, cmb.Size.Height);
+            cmb.Location = new Point(PosX, PosY);
+
+            PosY += cmb.Size.Height;
+            if (cmb.Size.Width + cmb.Location.X > _MarginX)
+            {
+                _MarginX = cmb.Size.Width + cmb.Location.X;
+            }
+
+            this._CreatedControls.Add(Name, cmb);
+            return cmb;
+        }
         protected void SetTextBoxLength(TextBox txt, int Length)
+        {
+            txt.Size = new Size((int)(txt.Font.Size * Length + 7), txt.Size.Height);
+        }
+        protected void SetTextBoxLength(NumericUpDown txt, int Length)
         {
             txt.Size = new Size((int)(txt.Font.Size * Length + 7), txt.Size.Height);
         }

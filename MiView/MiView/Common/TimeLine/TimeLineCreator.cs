@@ -4,6 +4,7 @@ using MiView.Common.Connection.WebSocket;
 using MiView.Common.Fonts;
 using MiView.Common.Fonts.Material;
 using MiView.Common.Notification;
+using MiView.Common.Util;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -12,6 +13,7 @@ using System.Drawing;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
+using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
@@ -19,6 +21,7 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Xml.Linq;
 using static MiView.Common.TimeLine.TimeLineCreator;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace MiView.Common.TimeLine
 {
@@ -902,10 +905,26 @@ namespace MiView.Common.TimeLine
             this.AllowUserToAddRows = false;
             this.AllowUserToDeleteRows = false;
 
+            ImageCacher.Instance.ImageLoaded += OnImageLoaded;
+
             // 初期設定
             var DefaultMaterialFont = FontLoader.Instance.LoadFontFromFile(FontLoader.FONT_SELECTOR.MATERIALICONS, 8);
             foreach (string ColName in Enum.GetNames(typeof(TimeLineCreator.TIMELINE_ELEMENT)))
             {
+                if (ColName == TimeLineCreator.TIMELINE_ELEMENT.ICON.ToString())
+                {
+                    DataGridViewImageColumn ImCol = new DataGridViewImageColumn();
+                    ImCol.Name = ColName;
+                    ImCol.CellTemplate = new DataGridViewImageCell();
+                    ImCol.ImageLayout = DataGridViewImageCellLayout.Zoom;
+                    // 列幅
+                    if (_ColumWidths.ContainsKey((TimeLineCreator.TIMELINE_ELEMENT)Enum.Parse(typeof(TimeLineCreator.TIMELINE_ELEMENT), ColName)))
+                    {
+                        ImCol.Width = _ColumWidths[(TimeLineCreator.TIMELINE_ELEMENT)Enum.Parse(typeof(TimeLineCreator.TIMELINE_ELEMENT), ColName)];
+                    }
+                    this.Columns.Add(ImCol);
+                    continue;
+                }
                 DataGridViewColumn Col = new DataGridViewColumn();
                 Col.Name = ColName;
                 Col.CellTemplate = new DataGridViewTextBoxCell();
@@ -946,7 +965,16 @@ namespace MiView.Common.TimeLine
                 {
                     await Task.Delay(1000);
 
-                    DateTime? LatestUpdate = _TimeLineData.Select(d => { return d.UPDATEDAT; }).Max();
+                    try
+                    {
+                        lock(_TimeLineData)
+                        {
+                            DateTime? LatestUpdate = _TimeLineData.Select(d => { return d.UPDATEDAT; }).Max();
+                        }
+                    }
+                    catch
+                    {
+                    }
                 }
             });
             tk.Start();
@@ -961,7 +989,25 @@ namespace MiView.Common.TimeLine
             var prop = TLData.GetType().GetProperty(colName);
             if (prop != null)
             {
-                e.Value = prop.GetValue(TLData);
+                if (e.ColumnIndex != (int)TIMELINE_ELEMENT.ICON)
+                {
+                    e.Value = prop.GetValue(TLData);
+                }
+                else
+                {
+                    //var img = ImageCacher.Instance.TryGetImage(this._Definition + "@@" + this._TimeLineData[e.RowIndex].USERID);
+                    //if (img != null)
+                    //{
+                    //    e.Value = img;
+                    //}
+                    //else
+                    //{
+                    //    // キャッシュがなければ非同期ダウンロード開始
+                    //    //ImageCacher.Instance.SaveIconImage(this._Definition + "@@" + this._TimeLineData[e.RowIndex].USERID, data.IconUrl);
+                    //    //e.Value = Properties.Resources.placeholder; // 仮アイコン
+                    //}
+                    return;
+                }
             }
         }
 
@@ -985,8 +1031,21 @@ namespace MiView.Common.TimeLine
             this.ChangeDispColor(ref CCellStyle, TLData);
         }
 
+        private void OnImageLoaded(string define)
+        {
+            if (InvokeRequired)
+            {
+                BeginInvoke(new Action(() => OnImageLoaded(define)));
+                return;
+            }
+
+            // 画像列を再描画（VirtualMode用）
+            this.Invalidate();
+        }
+
         private static int _cntGlobal = 0;
 
+        private object tlsimlock = new object();
         /// <summary>
         /// 行挿入
         /// </summary>
@@ -997,41 +1056,54 @@ namespace MiView.Common.TimeLine
             {
                 return;
             }
+            var LocalContainer = Container.DeepClone();
+
             try
             {
-                _cntGlobal++;
-                //System.Diagnostics.Debug.WriteLine(_cntGlobal);
-
-                // TL統合
-                var Intg = this._TimeLineData.Cast<TimeLineContainer>().Where(r => r.IDENTIFIED.Equals(Container.IDENTIFIED)).ToArray();
-                if (Intg.Count() > 0)
+                lock (this._TimeLineData)
                 {
-                    var CtlVal = (Intg[0]).TLFROM.ToString();
-                    if (CtlVal != string.Empty)
+                    _cntGlobal++;
+                    //System.Diagnostics.Debug.WriteLine(_cntGlobal);
+
+                    // TL統合
+                    var Intg = this._TimeLineData.Cast<TimeLineContainer>().Where(r => r.IDENTIFIED.Equals(LocalContainer.IDENTIFIED)).ToArray();
+                    if (Intg.Count() > 0)
                     {
-                        if (!CtlVal.Split(',').Contains(Container.TLFROM))
+                        var CtlVal = (Intg[0]).TLFROM.ToString();
+                        if (CtlVal != string.Empty)
                         {
-                            (Intg[0]).TLFROM = CtlVal + "," + Container.TLFROM;
+                            if (!CtlVal.Split(',').Contains(LocalContainer.TLFROM))
+                            {
+                                (Intg[0]).TLFROM = CtlVal + "," + LocalContainer.TLFROM;
+                                this._TimeLineData[this._TimeLineData.IndexOf(Intg[0])].TLFROM = CtlVal + "," + LocalContainer.TLFROM;
+                            }
                         }
+                        else
+                        {
+                            (Intg[0]).TLFROM = CtlVal + "," + LocalContainer.TLFROM;
+                            this._TimeLineData[this._TimeLineData.IndexOf(Intg[0])].TLFROM = CtlVal + "," + LocalContainer.TLFROM;
+                        }
+                        return;
                     }
-                    else
+
+
+                    this._TimeLineData.Add(LocalContainer);
+                    // ImageCacher.Instance.SaveIconImage();
+                    if (LocalContainer.ORIGINAL != null && LocalContainer.ORIGINAL.ToString() != string.Empty)
                     {
-                        (Intg[0]).TLFROM = CtlVal + "," + Container.TLFROM;
+                        //ImageCacher.Instance.SaveIconImage(this._Definition + "@@" + Container.USERID, JsonConverterCommon.GetStr(ChannelToTimeLineData.Get(LocalContainer.ORIGINAL).Note.User.AvatarUrl));
+                        //System.Diagnostics.Debug.WriteLine(JsonConverterCommon.GetStr(ChannelToTimeLineData.Get(LocalContainer.ORIGINAL).Note.User.AvatarUrl));
                     }
-                    //this.ResumeLayout();
-                    return;
+
+                    // 行挿入
+                    //this.Rows.Add();
+                    this.RowCount = this._TimeLineData.Count;
+
+                    int CurrentRowIndex = this.RowCount - 1;
+
+                    // 基本行高さ
+                    this.Rows[CurrentRowIndex].Height = 20;
                 }
-
-
-                // 行挿入
-                //this.Rows.Add();
-                this._TimeLineData.Add(Container);
-                this.RowCount = this._TimeLineData.Count;
-
-                int CurrentRowIndex = this.RowCount - 1;
-
-                // 基本行高さ
-                this.Rows[CurrentRowIndex].Height = 20;
 
                 // フォントは行ごとに定義する
                 // defaultだと反映されない
@@ -1085,21 +1157,26 @@ namespace MiView.Common.TimeLine
                     }
                     if (CountRet)
                     {
-                        Opt.ExecuteAlert(Container);
+                        Opt.ExecuteAlert(LocalContainer);
                     }
                 }
+                //ImageCacher.Instance.ImageDownloaded += key =>
+                //{
+                //    // 該当の行だけ再描画（例）
+                //    this.Invalidate();
+                //};
             }
-            catch(Exception ce)
+            catch (Exception ce)
             {
                 System.Diagnostics.Debug.WriteLine(ce);
             }
             finally
             {
-                this.ResumeLayout(false);
             }
             //System.Diagnostics.Debug.WriteLine("ttt");
             //this.Refresh();
         }
+
 
         /// <summary>
         /// タイムライン整形
@@ -1946,17 +2023,28 @@ namespace MiView.Common.TimeLine
                 }
                 if (CountRet)
                 {
-                    foreach (var Alert in this._AlertExecution)
-                    {
-                        Alert.SetTimeLineContainer(Container);
-                        Alert.Execute();
-                    }
+                    _ = Task.Run(() => {
+                        foreach (var Alert in this._AlertExecution)
+                        {
+                            Alert.SetTimeLineContainer(Container);
+                            Alert.Execute();
+                        }
+                    });
                 }
             }
             catch (Exception ce)
             {
                 System.Diagnostics.Debug.WriteLine($"Alert: {ce.Message}");
             }
+        }
+    }
+
+    public static class CloneHelper
+    {
+        public static T DeepClone<T>(this T obj)
+        {
+            var json = JsonSerializer.Serialize(obj);
+            return JsonSerializer.Deserialize<T>(json)!;
         }
     }
 }

@@ -76,11 +76,11 @@ namespace MiView.Common.Notification
         {
             NumericUpDown num = new NumericUpDown();
             num.Name = Name;
+            num.Minimum = Min;
+            num.Maximum = Max;
             num.Value = Value;
             num.Size = new Size((int)(num.Font.Size * Text.Length + 7), num.Size.Height);
             num.Location = new Point(PosX, PosY);
-            num.Minimum = Min;
-            num.Maximum = Max;
 
             PosY += num.Size.Height;
             if (num.Size.Width + num.Location.X > _MarginX)

@@ -1,12 +1,13 @@
 ﻿using MiView.Common.Notification.Baloon;
+using MiView.Common.Setting;
+using NAudio.Wave;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
-using NAudio.Wave;
-
-using System.Reflection;
 
 namespace MiView.Common.Notification.Sound
 {
@@ -25,6 +26,10 @@ namespace MiView.Common.Notification.Sound
         /// 再生回数
         /// </summary>
         public int PlayTimes { get; set; } = 1;
+        /// <summary>
+        /// 再生間隔
+        /// </summary>
+        public int Distance { get; set; } = 0;
 
         public NotificationSoundController()
         {
@@ -37,24 +42,18 @@ namespace MiView.Common.Notification.Sound
         /// <exception cref="NotImplementedException"></exception>
         public override void ExecuteMethod()
         {
+            if (SettingState.Instance.IsMuted)
+            {
+                return;
+            }
             if (!File.Exists(FilePath))
             {
                 return;
             }
             for (int i = 0; i < PlayTimes; i++)
             {
-                using (var audioFile = new AudioFileReader(FilePath))
-                using (var outputDevice = new WaveOutEvent())
-                {
-                    outputDevice.Init(audioFile);
-                    outputDevice.Volume = (float)Volume / 100;
-                    outputDevice.Play();
-
-                    // 再生が終了するまで待機する
-                    while (outputDevice.PlaybackState == PlaybackState.Playing)
-                    {
-                    }
-                }
+                NotificationSoundAudioHelper.Instance.PlaySound(FilePath, Volume);
+                Thread.Sleep(Distance);
             }
         }
 
@@ -70,7 +69,51 @@ namespace MiView.Common.Notification.Sound
         /// <exception cref="NotImplementedException"></exception>
         public override string ToString()
         {
-            return $"通知方法：音声, 音量：{Volume}, ファイルパス：{FilePath}";
+            return $"通知方法：音声, 音量：{Volume}, 回数：{PlayTimes}, ファイルパス：{FilePath}";
+        }
+    }
+
+    public class NotificationSoundAudioHelper
+    {
+        public static NotificationSoundAudioHelper Instance { get; } = new NotificationSoundAudioHelper();
+        private Dictionary<string, int> PlayState = new Dictionary<string, int>();
+
+        private int _MaxBuf = 3;
+
+        public void PlaySound(string FilePath, int Volume)
+        {
+            if (!PlayState.ContainsKey(FilePath))
+            {
+                PlayState[FilePath] = 0;
+            }
+            Console.WriteLine(PlayState[FilePath]);
+            System.Diagnostics.Debug.WriteLine(PlayState[FilePath]);
+            if (PlayState[FilePath] > _MaxBuf)
+            {
+                return;
+            }
+            _ = Task.Run(async () => {
+                lock (PlayState)
+                {
+                    PlayState[FilePath]++;
+                }
+                using (var audioFile = new AudioFileReader(FilePath))
+                using (var outputDevice = new WaveOutEvent())
+                {
+
+                    outputDevice.Init(audioFile);
+                    outputDevice.Volume = (float)Volume / 100;
+                    outputDevice.Play();
+                    while (outputDevice.PlaybackState == PlaybackState.Playing)
+                    {
+                        await Task.Delay(10);
+                    }
+                }
+                lock (PlayState)
+                {
+                    PlayState[FilePath]--;
+                }
+            });
         }
     }
 }

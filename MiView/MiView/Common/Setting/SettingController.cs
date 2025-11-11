@@ -2,6 +2,7 @@
 using MiView.Common.Notification.Baloon;
 using MiView.Common.TimeLine;
 using System;
+using System.CodeDom;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -171,6 +172,32 @@ namespace MiView.Common.Setting
             }
         }
         #endregion
+
+        #region Debug関連
+        public static void SaveDebugInfo(SettingDebug[] config)
+        {
+            var options = new JsonSerializerOptions { WriteIndented = true };
+            string json = JsonSerializer.Serialize(config, options);
+            File.WriteAllText(SettingConst.DEBUG_SETTINGS_FILE, json);
+        }
+
+        public static SettingDebug[] LoadDebugInfo()
+        {
+            if (!File.Exists(SettingConst.DEBUG_SETTINGS_FILE))
+                return new SettingDebug[] { }; // ファイルがなければデフォルト値で作成
+
+            string json = File.ReadAllText(SettingConst.DEBUG_SETTINGS_FILE);
+            try
+            {
+                //var Tm = JsonSerializer.Deserialize<SettingTimeLine[]>(json, new JsonSerializerOptions() { MaxDepth = 1 });
+                return JsonSerializer.Deserialize<SettingDebug[]>(json) ?? new SettingDebug[] { };
+            }
+            catch
+            {
+                return new SettingDebug[0];
+            }
+        }
+        #endregion
     }
 
     /// <summary>
@@ -196,6 +223,10 @@ namespace MiView.Common.Setting
         /// フィルタ
         /// </summary>
         public static readonly string FILTER_SETTINGS_FILE = Path.Combine(SETTINGS_DIR, "settings_filter.json");
+        /// <summary>
+        /// デバッグ情報
+        /// </summary>
+        public static readonly string DEBUG_SETTINGS_FILE = Path.Combine(SETTINGS_DIR, "settings_debug.json");
         /// <summary>
         /// アラート
         /// </summary>

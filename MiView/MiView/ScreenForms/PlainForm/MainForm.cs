@@ -88,14 +88,18 @@ namespace MiView
 
         private void MainForm_Load(object sender, EventArgs e)
         {
+            Splash.instance.SetMessageAndProgress("初期化処理中", 0);
             _TLCreator.CreateTimeLine(ref this.MainFormObj, "Main", "tpMain");
             while (!this.Visible)
             {
             }
 
+            Splash.instance.SetMessageAndProgress("ウォッチャー起動", 0);
             var Ac = new Task(() => { ConnectWatcher(); });
             Ac.Start();
 
+            Splash.instance.SetMessageAndProgress("設定読み込み", 0);
+            SettingState.Instance.IsMuted = true;
             var sts = SettingController.LoadWebSockets();
             var smc = SettingController.LoadTimeLine();
 
@@ -125,6 +129,10 @@ namespace MiView
                 }
                 System.Diagnostics.Debug.WriteLine(tp.Name);
             }
+            Splash.instance.SetMessageAndProgress("最終処理", 100);
+
+            SettingState.Instance.IsMuted = false;
+            Splash.instance.CloseForm();
         }
 
         private void ConnectWatcher()
@@ -445,14 +453,17 @@ namespace MiView
                 this.Invoke(LoadTimeLineManually, WSTimeLines);
                 return;
             }
+            Splash.instance.SetMessageAndProgress("タイムライン読み込み", 0);
             foreach (Common.Setting.SettingTimeLine WSTimeLine in WSTimeLines)
             {
+                Splash.instance.SetMessageAndProgress($"タイムライン読み込み：{WSTimeLine.TabName}", (int)((float)(WSTimeLines.ToList().IndexOf(WSTimeLine) + 1) / (float)WSTimeLines.Count() * 100));
                 _TLCreator.CreateTimeLineTab(ref this.MainFormObj, WSTimeLine.Definition, WSTimeLine.TabName, WSTimeLine.IsVisible);
                 _TLCreator.CreateTimeLine(ref this.MainFormObj, WSTimeLine.Definition, WSTimeLine.Definition, IsFiltered: WSTimeLine.IsFiltered);
                 _TLCreator.GetGrid(WSTimeLine.Definition)._FilteringOptions = WSTimeLine.FilteringOptions;
                 _TLCreator.GetGrid(WSTimeLine.Definition)._AlertOptions = WSTimeLine.AlertOptions;
                 _TmpTLManager.Add(WSTimeLine.Definition, WSTimeLine.TabName);
             }
+            Splash.instance.SetMessageAndProgress("タイムライン読み込み", 100);
         }
         public void LoadWebSocketManually(SettingWebSocket[] WSManagers)
         {
@@ -461,8 +472,12 @@ namespace MiView
                 this.Invoke(LoadWebSocketManually, WSManagers);
                 return;
             }
+            Splash.instance.SetMessageAndProgress("WebSocket読み込み", 0);
             foreach (Common.Setting.SettingWebSocket SWSManager in WSManagers)
             {
+                System.Diagnostics.Debug.WriteLine(WSManagers.ToList().IndexOf(SWSManager));
+                System.Diagnostics.Debug.WriteLine((int)((float)WSManagers.ToList().IndexOf(SWSManager) + 1 / (float)WSManagers.Count() * 100));
+                Splash.instance.SetMessageAndProgress($"タイムライン読み込み：{SWSManager.InstanceURL}", (int)((float)(WSManagers.ToList().IndexOf(SWSManager) + 1) / (float)WSManagers.Count() * 100));
                 WebSocketManager? WSManager = WebSocketTimeLineController.CreateWSTLManager(SWSManager.SoftwareVersionInfo.SoftwareType, SWSManager.SoftwareVersionInfo.Version, SWSManager.ConnectTimeLineKind);
                 if (WSManager == null)
                 {
@@ -517,6 +532,7 @@ namespace MiView
                     System.Diagnostics.Debug.WriteLine(ex);
                 }
             }
+            Splash.instance.SetMessageAndProgress("WebSocket読み込み", 100);
         }
 
         private void AppendTimelineFilter(string TabName, string AttachDef, TimeLineFilterlingOption FilterOption)
@@ -949,6 +965,12 @@ namespace MiView
             StasticTimeLine.Instance.SetDataGrids(Grids);
             StasticTimeLine.Instance.ShowDialog();
         }
+
         #endregion
+
+        private void chkMuteSound_CheckedChanged(object sender, EventArgs e)
+        {
+            SettingState.Instance.IsMuted = chkMuteSound.Checked;
+        }
     }
 }

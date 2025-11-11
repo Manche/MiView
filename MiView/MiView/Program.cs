@@ -1,5 +1,6 @@
 using MiView.Common.Util;
 using MiView.ScreenForms.Controls.Notify;
+using MiView.ScreenForms.DialogForm;
 
 namespace MiView
 {
@@ -16,6 +17,8 @@ namespace MiView
             ApplicationConfiguration.Initialize();
             try
             {
+                Splash.instance.Show();
+                Splash.instance.Refresh();
                 LogOutput.Write(LogOutput.LOG_LEVEL.INFO, "\r\n");
                 LogOutput.Write(LogOutput.LOG_LEVEL.INFO, "ŠJŽn");
                 NotifyView NView = new NotifyView();

@@ -42,6 +42,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Update="Common\Assets\Images\Icon\_empty">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="Common\Sound\Sample\ピコ！.mp3">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
@@ -86,12 +89,14 @@
 
   <ItemGroup>
     <Folder Include="Common\AnalyzeData\Format\Misskey\v2024\" />
+    <Folder Include="Common\Assets\Images\Icon\" />
     <Folder Include="Common\Connection\REST\Misskey\v2025\API\Channels\" />
     <Folder Include="Common\Connection\WebSocket\Misskey\v11\" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="NAudio" Version="2.2.1" />
+    <PackageReference Include="SixLabors.ImageSharp" Version="3.1.12" />
   </ItemGroup>
 
 </Project>

@@ -97,12 +97,21 @@ namespace Misstab.ScreenForms.DialogForm.Viewer
             }
             if (this._SelectedGrid != null)
             {
-                this._StasticsDisp[StasticDisplay.INDEXS.TabName].CtlDispText.Text = this._SelectedGrid.Stastics.TabName;
-                this._StasticsDisp[StasticDisplay.INDEXS.TabDefinition].CtlDispText.Text = this._SelectedGrid.Stastics.TabDefinition;
-                this._StasticsDisp[StasticDisplay.INDEXS.NoteCount].CtlDispText.Text = this._SelectedGrid.Stastics.NoteCount.ToString();
-                this._StasticsDisp[StasticDisplay.INDEXS.AllNoteCount].CtlDispText.Text = this._SelectedGrid.Stastics.AllNoteCount.ToString();
-                this._StasticsDisp[StasticDisplay.INDEXS.LatestUpdate].CtlDispText.Text = this._SelectedGrid.Stastics.LatestUpdate.ToString();
-                this._StasticsDisp[StasticDisplay.INDEXS.LatestPostUpdate].CtlDispText.Text = this._SelectedGrid.Stastics.LatestPostUpdate.ToString();
+                try
+                {
+                    lock(this._StasticsDisp)
+                    {
+                        this._StasticsDisp[StasticDisplay.INDEXS.TabName].CtlDispText.Text = this._SelectedGrid.Stastics.TabName;
+                        this._StasticsDisp[StasticDisplay.INDEXS.TabDefinition].CtlDispText.Text = this._SelectedGrid.Stastics.TabDefinition;
+                        this._StasticsDisp[StasticDisplay.INDEXS.NoteCount].CtlDispText.Text = this._SelectedGrid.Stastics.NoteCount.ToString();
+                        this._StasticsDisp[StasticDisplay.INDEXS.AllNoteCount].CtlDispText.Text = this._SelectedGrid.Stastics.AllNoteCount.ToString();
+                        this._StasticsDisp[StasticDisplay.INDEXS.LatestUpdate].CtlDispText.Text = this._SelectedGrid.Stastics.LatestUpdate.ToString();
+                        this._StasticsDisp[StasticDisplay.INDEXS.LatestPostUpdate].CtlDispText.Text = this._SelectedGrid.Stastics.LatestPostUpdate.ToString();
+                    }
+                }
+                catch
+                {
+                }
             }
         }
 

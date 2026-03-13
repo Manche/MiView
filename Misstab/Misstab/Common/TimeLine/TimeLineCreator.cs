@@ -261,7 +261,7 @@ namespace Misstab.Common.TimeLine
                 Grid.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
                 Grid.Location = new Point(3, 3);
                 Grid.Name = "dataGridTimeLine1";
-                Grid.Size = new Size(770, 299);
+                Grid.Size = new Size(770, 510);
                 Grid.TabIndex = 0;
                 Grid.RowHeadersVisible = false;
 #if !DEBUG

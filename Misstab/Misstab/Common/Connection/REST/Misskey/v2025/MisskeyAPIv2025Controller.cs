@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Misstab.Common.Connection.REST.Misskey.v2025.API.Notes
+namespace Misstab.Common.Connection.REST.Misskey.v2025
 {
-    public class TimeLine : MisskeyAPIv2025Controller
+    public class MisskeyAPIv2025Controller : MisskeyAPIController
     {
     }
 }

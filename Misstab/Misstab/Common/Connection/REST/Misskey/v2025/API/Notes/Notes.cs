@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace Misstab.Common.Connection.REST.Misskey.v2025.API.Notes
 {
-    public class Notes : MisskeyAPIController
+    public class Notes : MisskeyAPIv2025Controller
     {
     }
 
@@ -33,6 +33,7 @@ namespace Misstab.Common.Connection.REST.Misskey.v2025.API.Notes
             NonSensitiveOnly,
             NonSensitiveOnlyForLocalLikeOnlyForRemote
         }
+        [JsonIgnore]
         public readonly Dictionary<ReactionAcceptances, string> ReactionAcceptanceName =
             new Dictionary<ReactionAcceptances, string>()
             {

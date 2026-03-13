@@ -1,8 +1,7 @@
 ## important！
-- claude codeやchatgptなどのLLMやAIを用いたコードをレビューなしでcommitするのは禁止
-- バグが残っている状態でPRを出さないこと
+- LLMやAIのみを使用したIssue・PRは禁止
+- ビルドできない状態のPRは禁止
 - 過度のエゴは控えること
-
 
 ## flow
 - main 基本的にPOのみ編集可

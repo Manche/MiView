@@ -1,5 +1,6 @@
 using Misstab.Common.AnalyzeData;
 using Misstab.Common.Connection.REST.Misskey;
+using Misstab.Common.Connection.REST.Misskey.v2025.API.Channels;
 using Misstab.Common.Connection.REST.Misskey.v2025.API.Notes;
 using Misstab.Common.Connection.VersionInfo;
 using Misstab.Common.Connection.WebSocket;
@@ -1166,7 +1167,10 @@ namespace Misstab
 
         private void cmbChannel_Click(object sender, EventArgs e)
         {
-            this.cmbChannel.Items.Clear();
+            //if(this.cmbDisplay.Items.Count == 0)
+            //{
+            //    this.cmbChannel.Items.Clear();
+            //}
         }
 
         private List<CmbGeneric> _InstanceChannel = new List<CmbGeneric>();
@@ -1187,6 +1191,17 @@ namespace Misstab
             {
                 return;
             }
+            if (ii[0].APIKey == null)
+            {
+                return;
+            }
+
+            _ = Task.Run(() =>
+            {
+                string ChannelTx = "";
+                GetChannelsFollowed.EasyGetChannel(Host, ii[0].APIKey, out ChannelTx);
+                System.Diagnostics.Debug.WriteLine(ChannelTx);
+            });
         }
 
         private void cmbDisplay_SelectedIndexChanged(object sender, EventArgs e)

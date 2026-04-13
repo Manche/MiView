@@ -95,6 +95,10 @@ namespace Misstab.Common.Connection.REST.Misskey
             }
             State = ControllerState.Finish;
         }
+        public JsonNode? GetResponse()
+        {
+            return this.RetNode;
+        }
 
         public virtual Common.AnalyzeData.Format.Misskey.v2025.Note[]? GetNotes()
         {
@@ -140,6 +144,9 @@ namespace Misstab.Common.Connection.REST.Misskey
             NOTES_TIMELINE = 0,
             NOTES,
             NOTES_CREATE,
+
+            CHANNELS,
+            CHANNELS_FOLLOWED,
         }
 
         public static bool RequiredBearer (API_ENDPOINT EndPoint)
@@ -149,6 +156,9 @@ namespace Misstab.Common.Connection.REST.Misskey
                 case API_ENDPOINT.NOTES_TIMELINE: return true;
                 case API_ENDPOINT.NOTES: return true;
                 case API_ENDPOINT.NOTES_CREATE: return true;
+
+                case API_ENDPOINT.CHANNELS: return true;
+                case API_ENDPOINT.CHANNELS_FOLLOWED: return true;
                 default: return false;
             }
         }
@@ -160,6 +170,9 @@ namespace Misstab.Common.Connection.REST.Misskey
                 case API_ENDPOINT.NOTES_TIMELINE: return APIPrefix + "/notes/timeline";
                 case API_ENDPOINT.NOTES: return APIPrefix + "/notes/show";
                 case API_ENDPOINT.NOTES_CREATE: return APIPrefix + "/notes/create";
+
+                case API_ENDPOINT.CHANNELS: return APIPrefix + "/channels/search";
+                case API_ENDPOINT.CHANNELS_FOLLOWED: return APIPrefix + "/channels/followed";
                 default: throw new NotImplementedException("NotImplemented");
             }
         }
@@ -173,6 +186,9 @@ namespace Misstab.Common.Connection.REST.Misskey
                     return false;
                 case API_ENDPOINT.NOTES_CREATE:
                     return true;
+                case API_ENDPOINT.CHANNELS:
+                case API_ENDPOINT.CHANNELS_FOLLOWED:
+                    return false;
                 default:
                     return true;
             }
@@ -185,6 +201,8 @@ namespace Misstab.Common.Connection.REST.Misskey
                 case API_ENDPOINT.NOTES_TIMELINE:
                 case API_ENDPOINT.NOTES:
                 case API_ENDPOINT.NOTES_CREATE:
+                case API_ENDPOINT.CHANNELS:
+                case API_ENDPOINT.CHANNELS_FOLLOWED:
                     return HttpRequestController.EXECUTE_PROCESS.POST;
                 default:
                     throw new NotImplementedException("NotImplemented");
@@ -198,6 +216,9 @@ namespace Misstab.Common.Connection.REST.Misskey
                 case API_ENDPOINT.NOTES: return new Misskey.v2025.API.Notes.Notes();
                 case API_ENDPOINT.NOTES_TIMELINE: return new Misskey.v2025.API.Notes.TimeLine();
                 case API_ENDPOINT.NOTES_CREATE: return new Misskey.v2025.API.Notes.CreateNotes();
+
+                case API_ENDPOINT.CHANNELS: return new Misskey.v2025.API.Channels.Channels();
+                case API_ENDPOINT.CHANNELS_FOLLOWED: return new Misskey.v2025.API.Channels.Channels();
                 default: throw new NotImplementedException("notimplemented");
             }
         }

@@ -1,4 +1,5 @@
-﻿using Misstab.Common.Connection.REST.Misskey.v2025.API.Notes;
+﻿using Misstab.Common.AnalyzeData.Format.Misskey.v2025;
+using Misstab.Common.Connection.REST.Misskey.v2025.API.Notes;
 using Misstab.Common.TimeLine;
 using System;
 using System.Collections.Generic;
@@ -114,11 +115,13 @@ namespace Misstab.Common.Connection.REST.Misskey.v2025.API.Channels
         /// <returns></returns>
         public static bool EasyGetChannel(string Host,
                                           string APIKey,
+                                          out Channel[] ResultArray,
                                           out string ResultMsg,
                                           string Query = "",
                                           int Limit = -1)
         {
             ResultMsg = string.Empty;
+            ResultArray = new Channel[0];
             var i = new GetChannels();
             i.query = Query;
             i.limit = Limit;
@@ -129,6 +132,8 @@ namespace Misstab.Common.Connection.REST.Misskey.v2025.API.Channels
                 Ctl.Request(Host, APIKey, i.CreateRequestBody());
                 var rs = Ctl.GetResponse();
                 ResultMsg = rs.ToString();
+
+                ResultArray = rs.AsArray().Select(r => { return new Misstab.Common.AnalyzeData.Format.Misskey.v2025.Channel() { Node = r }; }).ToArray();
             }
             catch (Exception ex)
             {

@@ -98,12 +98,13 @@ namespace Misstab.Common.Connection.REST.Misskey.v2025.API.Notes
         /// <param name="Kind"></param>
         /// <param name="ResultMsg"></param>
         /// <returns></returns>
-        public static bool EasyPostNote(string Text, string Host, string APIKey, TimeLineContainer.PROTECTED_STATUS Kind, out string ResultMsg)
+        public static bool EasyPostNote(string Text, string Host, string APIKey, TimeLineContainer.PROTECTED_STATUS Kind, string? ChannelId, out string ResultMsg)
         {
             ResultMsg = string.Empty;
             var i = new CreateNotes();
             i.text = Text;
             i.VisibilityRaw = Kind;
+            i.channelId = ChannelId;
 
             var Ctl = MisskeyAPIController.CreateInstance(MisskeyAPIConst.API_ENDPOINT.NOTES_CREATE);
             try

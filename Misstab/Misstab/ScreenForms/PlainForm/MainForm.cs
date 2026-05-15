@@ -1196,12 +1196,22 @@ namespace Misstab
                 return;
             }
 
+            this.cmbChannel.Items.Clear();
+            this.cmbDisplay.Items.Clear();
+
+            string ChannelTx = "";
+            Misstab.Common.AnalyzeData.Format.Misskey.v2025.Channel[] Channels = new Misstab.Common.AnalyzeData.Format.Misskey.v2025.Channel[0];
             _ = Task.Run(() =>
             {
-                string ChannelTx = "";
-                GetChannelsFollowed.EasyGetChannel(Host, ii[0].APIKey, out ChannelTx);
                 System.Diagnostics.Debug.WriteLine(ChannelTx);
+
             });
+            GetChannelsFollowed.EasyGetChannel(Host, ii[0].APIKey, out Channels, out ChannelTx);
+            this.cmbChannel.Items.Add(new CmbChannel());
+            foreach (var c in Channels)
+            {
+                this.cmbChannel.Items.Add(new CmbChannel(c.Id.ToString(), c.Name.ToString()));
+            }
         }
 
         private void cmbDisplay_SelectedIndexChanged(object sender, EventArgs e)
@@ -1247,11 +1257,17 @@ namespace Misstab
                 return;
             }
             var TextPost = this.textBox1.Text;
+            if (this.cmbDisplay.SelectedItem == null)
+            {
+                MessageBox.Show("ŒöŠJ”ÍˆÍ‚ðÝ’è‚µ‚Ä‚­‚¾‚³‚¢B");
+                return;
+            }
             var PostVisibility = ((CmbVisibility)this.cmbDisplay.SelectedItem).TLKind;
+            var PostChannel = ((CmbChannel)this.cmbChannel.SelectedItem)?._ChannelId??null;
 
             _ = Task.Run(() =>
             {
-                CreateNotes.EasyPostNote(TextPost, Host, ii[0].APIKey, PostVisibility, out _);
+                CreateNotes.EasyPostNote(TextPost, Host, ii[0].APIKey, PostVisibility,  PostChannel, out _);
             });
             this.textBox1.Text = null;
         }

@@ -5,7 +5,7 @@ using System.Text;
 using System.Text.Json.Nodes;
 using System.Threading.Tasks;
 
-namespace Misstab.Common.AnalyzeData.Format
+namespace Misstab.Common.AnalyzeData.Format.Misskey.v2025
 {
     public class Channel
     {

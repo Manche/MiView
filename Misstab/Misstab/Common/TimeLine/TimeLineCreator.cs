@@ -17,6 +17,8 @@ using System.ComponentModel;
 using System.DirectoryServices.ActiveDirectory;
 using System.Drawing;
 using System.Linq;
+using System.Linq.Expressions;
+using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -329,6 +331,11 @@ namespace Misstab.Common.TimeLine
             }
 
             var CurrentRowData = Grid.Rows[CurrentRow.Index];
+            if (CurrentRowData == null)
+            {
+                return;
+            }
+
             string OriginalHost = CurrentRowData.Cells[(int)TIMELINE_ELEMENT.ORIGINAL_HOST].Value.ToString() ?? string.Empty;
             var Node = CurrentRowData.Cells[(int)TIMELINE_ELEMENT.ORIGINAL].Value;
 
@@ -1000,6 +1007,8 @@ namespace Misstab.Common.TimeLine
         /// </summary>
         public DataGridTimeLine()
         {
+            InitGetterMap();
+
             // コントロールが黒くなる不具合ある
             // this.DoubleBuffered = true;
             this.VirtualMode = true;
@@ -1115,6 +1124,35 @@ namespace Misstab.Common.TimeLine
         }
         public event EventHandler<EventArgs> UpdateStastics;
 
+        private Dictionary<int, Func<object, object?>> _getterMap;
+        private void InitGetterMap()
+        {
+            _getterMap = new Dictionary<int, Func<object, object?>>();
+
+            // データがなくても型は固定で取る
+            var type = _TimeLineData.GetType().GetGenericArguments()[0];
+
+            foreach (DataGridViewColumn col in this.Columns)
+            {
+                var prop = type.GetProperty(col.Name);
+                if (prop == null) continue;
+
+                var param = Expression.Parameter(typeof(object), "x");
+                var cast = Expression.Convert(param, type);
+
+                var body = Expression.Convert(
+                    Expression.Property(cast, prop),
+                    typeof(object)
+                );
+
+                var lambda = Expression
+                    .Lambda<Func<object, object?>>(body, param)
+                    .Compile();
+
+                _getterMap[col.Index] = lambda;
+            }
+        }
+
         private void OnCellValueNeeded(object? sender, DataGridViewCellValueEventArgs e)
         {
             if (e.RowIndex < 0 || e.RowIndex >= _TimeLineData.Count) return;
@@ -1122,6 +1160,12 @@ namespace Misstab.Common.TimeLine
             var TLData = _TimeLineData[e.RowIndex];
             string colName = this.Columns[e.ColumnIndex].Name;
             var prop = TLData.GetType().GetProperty(colName);
+
+            if (_getterMap.TryGetValue(e.ColumnIndex, out var getter))
+            {
+                e.Value = getter(TLData); // ←これでOK
+            }
+
             if (prop != null)
             {
                 if (e.ColumnIndex != (int)TIMELINE_ELEMENT.ICON)

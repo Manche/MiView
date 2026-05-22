@@ -547,6 +547,10 @@ namespace Misstab.Common.Connection.WebSocket.Misskey.v2025
                                 {
                                     DGrid.SetTimeLineFilter(TLCon);
 
+                                    if (DGrid._FilteringOptions == null)
+                                    {
+                                        DGrid._FilteringOptions = new List<TimeLineFilterlingOption>();
+                                    }
                                     int Found = DGrid._FilteringOptions.FindAll(r => { return r.FilterResult(); }).Count();
                                     int Filted = DGrid._FilteringOptions.Count();
 

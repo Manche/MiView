@@ -116,6 +116,10 @@ namespace Misstab
                 try
                 {
                     var tpGrid = _TLCreator.GetTimeLineObjectDirect(ref this.MainFormObj, tp.Name);
+                    if (tpGrid._AlertOptions == null)
+                    {
+                        tpGrid._AlertOptions = new List<TimeLineAlertOption>();
+                    }
                     foreach (TimeLineAlertOption AlertOption in tpGrid._AlertOptions)
                     {
                         AlertOption._AlertExecution = SettingController.LoadAlertNotification(tp.Name + AlertOption.AlertDefinition);
@@ -172,6 +176,10 @@ namespace Misstab
                     try
                     {
                         var tpGrid = _TLCreator.GetTimeLineObjectDirect(ref this.MainFormObj, tp.Name);
+                        if (tpGrid._AlertOptions == null)
+                        {
+                            tpGrid._AlertOptions = new List<TimeLineAlertOption>();
+                        }
                         foreach (TimeLineAlertOption AlertOption in tpGrid._AlertOptions)
                         {
                             SettingController.SaveAlertNotification_dmp(tp.Name + AlertOption.AlertDefinition, AlertOption._AlertExecution);
@@ -999,6 +1007,10 @@ namespace Misstab
                     try
                     {
                         var tpGrid = _TLCreator.GetTimeLineObjectDirect(ref this.MainFormObj, tp.Name);
+                        if (tpGrid._AlertOptions == null)
+                        {
+                            continue;
+                        }
                         foreach (TimeLineAlertOption AlertOption in tpGrid._AlertOptions)
                         {
                             SettingController.SaveAlertNotification(tp.Name + AlertOption.AlertDefinition, AlertOption._AlertExecution);

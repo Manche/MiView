@@ -24,7 +24,7 @@ namespace Misstab.Common.Setting
         public bool IsSaveIcon { get; set; } = true;
         public static SettingTimeLine ConvertDataGridTimeLineToSettingObj(DataGridTimeLine WSTimeLine)
         {
-            WSTimeLine._FilteringOptions.ForEach(r => { r._Container = null; });
+            WSTimeLine._FilteringOptions?.ForEach(r => { r._Container = null; });
             return new SettingTimeLine()
             {
                 Definition = WSTimeLine._Definition,

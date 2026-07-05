@@ -338,16 +338,20 @@ namespace Misstab.Common.TimeLine
 
             try
             {
-                string OriginalHost = CurrentRowData.Cells[(int)TIMELINE_ELEMENT.ORIGINAL_HOST].Value.ToString() ?? string.Empty;
+                var OriginalHost = CurrentRowData.Cells[(int)TIMELINE_ELEMENT.ORIGINAL_HOST].Value;
                 var Node = CurrentRowData.Cells[(int)TIMELINE_ELEMENT.ORIGINAL].Value;
 
                 if (Node == null || Node.ToString() == string.Empty)
                 {
                     return;
                 }
+                if (OriginalHost == null || OriginalHost.ToString() == string.Empty)
+                {
+                    return;
+                }
 
                 // TL情報をセット
-                this._MainForm.SetTimeLineContents(OriginalHost, (JsonNode)Node);
+                this._MainForm.SetTimeLineContents(OriginalHost.ToString(), (JsonNode)Node);
             }
             catch (Exception ex)
             {

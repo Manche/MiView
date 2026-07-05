@@ -33,6 +33,8 @@ namespace Misstab
                 System.Diagnostics.Debug.WriteLine(ex.ToString());
                 System.Diagnostics.Debug.WriteLine(ex.StackTrace);
                 LogOutput.Write(LogOutput.LOG_LEVEL.INFO, "àŸèÌèIóπ");
+                LogOutput.Write(LogOutput.LOG_LEVEL.INFO, ex.ToString());
+                LogOutput.Write(LogOutput.LOG_LEVEL.INFO, ex.StackTrace);
                 LogOutput.Write(LogOutput.LOG_LEVEL.INFO, "\r\n");
                 LogOutput.Write(LogOutput.LOG_LEVEL.INFO, "----");
             }

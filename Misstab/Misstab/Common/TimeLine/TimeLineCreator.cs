@@ -336,16 +336,22 @@ namespace Misstab.Common.TimeLine
                 return;
             }
 
-            string OriginalHost = CurrentRowData.Cells[(int)TIMELINE_ELEMENT.ORIGINAL_HOST].Value.ToString() ?? string.Empty;
-            var Node = CurrentRowData.Cells[(int)TIMELINE_ELEMENT.ORIGINAL].Value;
-
-            if (Node == null || Node.ToString() == string.Empty)
+            try
             {
-                return;
-            }
+                string OriginalHost = CurrentRowData.Cells[(int)TIMELINE_ELEMENT.ORIGINAL_HOST].Value.ToString() ?? string.Empty;
+                var Node = CurrentRowData.Cells[(int)TIMELINE_ELEMENT.ORIGINAL].Value;
 
-            // TL情報をセット
-            this._MainForm.SetTimeLineContents(OriginalHost, (JsonNode)Node);
+                if (Node == null || Node.ToString() == string.Empty)
+                {
+                    return;
+                }
+
+                // TL情報をセット
+                this._MainForm.SetTimeLineContents(OriginalHost, (JsonNode)Node);
+            }
+            catch (Exception ex)
+            {
+            }
         }
 
         public void CreateTimeLineTab(ref MainForm MainForm, string Name, string Text, bool Visible = true)

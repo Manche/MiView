@@ -1219,12 +1219,29 @@ namespace Misstab.Common.TimeLine
             }
         }
 
+        private int[] _FormattedIndex = new int[0];
         private void OnCellFormatting(object? sender, DataGridViewCellFormattingEventArgs e)
         {
             if (e.RowIndex < 0 || e.RowIndex >= _TimeLineData.Count)
                 return;
 
-            var TLData = _TimeLineData[e.RowIndex];
+            var CCellStyle = e;
+            // 行indexが変わった時
+            if (this._FormattedIndex.Count() != this._TimeLineData.Count())
+            {
+                if (this._FormattedIndex.Count() > this._TimeLineData.Count())
+                {
+                    // 減らす
+                    this._FormattedIndex = new int[this._TimeLineData.Count() - 1];
+                }
+                if (this._FormattedIndex.Count() < this._TimeLineData.Count())
+                {
+                    // 広げる
+                    // 何もしない
+                }
+            }
+
+            var TLData = _TimeLineData[CCellStyle.RowIndex];
 
             foreach (string ColName in Enum.GetNames(typeof(TimeLineCreator.TIMELINE_ELEMENT)))
             {
@@ -1233,10 +1250,48 @@ namespace Misstab.Common.TimeLine
                 {
                     continue;
                 }
-                this.ArrangeTimeLine(e.RowIndex, (int)Enum.Parse(typeof(TimeLineCreator.TIMELINE_ELEMENT), ColName));
+                this.ArrangeTimeLine(CCellStyle.RowIndex, (int)Enum.Parse(typeof(TimeLineCreator.TIMELINE_ELEMENT), ColName));
             }
-            var CCellStyle = e;
             this.ChangeDispColor(ref CCellStyle, TLData);
+        }
+        protected override void OnPaint(PaintEventArgs e)
+        {
+            base.OnPaint(e);
+        }
+        protected override void OnRowPrePaint(DataGridViewRowPrePaintEventArgs e)
+        {
+
+            if (_FormattedIndex.Contains(e.RowIndex))
+            {
+                return;
+            }
+            if (_FormattedIndex.Count() < this._TimeLineData.Count())
+            {
+                lock (this)
+                {
+                    var _t = this._FormattedIndex.ToList();
+                    _t.Add(e.RowIndex);
+                    this._FormattedIndex = _t.ToArray();
+                }
+            }
+            base.OnRowPrePaint(e);
+        }
+        protected override void OnCellPainting(DataGridViewCellPaintingEventArgs e)
+        {
+            if (_FormattedIndex.Contains(e.RowIndex))
+            {
+                return;
+            }
+            if (_FormattedIndex.Count() < this._TimeLineData.Count())
+            {
+                lock (this)
+                {
+                    var _t = this._FormattedIndex.ToList();
+                    _t.Add(e.RowIndex);
+                    this._FormattedIndex = _t.ToArray();
+                }
+            }
+            base.OnCellPainting(e);
         }
 
         private void OnImageLoaded(string define)
@@ -1334,7 +1389,7 @@ namespace Misstab.Common.TimeLine
                     }
 
                     this._TimeLineData.Add(LocalContainer);
-                    this.Refresh();
+                    // this.Refresh();
                     this._TimeLineBackData.Add(LocalContainer);
                     if (this._IsSaveIcon)
                     {
@@ -1970,40 +2025,43 @@ namespace Misstab.Common.TimeLine
         public bool FilterResult()
         {
             bool Result = false;
-            switch (_MODE)
+            lock (this)
             {
-                case MATCH_MODE.ALL:
-                    Result =
-                           MatchProtected() &&
-                           MatchUserId() &&
-                           MatchUserName() &&
-                           MatchDetail() &&
-                           MatchSoftware() &&
-                           MatchChannel() &&
-                           ContainCW() &&
-                           ContainReply() &&
-                           ContainRN();
-                    break;
-                case MATCH_MODE.PARTIAL:
-                    Result =
-                           MatchProtected() ||
-                           MatchUserId() ||
-                           MatchUserName() ||
-                           MatchDetail() ||
-                           MatchSoftware() ||
-                           MatchChannel() ||
-                           ContainCW() ||
-                           ContainReply() ||
-                           ContainRN();
-                    break;
+                switch (_MODE)
+                {
+                    case MATCH_MODE.ALL:
+                        Result =
+                               MatchProtected() &&
+                               MatchUserId() &&
+                               MatchUserName() &&
+                               MatchDetail() &&
+                               MatchSoftware() &&
+                               MatchChannel() &&
+                               ContainCW() &&
+                               ContainReply() &&
+                               ContainRN();
+                        break;
+                    case MATCH_MODE.PARTIAL:
+                        Result =
+                               MatchProtected() ||
+                               MatchUserId() ||
+                               MatchUserName() ||
+                               MatchDetail() ||
+                               MatchSoftware() ||
+                               MatchChannel() ||
+                               ContainCW() ||
+                               ContainReply() ||
+                               ContainRN();
+                        break;
 
-                default:
-                    Result = false;
-                    break;
+                    default:
+                        Result = false;
+                        break;
+                }
+
+                //System.Diagnostics.Debug.WriteLine("チェック結果：" + Result);
+
             }
-
-            //System.Diagnostics.Debug.WriteLine("チェック結果：" + Result);
-
             return !CONSTRAINT_INVERT ? Result : !Result;
         }
 
@@ -2156,7 +2214,7 @@ namespace Misstab.Common.TimeLine
                     MatchedCount = Patterns.FindAll(r => { return r.EndsWith(Value); }).Count;
                     break;
                 case MATCHER_PATTERN.REGEXP:
-                    MatchedCount = Patterns.FindAll(r => { return Regex.Matches(r, Value).Count > 0; }).Count;
+                    MatchedCount = Patterns.FindAll(r => { return Regex.Matches(Value, r, RegexOptions.IgnoreCase).Count > 0; }).Count;
                     break;
 
                 default:

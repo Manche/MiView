@@ -1035,6 +1035,8 @@ namespace Misstab.Common.TimeLine
             this._DataGridTimeLineUpdate += OnDataGridTimeLinePostUpdate;
             this._SaveIconImageSettingChanged += OnSaveIconImageChanged;
 
+            this.CellMouseClick += OnCellMouseClick;
+
             SettingCommon.Instance.PropertyChanged += SettingChanged;
 
             ImageCacher.Instance.ImageLoaded += OnImageLoaded;
@@ -1089,6 +1091,25 @@ namespace Misstab.Common.TimeLine
             _ = Task.Run(() => {
                 ContinuousStasticsUpdate();
             });
+        }
+
+        private RightMouseButtonEvents _RightMouseButtonMenu = RightMouseButtonEvents.Instance;
+
+        private void OnCellMouseClick(object? sender, DataGridViewCellMouseEventArgs e)
+        {
+            try
+            {
+                this.Rows[e.RowIndex].Selected = true;
+            }
+            catch (Exception ex)
+            {
+                return;
+            }
+            if (e.Button == MouseButtons.Right)
+            {
+                this._RightMouseButtonMenu.RightMouseIndex = e.RowIndex;
+                this._RightMouseButtonMenu.Show(this, new Point(e.X, e.Y));
+            }
         }
 
         public void SettingChanged(object? sender, EventArgs e)
